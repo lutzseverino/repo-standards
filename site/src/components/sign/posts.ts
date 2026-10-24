@@ -13,7 +13,7 @@ export function sinkPosts(
 ) {
   const s = rail.getBoundingClientRect();
   const a = assembly.getBoundingClientRect();
-  for (const tube of assembly.querySelectorAll<HTMLElement>(".tube")) {
+  for (const tube of assembly.querySelectorAll<HTMLElement>(".sign-tube")) {
     tube.style.bottom = "0px";
     const r = tube.getBoundingClientRect();
     const railY = s.top + base + railAt(r.left + r.width / 2 - s.left);

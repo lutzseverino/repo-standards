@@ -18,7 +18,7 @@ test("no rule moves a plate's lit copy apart from the plate", () => {
         .map((s) => s.trim())
         // the copy itself or the plate inside it, not their pseudo-elements
         // or the layers inside them
-        .filter((s) => /\.(lit-copy|face--lit)$/.test(s))
+        .filter((s) => /\.(sign-lit-copy|sign-face--lit)$/.test(s))
         .flatMap((s) =>
           [
             ...body.matchAll(
@@ -41,7 +41,7 @@ test("a plate's lit copy takes the plate's fitted name, never its own", () => {
         return parseFloat(el.style.fontSize) * 14;
       },
       closest: (selector: string) =>
-        selector === ".face--lit" ? (lit ? {} : null) : wrap,
+        selector === ".sign-face--lit" ? (lit ? {} : null) : wrap,
     };
     return el;
   };

@@ -4,7 +4,8 @@
    the page-wide layers that light text. The sign plates light themselves in
    sign.css. */
 
-/* At night the torch itself is plain, slightly warm white: the pool and the
+@layer sign {
+  /* At night the torch itself is plain, slightly warm white: the pool and the
    sheen on the bare page carry no hue. Only reflective surfaces split the
    light into a rainbow at the beam's rim: the sign plates (sign.css), the
    edges of shadcn components, and text, through the prism layer.
@@ -12,80 +13,50 @@
    By day a torch would add nothing, so the sun does the work, in white
    only: a glint on the sign sheeting (sign.css) and on the components'
    edges. There is no pool, sheen or prism by day. */
-:root {
-  /* every rainbow on the page, on plates, edges and text, lies on one ring
-     round the aim point, in fractions of the beam radius */
-  --ring-in: 46%;
-  --ring-peak: 62%;
-  --ring-out: 80%;
 
-  /* the sun's glint on an edge: white, fading out before the ring */
-  --edge-hot: rgba(255, 255, 255, 0.8);
-  --edge-warm: rgba(255, 255, 255, 0.56);
-  --edge-pink: rgba(255, 255, 255, 0.2);
-  --edge-amber: transparent;
-  --edge-green: transparent;
-  --edge-blue: transparent;
-}
-
-/* Light at night: a hot centre and a rainbow rim on edges. The prism
-   darkens: every channel of its colours is brighter than the night page, so
-   the page keeps its colour and light text takes the rainbow. */
-.dark {
-  --edge-hot: rgba(255, 248, 232, 0.95);
-  --edge-warm: rgba(236, 226, 206, 0.7);
-  --edge-pink: rgba(255, 120, 175, 0.55);
-  --edge-amber: rgba(255, 214, 120, 0.55);
-  --edge-green: rgba(130, 240, 205, 0.5);
-  --edge-blue: rgba(120, 190, 255, 0.5);
-  --prism-pink: rgb(255 165 205);
-  --prism-amber: rgb(255 222 150);
-  --prism-green: rgb(165 245 215);
-  --prism-blue: rgb(165 205 255);
-}
-
-/* The edge light: every shadcn component of a kind listed here catches the
+  /* The edge light: every shadcn component of a kind listed here catches the
    light on its edge, with a faint rainbow at the beam's rim, through the
-   data-slot attribute it already emits. Add a slot to light another kind. It
+   data-slot attribute it already emits, on the lit page (.sign-page). Add a
+   slot to light another kind. It
    needs no JavaScript: the gradient is fixed to the viewport and centred on
    the aim point. */
-[data-slot="input-group"],
-[data-slot="toggle-group-item"] {
-  position: relative;
-  /* the width of the border it lights, shadcn's 1px */
-  --edge: 1px;
-}
-/* the ring lies on the component's own border, so it shares its corners */
-[data-slot="input-group"]::before,
-[data-slot="toggle-group-item"]::before {
-  content: "";
-  position: absolute;
-  inset: calc(-1 * var(--edge));
-  border-radius: inherit;
-  padding: var(--edge);
-  pointer-events: none;
-  z-index: 1;
-  background: radial-gradient(
-      circle var(--edge-r, 400px) at var(--px) var(--py),
-      var(--edge-hot) 0%,
-      var(--edge-warm) 30%,
-      var(--edge-pink) var(--ring-in),
-      var(--edge-amber) 56%,
-      var(--edge-green) 64%,
-      var(--edge-blue) 72%,
-      transparent var(--ring-out)
-    )
-    fixed;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-}
+  .sign-page [data-slot="input-group"],
+  .sign-page [data-slot="toggle-group-item"] {
+    position: relative;
+    /* the width of the border it lights, shadcn's 1px */
+    --edge: 1px;
+  }
+  /* the ring lies on the component's own border, so it shares its corners */
+  .sign-page [data-slot="input-group"]::before,
+  .sign-page [data-slot="toggle-group-item"]::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--edge));
+    border-radius: inherit;
+    padding: var(--edge);
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(
+        circle var(--edge-r, 400px) at var(--px) var(--py),
+        var(--edge-hot) 0%,
+        var(--edge-warm) 30%,
+        var(--edge-pink) var(--ring-in),
+        var(--edge-amber) 56%,
+        var(--edge-green) 64%,
+        var(--edge-blue) 72%,
+        transparent var(--ring-out)
+      )
+      fixed;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
 
-/* Page-wide light layers. Each covers the window and paints a disc,
+  /* Page-wide light layers. Each covers the window and paints a disc,
    data-light-layer times the beam radius across, centred on the aim point;
    the torch writes the disc's centre and radius to the layer itself. They
    cover the whole page, so the nav, the sign's surroundings and the list
@@ -96,56 +67,57 @@
    times the window's size, and on a Mac it ran out of tile memory: tiles
    went missing as dark rectangles, blended over the plates and the copy
    field, and flickered as they came back. */
-.light-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  --disc-x: -9999px;
-  --disc-y: -9999px;
-  --disc-r: 0px;
-}
-/* the pool on the ground: brightness only */
-.torch-pool {
-  z-index: -1;
-  background: radial-gradient(
-    circle var(--disc-r) at var(--disc-x) var(--disc-y),
-    rgba(255, 251, 244, 0.12),
-    rgba(255, 251, 244, 0.035) 55%,
-    transparent
-  );
-}
-.lit-sheen,
-.lit-prism {
-  z-index: 20;
-}
-/* sheen: colour dodge brightens what is already light, text, borders and
+  .sign-light-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    --disc-x: -9999px;
+    --disc-y: -9999px;
+    --disc-r: 0px;
+  }
+  /* the pool on the ground: brightness only */
+  .sign-torch-pool {
+    z-index: -1;
+    background: radial-gradient(
+      circle var(--disc-r) at var(--disc-x) var(--disc-y),
+      rgba(255, 251, 244, 0.12),
+      rgba(255, 251, 244, 0.035) 55%,
+      transparent
+    );
+  }
+  .sign-lit-sheen,
+  .sign-lit-prism {
+    z-index: 20;
+  }
+  /* sheen: colour dodge brightens what is already light, text, borders and
    edges, while dark ground stays dark; neutral, so it adds no hue */
-.lit-sheen {
-  mix-blend-mode: color-dodge;
-  background: radial-gradient(
-    circle var(--disc-r) at var(--disc-x) var(--disc-y),
-    rgb(70 68 64) 0%,
-    rgb(46 45 42) 36%,
-    rgb(34 33 31) var(--ring-peak),
-    rgb(24 23 22) 74%,
-    transparent var(--ring-out)
-  );
-}
-/* prism: the rainbow on text and legends at the beam's rim. Darken leaves
+  .sign-lit-sheen {
+    mix-blend-mode: color-dodge;
+    background: radial-gradient(
+      circle var(--disc-r) at var(--disc-x) var(--disc-y),
+      rgb(70 68 64) 0%,
+      rgb(46 45 42) 36%,
+      rgb(34 33 31) var(--ring-peak),
+      rgb(24 23 22) 74%,
+      transparent var(--ring-out)
+    );
+  }
+  /* prism: the rainbow on text and legends at the beam's rim. Darken leaves
    the night page untouched. */
-.lit-prism {
-  mix-blend-mode: darken;
-  background: radial-gradient(
-    circle var(--disc-r) at var(--disc-x) var(--disc-y),
-    transparent var(--ring-in),
-    var(--prism-pink) 52%,
-    var(--prism-amber) 58%,
-    var(--prism-green) 65%,
-    var(--prism-blue) 72%,
-    transparent var(--ring-out)
-  );
-}
-/* by day the sun lights no paper and no text */
-:root:not(.dark) .light-layer {
-  display: none;
+  .sign-lit-prism {
+    mix-blend-mode: darken;
+    background: radial-gradient(
+      circle var(--disc-r) at var(--disc-x) var(--disc-y),
+      transparent var(--ring-in),
+      var(--prism-pink) 52%,
+      var(--prism-amber) 58%,
+      var(--prism-green) 65%,
+      var(--prism-blue) 72%,
+      transparent var(--ring-out)
+    );
+  }
+  /* by day the sun lights no paper and no text */
+  :root:not(.dark) .sign-light-layer {
+    display: none;
+  }
 }

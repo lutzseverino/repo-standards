@@ -25,19 +25,29 @@ export function SignpostList({
   }, [keys]);
 
   return (
-    <ul className="posts-grid">
+    <ul className="signpost-grid">
       {sources.map((s, i) => (
-        <li key={s.repository} className="entry">
-          <div className="entry-sign">
+        <li key={s.repository} className="signpost-entry">
+          <div className="signpost-sign">
             <div className="signpost-tabs">
-              <Face kind="blue" className="tab-face exit-tab" hidden>
-                <span className="face__inner flex items-center gap-1.5 tnum">
+              <Face
+                kind="blue"
+                className="sign-tab-face signpost-exit-tab"
+                hidden
+              >
+                <span className="sign-face__inner flex items-center gap-1.5 tabular-nums">
                   {i + 1}
                   <ExitArrow />
                 </span>
               </Face>
-              <Face kind="blue" className="tab-face shield-tab" hidden>
-                <span className="face__inner tnum">{s.release.version}</span>
+              <Face
+                kind="blue"
+                className="sign-tab-face signpost-shield-tab"
+                hidden
+              >
+                <span className="sign-face__inner tabular-nums">
+                  {s.release.version}
+                </span>
               </Face>
             </div>
             <Face
@@ -47,14 +57,14 @@ export function SignpostList({
               label={`${s.name} ${s.release.version}`}
               className="signpost-plate"
             >
-              <span className="face__inner flex w-full items-center gap-3">
+              <span className="sign-face__inner flex w-full items-center gap-3">
                 <Arrow size={34} />
                 <FitName name={s.name} />
               </span>
             </Face>
           </div>
           {/* the plate is the card's header, so the card is flush under it */}
-          <Card className="entry-body row-span-3 mb-10 grid grid-rows-subgrid gap-0 rounded-t-none rounded-b-[12px] border border-t-0 border-(--card-border) py-0 text-base ring-0">
+          <Card className="signpost-body row-span-3 mb-10 grid grid-rows-subgrid gap-0 rounded-t-none rounded-b-[12px] border border-t-0 border-(--card-border) py-0 text-base ring-0">
             <CardContent className="row-span-3 grid grid-rows-subgrid gap-3 py-4 pb-[18px]">
               {children(s)}
             </CardContent>

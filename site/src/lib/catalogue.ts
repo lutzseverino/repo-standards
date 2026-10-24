@@ -11,6 +11,8 @@ export type Source = {
   repository: string;
   name: string;
   description: string;
+  /** The released commit, which pages and agents pin to. */
+  commit: string;
   release: { version: string; publishedAt: string };
   requires: string;
   profiles: Profile[];

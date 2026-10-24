@@ -15,7 +15,7 @@ export function Surface({
   lit?: boolean;
 }) {
   return (
-    <span className="css-sheet" aria-hidden="true">
+    <span className="sign-sheet" aria-hidden="true">
       <i className="seal" />
       {slats && <i className="slats" />}
       {lit && <i className="rainbow" />}
@@ -46,11 +46,11 @@ export function Face({
   leds = false,
   children,
 }: FaceProps) {
-  const classes = `face face--${kind} ${className}`;
+  const classes = `sign-face sign-face--${kind} ${className}`;
   return (
     // measured and lit before the page hydrates (rig.ts)
     <div
-      className="face-wrap"
+      className="sign-face-wrap"
       data-lo=""
       aria-hidden={hidden || undefined}
       suppressHydrationWarning
@@ -62,20 +62,20 @@ export function Face({
       {/* the lit copy shares the plate's grid cell, untransformed, so its
           text lies exactly on the plate's */}
       <div
-        className="lit-copy"
+        className="sign-lit-copy"
         aria-hidden="true"
         inert
         suppressHydrationWarning
       >
-        <div className={`${classes} face--lit`}>
+        <div className={`${classes} sign-face--lit`}>
           <Surface slats={slats} lit />
-          <i className="lit-glint" />
-          <i className="glare" />
+          <i className="sign-lit-glint" />
+          <i className="sign-glare" />
           {children}
         </div>
       </div>
       {leds && (
-        <span className="leds" aria-hidden="true">
+        <span className="sign-leds" aria-hidden="true">
           <i className="spill" />
           <i className="lens" />
           <i className="lens-shine" />

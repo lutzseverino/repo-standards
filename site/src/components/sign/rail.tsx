@@ -72,15 +72,15 @@ export function RailDrawing({
           // lit before the page hydrates (rig.ts)
           suppressHydrationWarning
         >
-          <stop offset="0" className="rail-hot" />
-          <stop offset="0.5" className="rail-warm" />
-          <stop offset="1" className="rail-cold" />
+          <stop offset="0" className="sign-rail-hot" />
+          <stop offset="0.5" className="sign-rail-warm" />
+          <stop offset="1" className="sign-rail-cold" />
         </radialGradient>
       </defs>
-      <path className="rail-shadow" d={d} />
-      <path className="rail-bar" d={d} />
-      <path className="rail-sheen" d={d} />
-      <path className="rail-top" d={d} stroke={`url(#edge-${id})`} />
+      <path className="sign-rail-shadow" d={d} />
+      <path className="sign-rail-bar" d={d} />
+      <path className="sign-rail-sheen" d={d} />
+      <path className="sign-rail-top" d={d} stroke={`url(#edge-${id})`} />
     </>
   );
 }

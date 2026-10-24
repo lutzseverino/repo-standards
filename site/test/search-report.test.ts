@@ -46,6 +46,22 @@ test("the recorded search becomes the catalogue", async () => {
   assert.equal(catalogue.rejectedCount, recordedPage().rejected.length);
 });
 
+test("every source carries its released commit", async () => {
+  const catalogue = await buildCatalogue(input(() => {}));
+  const recorded = recordedPage().candidates as unknown as {
+    repository: string;
+    commit: string;
+  }[];
+  assert.equal(catalogue.sources.length, recorded.length);
+  for (const source of catalogue.sources) {
+    const candidate = recorded.find(
+      (c) => c.repository === `https://github.com/${source.repository}`,
+    );
+    assert.match(source.commit, /^[0-9a-f]{40}$/);
+    assert.equal(source.commit, candidate?.commit);
+  }
+});
+
 test("the list is alphabetical by display name", async () => {
   const catalogue = await buildCatalogue(
     input((page) => page.candidates.reverse()),

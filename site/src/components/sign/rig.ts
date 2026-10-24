@@ -37,7 +37,7 @@ export function lightRig() {
   const POSE = { x: 4, y: -9 };
   /** The shadcn components whose edges light.css lights, by their data-slot. */
   const LIT_EDGES =
-    '[data-slot="input-group"], [data-slot="toggle-group-item"]';
+    '.sign-page [data-slot="input-group"], .sign-page [data-slot="toggle-group-item"]';
 
   type Origin = {
     el: HTMLElement;
@@ -139,13 +139,13 @@ export function lightRig() {
           y: r.top + sy,
           // the layout size, for how far the beam reaches
           ...layoutSize(el),
-          rot: el.querySelector<HTMLElement>(":scope > .lit-copy"),
+          rot: el.querySelector<HTMLElement>(":scope > .sign-lit-copy"),
           off: false,
         };
       },
     );
     const nextRails = [
-      ...document.querySelectorAll<SVGSVGElement>("svg.rail-svg"),
+      ...document.querySelectorAll<SVGSVGElement>("svg.sign-rail-svg"),
     ].map((svg) => {
       const r = svg.getBoundingClientRect();
       return {
@@ -158,7 +158,7 @@ export function lightRig() {
       const s = o.el.style;
       s.setProperty("--ox", `${o.x.toFixed(1)}px`);
       s.setProperty("--oy", `${o.y.toFixed(1)}px`);
-      if (o.rot) o.el.classList.remove("lit-off");
+      if (o.rot) o.el.classList.remove("sign-lit-off");
     }
     origins = next;
     rails = nextRails;
@@ -247,7 +247,7 @@ export function lightRig() {
       const off = far || hidden;
       if (off !== o.off) {
         o.off = off;
-        o.el.classList.toggle("lit-off", off);
+        o.el.classList.toggle("sign-lit-off", off);
       }
       if (off) continue;
       // the aim point in plate coordinates
@@ -286,7 +286,7 @@ export function lightRig() {
    * root, since React would find a style on them it did not render; the
    * torch writes the same beam to each of them once it runs. */
   function rest() {
-    const assembly = document.querySelector<HTMLElement>(".assembly");
+    const assembly = document.querySelector<HTMLElement>(".sign-assembly");
     if (assembly) tilt(assembly, pose());
     measure();
     edges = [document.documentElement];
@@ -318,8 +318,8 @@ export const restScript = () => `(() => {
   const heroBend = ${heroBend.toString()};
   const settle = () => {
     document.querySelectorAll(".signpost-name").forEach((el) => fitName(el));
-    const assembly = document.querySelector(".assembly");
-    const rail = document.querySelector("svg.hero-rail");
+    const assembly = document.querySelector(".sign-assembly");
+    const rail = document.querySelector("svg.sign-hero-rail");
     if (assembly && rail)
       sinkPosts(assembly, rail, (x) => heroBend(x, ${HERO_RAIL_WIDTH}), ${HERO_RAIL_BASE});
   };

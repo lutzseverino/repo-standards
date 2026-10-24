@@ -29,9 +29,9 @@ import { useTheme } from "@/lib/theme";
 // elements, they are lit before the page hydrates (sign/rig.ts), so React is
 // told not to compare their style with the server's.
 const LIGHT_LAYERS = [
-  ["torch-pool", 3],
-  ["lit-sheen", 2],
-  ["lit-prism", 2],
+  ["sign-torch-pool", 3],
+  ["sign-lit-sheen", 2],
+  ["sign-lit-prism", 2],
 ] as const;
 
 const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
@@ -55,13 +55,13 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
       {LIGHT_LAYERS.map(([name, k]) => (
         <div
           key={name}
-          className={`light-layer ${name}`}
+          className={`sign-light-layer ${name}`}
           data-light-layer={k}
           aria-hidden="true"
           suppressHydrationWarning
         />
       ))}
-      <main className="page mx-auto max-w-6xl px-6 pt-10 pb-32">
+      <main className="sign-page mx-auto max-w-6xl px-6 pt-10 pb-32">
         <nav className="mb-8 flex items-center justify-end gap-1 text-[15px]">
           <a
             className={buttonVariants({ variant: "ghost" })}
