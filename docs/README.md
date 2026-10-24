@@ -2,9 +2,9 @@
 
 This directory maps Repository Standards' documentation categories.
 
-- [Usage](usage/README.md): guides for installing, adopting, updating,
-  checking, and authoring with the product, and the reference for the public
-  formats, protocols, and reports it defines.
+- [Usage](usage/README.md): getting started with the product, guides for
+  installing, adopting, updating, checking, and authoring with it, and the
+  reference for the public formats, protocols, and reports it defines.
 - [Development](development/README.md): setting up, validating, releasing, and
   maintaining the product, and its architecture contracts.
 - [Architecture decisions](adr/README.md): consequential product decisions and

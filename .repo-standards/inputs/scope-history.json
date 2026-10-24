@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
+  "inspection": "sha256:37d29c078523aadd7e3591723b12c4d14fcf2db1482ee6b8daa618a7ffe3b400",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -107,6 +107,10 @@
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
             "docs/usage/guides/README.md",
             "docs/usage/guides/adopt.md",
             "docs/usage/guides/author-a-source.md",
@@ -1310,13 +1314,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:e4bc95910a3ecfff6e15bb706cabc01283516b492fab69b7486ed3bb01d7fc41",
+    "identity": "sha256:5abe8a3faf927fe0d9a6fb7bbf7c0e3ec83a9884ea6bd07a2d6060c7d0c6ce8f",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/guides/author-a-source.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair. Applied again at the same versions after the usage documents moved into `docs/usage/guides/` and `docs/usage/reference/`: the moved paths leave the scope, their new paths and the documents added since the last adoption enter it, and the links to the moved files were repaired before this run.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/guides/author-a-source.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair. Applied again at the same versions after the usage documents moved into `docs/usage/guides/` and `docs/usage/reference/`: the moved paths leave the scope, their new paths and the documents added since the last adoption enter it, and the links to the moved files were repaired before this run. Applied again at the same versions after `docs/usage/getting-started/` was added: its index and three pages enter the scope.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1812,6 +1816,38 @@
               ]
             },
             {
+              "path": "docs/usage/getting-started/README.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/getting-started/README.md"
+              ]
+            },
+            {
+              "path": "docs/usage/getting-started/adopt-repo-canon.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/getting-started/adopt-repo-canon.md"
+              ]
+            },
+            {
+              "path": "docs/usage/getting-started/keep-it-up-to-date.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/getting-started/keep-it-up-to-date.md"
+              ]
+            },
+            {
+              "path": "docs/usage/getting-started/what-repo-standards-does.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/getting-started/what-repo-standards-does.md"
+              ]
+            },
+            {
               "path": "docs/usage/guides/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
@@ -2158,7 +2194,7 @@
         },
         "docs/README.md": {
           "type": "file",
-          "sha256": "de27d264182a44eab012175e8f6c192c6ea4a261765e848f7ef9549e5ff43f1a",
+          "sha256": "bffa35b6935296419c33ef3b4aa92f21580c82f247a33dc9285fb788733d906e",
           "executable": false
         },
         "docs/adr/0001-separate-authorship-from-adoption.md": {
@@ -2333,7 +2369,27 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "e586e70c610b1d0018e4c0e8ee4050837b36eef5c03f7be9e2f47a308b5405f8",
+          "sha256": "83b90e08faadfc3f6378f2808baa80c58f8441b063a438b38dc4aa2fd550f119",
+          "executable": false
+        },
+        "docs/usage/getting-started/README.md": {
+          "type": "file",
+          "sha256": "b7ee299475f4924217aee8a2a051f36ab088578a600e9144082d6f3ed0328007",
+          "executable": false
+        },
+        "docs/usage/getting-started/adopt-repo-canon.md": {
+          "type": "file",
+          "sha256": "ad18d80318162f836bfd8458009e602a59c0d390d1ad52dd442c0d640857450e",
+          "executable": false
+        },
+        "docs/usage/getting-started/keep-it-up-to-date.md": {
+          "type": "file",
+          "sha256": "b2a8e7b6ff14c87a9371c6fe8414d9bf366c8c4bf4f58593457f42f17c688d30",
+          "executable": false
+        },
+        "docs/usage/getting-started/what-repo-standards-does.md": {
+          "type": "file",
+          "sha256": "6b6e1c56379ba453376c39c09303bd501ecb580456b9989e18c49d8b02399b14",
           "executable": false
         },
         "docs/usage/guides/README.md": {
@@ -2363,12 +2419,12 @@
         },
         "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "3bd41e3a074fe8bcca39b398bba07ade08fbd895acc889584a33557cc011e3e0",
+          "sha256": "18344fb8bab016a187e9500a808320025a0e8428404886b3cf6d43d3ab721824",
           "executable": false
         },
         "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "25eeb4ef95c26025d656bbef669912020b42cd2196fbf7e128d8aec167c58d90",
+          "sha256": "25c5e7a318b64b21fee30d0a041bd654642f563c3e4f709da4f7d5a626e80612",
           "executable": false
         },
         "docs/usage/guides/update.md": {
@@ -2428,7 +2484,7 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "1cb770a7fff414600c229a15b0613fab15a570171d75fb1f6f40bd4a92c85adb",
+          "sha256": "a079dcabfb929e821b822ad5648ceae43b5a362980ca709332a5cfb9d099bc27",
           "executable": false
         }
       }
@@ -3194,7 +3250,7 @@
         },
         "docs/README.md": {
           "type": "file",
-          "sha256": "de27d264182a44eab012175e8f6c192c6ea4a261765e848f7ef9549e5ff43f1a",
+          "sha256": "bffa35b6935296419c33ef3b4aa92f21580c82f247a33dc9285fb788733d906e",
           "executable": false
         },
         "docs/adr/0001-separate-authorship-from-adoption.md": {
@@ -3394,7 +3450,27 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "e586e70c610b1d0018e4c0e8ee4050837b36eef5c03f7be9e2f47a308b5405f8",
+          "sha256": "83b90e08faadfc3f6378f2808baa80c58f8441b063a438b38dc4aa2fd550f119",
+          "executable": false
+        },
+        "docs/usage/getting-started/README.md": {
+          "type": "file",
+          "sha256": "b7ee299475f4924217aee8a2a051f36ab088578a600e9144082d6f3ed0328007",
+          "executable": false
+        },
+        "docs/usage/getting-started/adopt-repo-canon.md": {
+          "type": "file",
+          "sha256": "ad18d80318162f836bfd8458009e602a59c0d390d1ad52dd442c0d640857450e",
+          "executable": false
+        },
+        "docs/usage/getting-started/keep-it-up-to-date.md": {
+          "type": "file",
+          "sha256": "b2a8e7b6ff14c87a9371c6fe8414d9bf366c8c4bf4f58593457f42f17c688d30",
+          "executable": false
+        },
+        "docs/usage/getting-started/what-repo-standards-does.md": {
+          "type": "file",
+          "sha256": "6b6e1c56379ba453376c39c09303bd501ecb580456b9989e18c49d8b02399b14",
           "executable": false
         },
         "docs/usage/guides/README.md": {
@@ -3424,12 +3500,12 @@
         },
         "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "3bd41e3a074fe8bcca39b398bba07ade08fbd895acc889584a33557cc011e3e0",
+          "sha256": "18344fb8bab016a187e9500a808320025a0e8428404886b3cf6d43d3ab721824",
           "executable": false
         },
         "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "25eeb4ef95c26025d656bbef669912020b42cd2196fbf7e128d8aec167c58d90",
+          "sha256": "25c5e7a318b64b21fee30d0a041bd654642f563c3e4f709da4f7d5a626e80612",
           "executable": false
         },
         "docs/usage/guides/update.md": {
@@ -3639,12 +3715,12 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "1cb770a7fff414600c229a15b0613fab15a570171d75fb1f6f40bd4a92c85adb",
+          "sha256": "a079dcabfb929e821b822ad5648ceae43b5a362980ca709332a5cfb9d099bc27",
           "executable": false
         },
         "site/astro.config.mjs": {
           "type": "file",
-          "sha256": "9b766267684943b8d3f3a140ca78c08b5c5cf67ac48fdeba4cffbda8657b2317",
+          "sha256": "db1b3dc495cf6d059895f3d058d8c1f7e8eed58eab80dba17795122127a7239a",
           "executable": false
         },
         "site/components.json": {
@@ -3674,17 +3750,17 @@
         },
         "site/public/apple-touch-icon.png": {
           "type": "file",
-          "sha256": "64a479229847f7a7b7bcc7801553832cf7060d7cc8b11ca3848a7334bb69a7a5",
+          "sha256": "e996568ec31f110bba45440b3d915aa8bf9027a93bcfecf317b19a6dfa9fac44",
           "executable": false
         },
         "site/public/favicon.ico": {
           "type": "file",
-          "sha256": "2e238aaeab6a18e8be8a1af351d777312b50cca10091ded32b51e4bf2b4a7eaa",
+          "sha256": "ded2ae35b574075aaeb25fcd2d8cd82c5471aaf567c9ece189a3d4e8a157852d",
           "executable": false
         },
         "site/public/favicon.svg": {
           "type": "file",
-          "sha256": "c641679990ec94ee890ef49d1d267ebed0e44dfe32b15ea884c6863991228759",
+          "sha256": "132a81be209d344d8676366a42265a710cbc6561064bab8ffdec7efa0a7331a9",
           "executable": false
         },
         "site/public/fonts/d-din-pro/D-DIN-PRO-400-Regular.woff2": {
@@ -3719,17 +3795,17 @@
         },
         "site/public/icon-192.png": {
           "type": "file",
-          "sha256": "09d9099276a573b66a90e0ad1fa4f7f3d1c1f6bfe7172361f4d720a07aa4cfb3",
+          "sha256": "655453506438b1391c2f7f6fc60bc25c50bf8ad7a86297b6697db980fae0ce80",
           "executable": false
         },
         "site/public/icon-512.png": {
           "type": "file",
-          "sha256": "c430c04ef68de3548d76a2a796b47a3198f455cdfc6b14d720c8384d031b347d",
+          "sha256": "1501a82552957cd362d5f20365fcf6db49d11e50d997ebb633a52d5c721983e1",
           "executable": false
         },
         "site/public/robots.txt": {
           "type": "file",
-          "sha256": "e624d34e343fa997a2130cba784e8c3bfd1839243b2ef655403b20a2f2eaab22",
+          "sha256": "a028e73530925805e599bbfdf0a6167871fc2919350f0be94115bcc97211af49",
           "executable": false
         },
         "site/registry-manifest.json": {
@@ -3954,7 +4030,7 @@
         },
         "site/test/crawlability.test.ts": {
           "type": "file",
-          "sha256": "5de3f6430cc1ffaad339d77ebc9e2aba261e7037007e34e4a1dc4ba3cad92acc",
+          "sha256": "be8b21674f0c60c5f25fda37c45ec29d578489d676c79da3471075f65d41171f",
           "executable": false
         },
         "site/test/search-report.test.ts": {
@@ -3964,7 +4040,7 @@
         },
         "site/test/structured-data.test.ts": {
           "type": "file",
-          "sha256": "4d66e59502bded0df3e331c3605190734e51c65246a884dbe053aadc4af0658d",
+          "sha256": "776dc876415148be7572f29b699a6084987ddceaf813f8486b8f94d7b0cdc521",
           "executable": false
         },
         "site/tsconfig.json": {
@@ -5064,8 +5140,15 @@
         ],
         "docs/usage": [
           "docs/usage/README.md",
+          "docs/usage/getting-started",
           "docs/usage/guides",
           "docs/usage/reference"
+        ],
+        "docs/usage/getting-started": [
+          "docs/usage/getting-started/README.md",
+          "docs/usage/getting-started/adopt-repo-canon.md",
+          "docs/usage/getting-started/keep-it-up-to-date.md",
+          "docs/usage/getting-started/what-repo-standards-does.md"
         ],
         "docs/usage/guides": [
           "docs/usage/guides/README.md",
@@ -5739,6 +5822,9 @@
         "docs/usage": {
           "type": "directory"
         },
+        "docs/usage/getting-started": {
+          "type": "directory"
+        },
         "docs/usage/guides": {
           "type": "directory"
         },
@@ -6213,6 +6299,9 @@
         "docs/usage/.gitignore": {
           "type": "missing"
         },
+        "docs/usage/getting-started/.gitignore": {
+          "type": "missing"
+        },
         "docs/usage/guides/.gitignore": {
           "type": "missing"
         },
@@ -6393,48 +6482,12 @@
     {
       "id": "documentation",
       "additions": [
-        "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
-        "docs/adr/0022-replace-a-stopped-run-in-place.md",
-        "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
-        "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
-        "docs/adr/0025-start-when-nothing-is-open.md",
-        "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
-        "docs/adr/0027-choose-the-platform-inside-each-profile.md",
-        "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
-        "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
-        "docs/development/retained-exact-content.md",
-        "docs/usage/guides/README.md",
-        "docs/usage/guides/adopt.md",
-        "docs/usage/guides/author-a-source.md",
-        "docs/usage/guides/automated-updates.md",
-        "docs/usage/guides/find-sources.md",
-        "docs/usage/guides/install.md",
-        "docs/usage/guides/run-checks.md",
-        "docs/usage/guides/update.md",
-        "docs/usage/reference/README.md",
-        "docs/usage/reference/adoption-run.md",
-        "docs/usage/reference/assessment-protocol.md",
-        "docs/usage/reference/author-format.md",
-        "docs/usage/reference/available-updates.md",
-        "docs/usage/reference/check.md",
-        "docs/usage/reference/github-requests.md",
-        "docs/usage/reference/inspection.md",
-        "docs/usage/reference/rules.md",
-        "docs/usage/reference/script-protocol.md"
+        "docs/usage/getting-started/README.md",
+        "docs/usage/getting-started/adopt-repo-canon.md",
+        "docs/usage/getting-started/keep-it-up-to-date.md",
+        "docs/usage/getting-started/what-repo-standards-does.md"
       ],
-      "removals": [
-        "docs/usage/adoption.md",
-        "docs/usage/assessment-protocol.md",
-        "docs/usage/author-format.md",
-        "docs/usage/authoring.md",
-        "docs/usage/available-updates.md",
-        "docs/usage/check.md",
-        "docs/usage/discovery.md",
-        "docs/usage/inspection.md",
-        "docs/usage/installation.md",
-        "docs/usage/rules.md",
-        "docs/usage/script-protocol.md"
-      ]
+      "removals": []
     }
   ]
 }

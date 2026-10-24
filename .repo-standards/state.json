@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -83,6 +83,10 @@
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
             "docs/usage/guides/README.md",
             "docs/usage/guides/adopt.md",
             "docs/usage/guides/author-a-source.md",
@@ -143,8 +147,8 @@
           "directories": []
         }
       },
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -191,6 +195,10 @@
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
             "docs/usage/guides/README.md",
             "docs/usage/guides/adopt.md",
             "docs/usage/guides/author-a-source.md",
@@ -251,8 +259,232 @@
           "directories": []
         }
       },
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+            "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+            "docs/adr/README.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
+            "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".factory/Dockerfile"
+          ],
+          "directories": []
+        },
+        "factory-workflow": {
+          "paths": [],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-agent-guidance": {
+          "paths": [
+            "docs/agents/project.md"
+          ],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+            "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+            "docs/adr/README.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
+            "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".factory/Dockerfile"
+          ],
+          "directories": []
+        },
+        "factory-workflow": {
+          "paths": [],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-agent-guidance": {
+          "paths": [
+            "docs/agents/project.md"
+          ],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -299,6 +531,10 @@
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
             "docs/usage/guides/README.md",
             "docs/usage/guides/adopt.md",
             "docs/usage/guides/author-a-source.md",
@@ -327,8 +563,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -347,8 +583,8 @@
         "id": "pull-request-reviewer"
       },
       "operationIndex": 3,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -369,8 +605,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -391,8 +627,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -439,6 +675,10 @@
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
             "docs/usage/guides/README.md",
             "docs/usage/guides/adopt.md",
             "docs/usage/guides/author-a-source.md",
@@ -499,8 +739,8 @@
           "directories": []
         }
       },
-      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
-      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "before": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
+      "after": "sha256:92b2fa96710cb01b3b9a0ade3381b2fff6627c071aa6e31f345f3264b3d7fbd8",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -637,10 +877,10 @@
   "retryHistory": [],
   "changeSet": [],
   "lastComplete": {
-    "run": "3ad13a69-ff2a-40f9-bceb-1769e737b9ce",
-    "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
-    "completedAt": "2026-10-24T16:33:09.235Z",
-    "head": "70f7099e44e3ad1e40d89c821bc0d5124b350f82"
+    "run": "e544fd40-d8a6-42a7-9ec4-57fcdc08d7f0",
+    "inspection": "sha256:37d29c078523aadd7e3591723b12c4d14fcf2db1482ee6b8daa618a7ffe3b400",
+    "completedAt": "2026-10-24T17:56:57.630Z",
+    "head": "13a306374a32c46790f9380cfb1106129082661b"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -1178,40 +1418,41 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
-        "afterFixes": "sha256:3a39eb6439161f1ae1fba677321c5ce62e196840688ed19200d4d64655896ec5"
+        "inspection": "sha256:37d29c078523aadd7e3591723b12c4d14fcf2db1482ee6b8daa618a7ffe3b400",
+        "afterFixes": "sha256:812ce9733a0f13890ccc68b9d7118ebc10f929b6be3ea42585bd178007dd0e47"
       },
-      "run": "3ad13a69-ff2a-40f9-bceb-1769e737b9ce",
+      "run": "e544fd40-d8a6-42a7-9ec4-57fcdc08d7f0",
       "selection": "sha256:9a0c5ac2e41ea30f24f643fecb96f8baa16247b3c536c3b389515e9270952141",
-      "snapshot": "sha256:3a39eb6439161f1ae1fba677321c5ce62e196840688ed19200d4d64655896ec5",
+      "snapshot": "sha256:812ce9733a0f13890ccc68b9d7118ebc10f929b6be3ea42585bd178007dd0e47",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "The usage documents now sit in docs/usage/guides/ and docs/usage/reference/, each directory has a README index with a one-sentence purpose and one entry per document, docs/usage/README.md lists the two directory indexes, and every local link resolves. The moves and link repairs were committed before this run, so the run needed no contextual edit.",
+          "explanation": "docs/usage/getting-started/ has a README index with a one-sentence purpose and one entry per page, and docs/usage/README.md lists it first, before Guides and Reference. The three pages are short newcomer documents: what Repo Standards does, adopting Repo Canon, and keeping it up to date, each linking the guide or reference that holds the detail. The pages were committed before this run, so it needed no contextual edit.",
           "changedPaths": [],
           "evidence": [
-            "Ran the documentation-navigation check script against the confirmed paths before the run: passed. Removing docs/usage/guides/README.md made it fail with a missing index, so it reads the new layout.",
-            "docs/usage/README.md opens with one sentence saying what the project is and who it is for, with no GLOSSARY.md term, then defines a standards source and what adopting one changes before linking guides/README.md and reference/README.md.",
-            "A link check over every tracked Markdown file outside .repo-standards found no missing file or heading anchor; node --test test/release.test.ts confirms the packaged usage documents resolve their links and anchors inside the package.",
-            "docs/development/README.md keeps its purpose, Setup and validation section, then its index."
+            "docs/usage/getting-started/README.md opens with one purpose sentence and lists what-repo-standards-does.md, adopt-repo-canon.md and keep-it-up-to-date.md in the [Title](path): description form; no other index lists them.",
+            "docs/usage/README.md keeps its purpose sentence unchanged and lists getting-started/README.md, guides/README.md and reference/README.md in that order; docs/README.md's Usage entry now names getting started.",
+            "A link and anchor check over every tracked Markdown document under docs, plus the four new files, found no missing target.",
+            "The adoption page's agent prompt matches README.md's byte for byte (diff of the two prompt lines is empty).",
+            "docs/development/README.md is unchanged and keeps its purpose, Setup and validation section, then its index."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, including the moved usage documents at their new paths, ADRs 0021 to 0029, docs/development/retained-exact-content.md and the new guides and reference indexes; nothing outside it needed an edit.",
+              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, now including docs/usage/getting-started/README.md and its three pages; nothing outside it needed an edit.",
               "evidence": [
-                "The discovery script draft for this run lists the same included documentation paths as the confirmed scope.",
-                "The old docs/usage/*.md paths no longer exist and are out of the scope."
+                "The discovery script draft for this run includes the same documentation paths as the confirmed scope, and its only new paths are the four getting-started files.",
+                "docs/agents/README.md, domain.md, issue-tracker.md and triage-labels.md stay owned by their exact declarations, and docs/agents/project.md by project-agent-guidance."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, including the moved usage documents at their new paths, ADRs 0021 to 0029, docs/development/retained-exact-content.md and the new guides and reference indexes; nothing outside it needed an edit.",
+              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, now including docs/usage/getting-started/README.md and its three pages; nothing outside it needed an edit.",
               "evidence": [
-                "The discovery script draft for this run lists the same included documentation paths as the confirmed scope.",
-                "The old docs/usage/*.md paths no longer exist and are out of the scope."
+                "The discovery script draft for this run includes the same documentation paths as the confirmed scope, and its only new paths are the four getting-started files.",
+                "docs/agents/README.md, domain.md, issue-tracker.md and triage-labels.md stay owned by their exact declarations, and docs/agents/project.md by project-agent-guidance."
               ],
               "additionalPaths": []
             }
@@ -1220,17 +1461,17 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": ".factory/Dockerfile and these rules are unchanged since the last complete adoption, which assessed it satisfied; this run changes neither.",
+          "explanation": ".factory/Dockerfile and its rules are unchanged since the last complete adoption, which assessed it satisfied; this run changes neither.",
           "changedPaths": [],
           "evidence": [
-            "git log b32f720..HEAD -- .factory/Dockerfile lists no commit.",
-            "The run reports no exact content changes and the same Repo Canon v0.15.0 commit."
+            "git log d0c0a24..HEAD -- .factory/Dockerfile lists no commit.",
+            "The inspection reports no exact content changes and the same Repo Canon v0.15.0 commit."
           ]
         },
         {
           "id": "factory-workflow",
           "status": "satisfied",
-          "explanation": "The repository-wide factory workflow rules are unchanged and installed; the repository already carries the factory state labels and model labels they describe, and this run makes no change they govern.",
+          "explanation": "The repository-wide factory workflow rules are unchanged and installed; the repository carries the factory state labels and model labels they describe, and this run makes no change they govern.",
           "changedPaths": [],
           "evidence": [
             "gh label list shows factory:failed, factory:needs-input, factory:paused and factory:running, and model: labels such as model:claude-opus-5-5@high.",
@@ -1258,12 +1499,12 @@
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "The repository already has the canonical labels with their colors and descriptions, squash merging as its only merge method with PR title and body as the squash defaults, and a valid pull request reviewer file; the run's fixes found nothing to change.",
+          "explanation": "The repository has the canonical labels with their colors, squash merging as its only merge method with the PR title and body as squash defaults, and a valid pull request reviewer file.",
           "changedPaths": [],
           "evidence": [
-            "gh label list shows needs-triage fbca04, needs-info d4c5f9, ready-for-agent 0e8a16, ready-for-human 1d76db, wontfix ffffff, bug d73a4a, enhancement a2eeef and the five wayfinder labels with the rules' colors and descriptions.",
+            "gh label list shows needs-triage fbca04, needs-info d4c5f9, ready-for-agent 0e8a16, ready-for-human 1d76db, wontfix ffffff, bug d73a4a, enhancement a2eeef and the five wayfinder labels with the rules' colors.",
             "gh api repos/lutzseverino/repo-standards reports allow_squash_merge true, allow_merge_commit false, allow_rebase_merge false, squash_merge_commit_title PR_TITLE and squash_merge_commit_message PR_BODY.",
-            ".github/pull-request-reviewer.json is version 1 with every required field."
+            ".github/pull-request-reviewer.json is version 1 with every required field and is unchanged since d0c0a24."
           ],
           "scopeValidity": {
             "afterFixes": {
@@ -1287,29 +1528,28 @@
         {
           "id": "project-agent-guidance",
           "status": "satisfied",
-          "explanation": "docs/agents/project.md holds only repository-specific agent constraints: the architecture contracts, the author format, Repo Canon as a separate source, branching from main, and the release completion rule. Its only change is the author-format link, now pointing at docs/usage/reference/author-format.md.",
+          "explanation": "docs/agents/project.md is unchanged since the last complete adoption and holds only repository-specific agent constraints: the architecture contracts, the author format, Repo Canon as a separate source, branching from main, and the release completion rule.",
           "changedPaths": [],
           "evidence": [
-            "git diff b32f720 HEAD -- docs/agents/project.md changes only the link target.",
+            "git log d0c0a24..HEAD -- docs/agents/project.md lists no commit.",
             "The file restates no installed rule or CONTRIBUTING.md requirement."
           ]
         },
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "site/README.md has a plain title and a developer-facing description of the private Astro site, its commands with their working directory, configuration, source layout and data, and links the development guide and contribution guidelines instead of duplicating them. Its local links resolve.",
+          "explanation": "site/README.md is unchanged since the last complete adoption: a plain title, a developer-facing description of the private Astro site, its commands with their working directory, configuration, source layout and data, and links to the development guide and contribution guidelines.",
           "changedPaths": [],
           "evidence": [
-            "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md with visible text.",
-            "It says the commands run from the repository root and lists pnpm --dir site dev, check, build, build:fixture, test and preview.",
-            "The link check over every tracked Markdown file found no missing target in site/README.md."
+            "git log d0c0a24..HEAD -- site/README.md lists no commit.",
+            "The link check found no missing target in site/README.md."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
               "explanation": "The recorded scope still names the one Project README, site/README.md; no other directory is a Project with its own development commands.",
               "evidence": [
-                "The recorded scope entry's candidates still exist and the discovery draft proposes no other Project."
+                "The recorded scope entry's candidates still exist, and the discovery draft proposes no other Project."
               ],
               "additionalPaths": []
             },
@@ -1317,7 +1557,7 @@
               "status": "valid",
               "explanation": "The recorded scope still names the one Project README, site/README.md; no other directory is a Project with its own development commands.",
               "evidence": [
-                "The recorded scope entry's candidates still exist and the discovery draft proposes no other Project."
+                "The recorded scope entry's candidates still exist, and the discovery draft proposes no other Project."
               ],
               "additionalPaths": []
             }
@@ -1326,22 +1566,21 @@
         {
           "id": "repository-license",
           "status": "satisfied",
-          "explanation": "LICENSE and these rules are unchanged since the last complete adoption; it holds the MIT License the README's License section names.",
+          "explanation": "LICENSE and its rules are unchanged since the last complete adoption; it holds the MIT License that the README's License section names.",
           "changedPaths": [],
           "evidence": [
-            "git log b32f720..HEAD -- LICENSE lists no commit.",
+            "git log d0c0a24..HEAD -- LICENSE lists no commit.",
             "README.md links [MIT License](LICENSE)."
           ]
         },
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "README.md keeps a centered title, a one-sentence description and runtime badges, Installation first, then Features, Usage, Documentation, Contributing and License, with the pointer sections holding only their links. The only change in this branch repoints its usage links to the moved documents.",
+          "explanation": "README.md is unchanged since the last complete adoption, which assessed it satisfied: a centered title, a one-sentence description and runtime badges, Installation first, then Features, Usage, Documentation, Contributing and License, with the pointer sections holding only their links.",
           "changedPaths": [],
           "evidence": [
-            "The repository-readme-structure check passed against the current README.md before this run.",
-            "git diff 853f3d9 HEAD -- README.md changes only the targets of links into docs/usage/.",
-            "Every README.md link into docs/usage/ resolves, and node --test test/release.test.ts passes the packed README link checks."
+            "git log d0c0a24..HEAD -- README.md lists no commit.",
+            "Its Documentation section links only docs/README.md, so it does not point at Getting started directly; docs/README.md and docs/usage/README.md lead there."
           ]
         }
       ]

@@ -42,6 +42,10 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/development/release.md`
   - `docs/development/retained-exact-content.md`
   - `docs/usage/README.md`
+  - `docs/usage/getting-started/README.md`
+  - `docs/usage/getting-started/adopt-repo-canon.md`
+  - `docs/usage/getting-started/keep-it-up-to-date.md`
+  - `docs/usage/getting-started/what-repo-standards-does.md`
   - `docs/usage/guides/README.md`
   - `docs/usage/guides/adopt.md`
   - `docs/usage/guides/author-a-source.md`
