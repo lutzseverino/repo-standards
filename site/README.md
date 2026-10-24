@@ -3,6 +3,7 @@
 The private `site/` workspace builds the Repository Standards website with
 Astro, React, Tailwind 4 and shadcn/ui. Its homepage lists the standards
 sources that source search finds, under a road sign pointing to Repo Canon.
+Starlight 0.40.0 serves the usage documentation and design decisions at `/docs/`.
 
 ## Development
 
@@ -28,6 +29,26 @@ static files to `site/dist/`; preview serves that output locally. Root
 tests in `test/` use Node's built-in test runner, with no test framework
 installed. `pages.test.ts` builds the fixture site with a page only it builds,
 and runs the pages' inline scripts in `node:vm`.
+
+`src/content.config.ts` loads `../docs/usage/**/*.md` and `../docs/adr/**/*.md`
+in place. `src/lib/docs-content.ts` supplies each file's H1 as its title before
+schema validation, removes that heading from the rendered body, and rewrites
+Markdown links and reference definitions against the original file. Usage and
+ADR links reach their docs routes; other repository files reach GitHub.
+`README.md` becomes its folder's landing page. The sidebar follows the external
+folders and adds Getting started when that folder exists. `astro.config.mjs`
+keeps the explicit sitemap integration and disables prefetch to preserve the
+homepage's output. Starlight builds the Pagefind index alongside the pages.
+`test/docs.test.ts` checks the rendered corpus, links and fragments, sitemap,
+beacon, theme navigation, and a nested-folder fixture. Its homepage fingerprint
+records the fixture build at `e95dba8` with the Documentation link changed,
+normalizing only the affected Home bundle hash and island UID.
+
+The supported `ThemeProvider` and `ThemeSelect` overrides in `components/docs/`
+use `src/lib/theme-core.ts` and the existing `theme` storage key. Starlight's
+stock select keeps Dark, Light and Auto; Auto clears the explicit choice and
+follows the system. Docs retain Starlight's stock styles, search and pagination,
+and include the shared analytics beacon through Starlight's `head` option.
 
 `src/pages/index.astro` loads the data and renders the homepage,
 `src/components/home.tsx`. Every page outside the docs renders inside

@@ -63,10 +63,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
       ))}
       <main className="sign-page mx-auto max-w-6xl px-6 pt-10 pb-32">
         <nav className="mb-8 flex items-center justify-end gap-1 text-[15px]">
-          <a
-            className={buttonVariants({ variant: "ghost" })}
-            href={`${REPOSITORY}#readme`}
-          >
+          <a className={buttonVariants({ variant: "ghost" })} href="/docs/">
             Documentation
           </a>
           <button
