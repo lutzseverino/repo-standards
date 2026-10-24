@@ -48,8 +48,24 @@ and island UID.
 The supported `ThemeProvider` and `ThemeSelect` overrides in `components/docs/`
 use `src/lib/theme-core.ts` and the existing `theme` storage key. Starlight's
 stock select keeps Dark, Light and Auto; Auto clears the explicit choice and
-follows the system. Docs retain Starlight's stock styles, search and pagination,
-and include the shared analytics beacon through Starlight's `head` option.
+follows the system. Docs retain Starlight's stock layout, search, pagination
+and focus ring, and include the shared analytics beacon through Starlight's
+`head` option.
+
+The docs wear the sign's palette and type through Starlight's own custom
+properties only. `src/styles/docs.css`, Starlight's one `customCss` entry, maps
+its accent to Verkehrsblau, its light theme to the day page and its dark theme
+to the night page, and sets D-DIN PRO as its font. It imports
+`src/styles/tokens.css` for the fonts and Verkehrsblau, so the docs bundle
+carries its own copy and the homepage's bundle is unchanged; both declare the
+same `/fonts/` files. The supported `SiteTitle` override,
+`components/docs/SiteTitle.astro`, sets the header's title as a plain
+Verkehrsblau plate in the condensed sign face, linking home.
+`test/docs-theme.test.ts` resolves the palette over Starlight's own properties
+in both themes, through `test/docs-palette.ts`, and requires WCAG 2.2 AA
+contrast for text, links and code on every background they are drawn on;
+`test/docs.test.ts` checks the built code colours, the plate and the font
+faces.
 
 `src/pages/index.astro` loads the data and renders the homepage,
 `src/components/home.tsx`. `src/pages/how-it-works.astro` tells the homepage

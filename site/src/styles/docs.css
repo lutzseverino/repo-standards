@@ -1,0 +1,55 @@
+/* The docs at /docs/ in the sign's palette and type, through Starlight's
+   own custom properties. Starlight's defaults are the dark theme on :root
+   and the light theme on [data-theme="light"]; these follow the same
+   pattern, unlayered, so they win over Starlight's layers. tokens.css
+   supplies the fonts and Verkehrsblau; importing it here, rather than
+   listing it beside this file, keeps it in the docs' own stylesheet, so the
+   homepage's bundle stays as it was. Light is the day
+   page and dark the night page (global.css); the greys step from the page
+   to its ink. Every text colour meets WCAG 2.2 AA on every background it
+   is drawn on (test/docs-theme.test.ts). */
+
+@import "./tokens.css";
+
+:root {
+  --sl-font: "D-DIN PRO", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Night. Print keeps Starlight's light print palette, or this page's own
+   light palette below when it is chosen. */
+@media screen {
+  :root,
+  ::backdrop {
+    --sl-color-white: #fffcf0;
+    --sl-color-gray-1: #e8eae7;
+    --sl-color-gray-2: #c8cbc8;
+    --sl-color-gray-3: #9ca19d;
+    --sl-color-gray-4: #4d5257;
+    --sl-color-gray-5: #2b2f32;
+    --sl-color-gray-6: #181b1e;
+    --sl-color-black: #0d0f11;
+
+    /* the night plate, lit by the torch, and its light legend */
+    --sl-color-accent-low: #15294a;
+    --sl-color-accent: #1d6ad9;
+    --sl-color-accent-high: #a3c6f5;
+  }
+}
+
+/* Day */
+:root[data-theme="light"],
+[data-theme="light"] ::backdrop {
+  --sl-color-white: #181b1e;
+  --sl-color-gray-1: #212426;
+  --sl-color-gray-2: #2b2e30;
+  --sl-color-gray-3: #5c615f;
+  --sl-color-gray-4: #848987;
+  --sl-color-gray-5: #b9bdba;
+  --sl-color-gray-6: #e0e2df;
+  --sl-color-gray-7: #eaebe8;
+  --sl-color-black: #f3f4f2;
+
+  --sl-color-accent-low: #d3dff0;
+  --sl-color-accent: var(--verkehrsblau);
+  --sl-color-accent-high: #083a73;
+}
