@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:53fd1d33bd6f021ab3c9ec4d75080ad92a2d0e151f54304b6e0924aabec53220",
+  "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -92,22 +92,39 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
           ],
           "directories": []
         }
@@ -1293,13 +1310,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:305e24b71310bb9ebf2ec627aaa9ab220869a315e03f27a2a5ec93a40bbe9f16",
+    "identity": "sha256:e4bc95910a3ecfff6e15bb706cabc01283516b492fab69b7486ed3bb01d7fc41",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/authoring.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/guides/author-a-source.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair. Applied again at the same versions after the usage documents moved into `docs/usage/guides/` and `docs/usage/reference/`: the moved paths leave the scope, their new paths and the documents added since the last adoption enter it, and the links to the moved files were repaired before this run.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1635,6 +1652,78 @@
               ]
             },
             {
+              "path": "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0021-let-agents-decide-what-git-can-undo.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0022-replace-a-stopped-run-in-place.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0022-replace-a-stopped-run-in-place.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0025-start-when-nothing-is-open.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0025-start-when-nothing-is-open.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0027-choose-the-platform-inside-each-profile.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0028-keep-generated-shadcn-source-read-only.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0029-leave-archived-run-v6-reports-unread.md"
+              ]
+            },
+            {
               "path": "docs/adr/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
@@ -1707,6 +1796,14 @@
               ]
             },
             {
+              "path": "docs/development/retained-exact-content.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/development/retained-exact-content.md"
+              ]
+            },
+            {
               "path": "docs/usage/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
@@ -1715,91 +1812,147 @@
               ]
             },
             {
-              "path": "docs/usage/adoption.md",
+              "path": "docs/usage/guides/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/adoption.md"
+                "docs/usage/guides/README.md"
               ]
             },
             {
-              "path": "docs/usage/assessment-protocol.md",
+              "path": "docs/usage/guides/adopt.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/assessment-protocol.md"
+                "docs/usage/guides/adopt.md"
               ]
             },
             {
-              "path": "docs/usage/author-format.md",
+              "path": "docs/usage/guides/author-a-source.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/author-format.md"
+                "docs/usage/guides/author-a-source.md"
               ]
             },
             {
-              "path": "docs/usage/authoring.md",
+              "path": "docs/usage/guides/automated-updates.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/authoring.md"
+                "docs/usage/guides/automated-updates.md"
               ]
             },
             {
-              "path": "docs/usage/available-updates.md",
+              "path": "docs/usage/guides/find-sources.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/available-updates.md"
+                "docs/usage/guides/find-sources.md"
               ]
             },
             {
-              "path": "docs/usage/check.md",
+              "path": "docs/usage/guides/install.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/check.md"
+                "docs/usage/guides/install.md"
               ]
             },
             {
-              "path": "docs/usage/discovery.md",
+              "path": "docs/usage/guides/run-checks.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/discovery.md"
+                "docs/usage/guides/run-checks.md"
               ]
             },
             {
-              "path": "docs/usage/inspection.md",
+              "path": "docs/usage/guides/update.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/inspection.md"
+                "docs/usage/guides/update.md"
               ]
             },
             {
-              "path": "docs/usage/installation.md",
+              "path": "docs/usage/reference/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/installation.md"
+                "docs/usage/reference/README.md"
               ]
             },
             {
-              "path": "docs/usage/rules.md",
+              "path": "docs/usage/reference/adoption-run.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/rules.md"
+                "docs/usage/reference/adoption-run.md"
               ]
             },
             {
-              "path": "docs/usage/script-protocol.md",
+              "path": "docs/usage/reference/assessment-protocol.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/usage/script-protocol.md"
+                "docs/usage/reference/assessment-protocol.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/author-format.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/author-format.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/available-updates.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/available-updates.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/check.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/check.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/github-requests.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/github-requests.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/inspection.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/inspection.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/rules.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/rules.md"
+              ]
+            },
+            {
+              "path": "docs/usage/reference/script-protocol.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/usage/reference/script-protocol.md"
               ]
             },
             {
@@ -1807,7 +1960,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/defaults/files/AGENTS.md"
               ]
             },
@@ -1816,7 +1969,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/defaults/files/CONTRIBUTING.md"
               ]
             },
@@ -1825,7 +1978,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/defaults/guidance/readme.md"
               ]
             },
@@ -1834,7 +1987,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/defaults/guidance/source-layout.md"
               ]
             },
@@ -1843,7 +1996,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/defaults/skills/review/SKILL.md"
               ]
             },
@@ -1852,7 +2005,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/alice/profiles/work/files/AGENTS.md"
               ]
             },
@@ -1861,7 +2014,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/atlas/guidance/project-discovery.md"
               ]
             },
@@ -1870,7 +2023,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/atlas/guidance/project-documentation.md"
               ]
             },
@@ -1879,7 +2032,7 @@
               "decision": "exclude",
               "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "examples/mira/guidance/operations.md"
               ]
             },
@@ -1896,7 +2049,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/author-standards/SKILL.md"
               ]
@@ -1906,7 +2059,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/author-standards/references/cli.md"
               ]
@@ -1916,7 +2069,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/author-standards/references/operations.md"
               ]
@@ -1926,7 +2079,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/author-standards/references/profiles.md"
               ]
@@ -1936,7 +2089,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/author-standards/references/revision.md"
               ]
@@ -1946,7 +2099,7 @@
               "decision": "exclude",
               "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
-                "docs/usage/authoring.md",
+                "docs/usage/guides/author-a-source.md",
                 "package.json",
                 "skills/repository-standards/SKILL.md"
               ]
@@ -2000,12 +2153,12 @@
       "targets": {
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "2674bf1a27300a14b982f642a437e901079a1115319f32e23dcdb4e466f3504e",
+          "sha256": "d44d21489d5e95274be1c692501e8294fc773e99d972fa43ce5ac099adef4efd",
           "executable": false
         },
         "docs/README.md": {
           "type": "file",
-          "sha256": "3164ddcf8c46a5688ca3a609373ec34b6bec1dd0d70f8e1cc15d67c34a51c5d1",
+          "sha256": "de27d264182a44eab012175e8f6c192c6ea4a261765e848f7ef9549e5ff43f1a",
           "executable": false
         },
         "docs/adr/0001-separate-authorship-from-adoption.md": {
@@ -2020,7 +2173,7 @@
         },
         "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md": {
           "type": "file",
-          "sha256": "1cc5d9090cf7008f4046d3c30378aadebebbe5bc2063c401bacb7b782f44fc53",
+          "sha256": "c37b3de7f434b5830675704faf5dd38d68b6a1db9da9ddc46f0dc778a8e726c7",
           "executable": false
         },
         "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md": {
@@ -2040,7 +2193,7 @@
         },
         "docs/adr/0007-write-and-read-one-evidence-format.md": {
           "type": "file",
-          "sha256": "5c525421dfa74b7c199379240ebd65e994d8766ce50d914e598e5ec5fc519b77",
+          "sha256": "21880cb9ea1473cbb9b466874c9822ebae8020e1ff4bf6d12a535664e12892ab",
           "executable": false
         },
         "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md": {
@@ -2050,7 +2203,7 @@
         },
         "docs/adr/0009-correct-scope-by-adopting-again.md": {
           "type": "file",
-          "sha256": "d69c042605dfa80f0225fb74b97fafbb01614c45ef18ee7e91896d44027c1902",
+          "sha256": "272f54cb6321b9517d3bbff9130b4bc52613f3f002469235a586d4703aecc24c",
           "executable": false
         },
         "docs/adr/0010-replace-tracked-content-block-only-untracked.md": {
@@ -2075,7 +2228,7 @@
         },
         "docs/adr/0014-leave-available-updates-to-the-maintainer.md": {
           "type": "file",
-          "sha256": "e6f2c2db4138d7cd23fb898b24a34f595cc34aae462e3542bfa85b733c1196a1",
+          "sha256": "4924c0704e6d76a59142cd051587b590751de0036e0a57f62fe10a160dfe67ca",
           "executable": false
         },
         "docs/adr/0015-leave-delivery-to-standards-sources.md": {
@@ -2090,7 +2243,7 @@
         },
         "docs/adr/0017-confirm-only-confirmation-required-changes.md": {
           "type": "file",
-          "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
+          "sha256": "cc881e7c07074f2a4dc9ebadb12dc645f9fb81043be01ffff4ba26acb73e3e7c",
           "executable": false
         },
         "docs/adr/0018-add-a-private-astro-site-workspace.md": {
@@ -2108,89 +2261,174 @@
           "sha256": "4384a310cecc27e73613108419c80d1799ce5352d7b12203910c60cc3785d121",
           "executable": false
         },
+        "docs/adr/0021-let-agents-decide-what-git-can-undo.md": {
+          "type": "file",
+          "sha256": "8edfcdb8375cde3b740cd5237aafc9ee5c98919afd99c367ae6b5348ea17215e",
+          "executable": false
+        },
+        "docs/adr/0022-replace-a-stopped-run-in-place.md": {
+          "type": "file",
+          "sha256": "5f8e0ae63260454d45c2ec7477600735695da28b51ff85b8414c582d8b5fe7da",
+          "executable": false
+        },
+        "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md": {
+          "type": "file",
+          "sha256": "1fdd20042898f772ed2524dcf41f5c42eb1d33fe1c4a44181aee01a86d836163",
+          "executable": false
+        },
+        "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md": {
+          "type": "file",
+          "sha256": "5e8970c30d42d5dd146e9db7dc24492458c2ac9a0d7565061fb22a27e0e6b7f7",
+          "executable": false
+        },
+        "docs/adr/0025-start-when-nothing-is-open.md": {
+          "type": "file",
+          "sha256": "d38303009d6e7a7a37d5b647c3987a8a81663a250cc9f2237766d2f7483d0a52",
+          "executable": false
+        },
+        "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md": {
+          "type": "file",
+          "sha256": "8252057e56cd0aba54efc9185aa31d66aaab3678a0e0d999caafe84bfae1e79e",
+          "executable": false
+        },
+        "docs/adr/0027-choose-the-platform-inside-each-profile.md": {
+          "type": "file",
+          "sha256": "2be220eb553876799c4f9619a684893ab0a668dffeb11cf519771b4697e9dd04",
+          "executable": false
+        },
+        "docs/adr/0028-keep-generated-shadcn-source-read-only.md": {
+          "type": "file",
+          "sha256": "d6e0a25adde2d2e50f4901d233da969bbcc27ec81082f026cc9097f9944ab056",
+          "executable": false
+        },
+        "docs/adr/0029-leave-archived-run-v6-reports-unread.md": {
+          "type": "file",
+          "sha256": "9b04c910361e63354f17537027dcb9df82f454c10d2100d33f270320ec78f47b",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "58e3cd239bdbc47cfa4835cec5576ee6d615063a184ee67a2a79c5bf3dcd4e96",
+          "sha256": "81e523e0b133676773e3a78050dce02d809b53d31cc04994a44dcb983840186a",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "b5229355228a9ecf6c977eedadb50d839a32b4381dd98dcf6b7606db9efb8ea4",
+          "sha256": "7e63443f527f6e18451a960d83d740ae430e905f12aa6b9077c6093357a1293d",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "a7d74704fbe7ddf0829f18e565167be11293a0c63a78cd16afef4b916774a62c",
+          "sha256": "b09e6b539a2183e949f5483e3c1fc3dab651ab1658ee68d83b3b556c22af3585",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "d90023e26d4e70288ea90c2694c052b0775fb4b494463126ce9aaea3348d9f3a",
+          "sha256": "2d4f990edae4655655e65fabbde1174d57623942fa984f375c022ff904706263",
+          "executable": false
+        },
+        "docs/development/retained-exact-content.md": {
+          "type": "file",
+          "sha256": "4bc0bd7403af6da569c830d82acb524fc11ed8b120f5de9672eb9f1f2919e0d3",
           "executable": false
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "83ed9e9a6e5264a9241a1139efa35ed8c985dcf38162b0b3e4235bdfea77e544",
+          "sha256": "e586e70c610b1d0018e4c0e8ee4050837b36eef5c03f7be9e2f47a308b5405f8",
           "executable": false
         },
-        "docs/usage/adoption.md": {
+        "docs/usage/guides/README.md": {
           "type": "file",
-          "sha256": "a6e48c3d1df2527bebeb28b0f2357c8e5350bcdefe86756800f3bd9b27b03151",
+          "sha256": "5153dac98cc9c6e4b5a049824c3269b0db56a20e534c5082aee8c22488abea0a",
           "executable": false
         },
-        "docs/usage/assessment-protocol.md": {
+        "docs/usage/guides/adopt.md": {
           "type": "file",
-          "sha256": "837c1c2ab7843cce8c72819adc35445b191c4742c54f361a08c9635f5af4e3aa",
+          "sha256": "232e5cd9fdc05146936c579feb474b62bd2073df5c9f36526c4f37281b76d840",
           "executable": false
         },
-        "docs/usage/author-format.md": {
+        "docs/usage/guides/author-a-source.md": {
           "type": "file",
-          "sha256": "95bb4da781d506e035548edc73422349b2d899eb9be7cc8afa6530bff76720e1",
+          "sha256": "baa97b4e7acf2f89a3a8b8280bd5443ce6ea33e4a4f0e6824a54f54763d89a01",
           "executable": false
         },
-        "docs/usage/authoring.md": {
+        "docs/usage/guides/automated-updates.md": {
           "type": "file",
-          "sha256": "c84a81b9cab5953c5a1bc54a1770df464e6e6be4851ae83856b3090bc992f01e",
+          "sha256": "ad47b6a0ba0672c79bcc6304f03dd4935f86ed2191a6ad143bc6f4b01e392397",
           "executable": false
         },
-        "docs/usage/available-updates.md": {
+        "docs/usage/guides/find-sources.md": {
           "type": "file",
-          "sha256": "463e9a92965f0334b2d9b67cab220e4c0207b49ac85acf2b1aac5f033e8e5b04",
+          "sha256": "dd3342d6e6ae9d1148195888de57b36f43c7241bd756c21fc1fa79317b77128e",
           "executable": false
         },
-        "docs/usage/check.md": {
+        "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "5a318ba4fa10ee0abdd7751a4b4cff1e68ac2d12b72f61276f13145e413f2828",
+          "sha256": "3bd41e3a074fe8bcca39b398bba07ade08fbd895acc889584a33557cc011e3e0",
           "executable": false
         },
-        "docs/usage/discovery.md": {
+        "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "9e1e12e13c816ca55390791c1b50e5b4e11d34ee7d32e4341461f111d581f425",
+          "sha256": "25eeb4ef95c26025d656bbef669912020b42cd2196fbf7e128d8aec167c58d90",
           "executable": false
         },
-        "docs/usage/inspection.md": {
+        "docs/usage/guides/update.md": {
           "type": "file",
-          "sha256": "babef24c0feaa9198df89f45033ae25ee20a7ad903d65fd53c373ae34d0258bb",
+          "sha256": "89110a5c781aa40a6ba9b59696af5e6fa89c76fe35a024d2be79eb289943a52b",
           "executable": false
         },
-        "docs/usage/installation.md": {
+        "docs/usage/reference/README.md": {
           "type": "file",
-          "sha256": "88f20974e286fa95af98353fc99464926b7c3cda769f72121c2db79ac365f217",
+          "sha256": "05ddf2569d53a9bf75dd65028da479af9cb4161f1171d61b9b9a66a828671d6b",
           "executable": false
         },
-        "docs/usage/rules.md": {
+        "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "22447d686953e1596b18ec737fed15f7c119c4b60565a1a7609ac9e57f043b5f",
+          "sha256": "af3d8d1ed87cc7b18a79200d4d5eb3853ab03448aebca1dd2b53000867a36fea",
           "executable": false
         },
-        "docs/usage/script-protocol.md": {
+        "docs/usage/reference/assessment-protocol.md": {
           "type": "file",
-          "sha256": "29fc99a09aa54f0ed59e35c10e22c55b7d1638416d97603a65cd0315fc8679fc",
+          "sha256": "bbdf8bc5d0dbd42e4d86e229233b218e8c35603d86ac74ab08d6d62240e1a1b5",
+          "executable": false
+        },
+        "docs/usage/reference/author-format.md": {
+          "type": "file",
+          "sha256": "6e382c8359c3e55dcab81bf94cfc8996cbf2c8a6259b5e2b40fffae621495eb8",
+          "executable": false
+        },
+        "docs/usage/reference/available-updates.md": {
+          "type": "file",
+          "sha256": "9125d3afd703707e654ae70d29cd334fb3d2817e5f750402b80a2f7fffa27514",
+          "executable": false
+        },
+        "docs/usage/reference/check.md": {
+          "type": "file",
+          "sha256": "e2d7116b72b9bde160ca37ed7441ad79c58445a53815bbbfcb24370b758a43c6",
+          "executable": false
+        },
+        "docs/usage/reference/github-requests.md": {
+          "type": "file",
+          "sha256": "bc45d1248f8c484ed43212465452f54a4bacc63cec2709f7533903e2911623de",
+          "executable": false
+        },
+        "docs/usage/reference/inspection.md": {
+          "type": "file",
+          "sha256": "d4e2d19871563af64727f963ba1deb6904ab541991f4ab9f6a7697f45c16679e",
+          "executable": false
+        },
+        "docs/usage/reference/rules.md": {
+          "type": "file",
+          "sha256": "f69afb2d1a8c8e52911216bba033cd9939fd48eecf99db0a009cd5055735cced",
+          "executable": false
+        },
+        "docs/usage/reference/script-protocol.md": {
+          "type": "file",
+          "sha256": "12f275bb78bbe9811cdd7d626e161b77509d47cd6278cf5fdf0c0a1f04d16bb5",
           "executable": false
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "18b5a640101af3fc2c13e6093eb869604cfd22975e58ffd853e6840f9c610cb3",
+          "sha256": "1cb770a7fff414600c229a15b0613fab15a570171d75fb1f6f40bd4a92c85adb",
           "executable": false
         }
       }
@@ -2235,7 +2473,7 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "f17de7f5068281d3ef188e08861d106d9ef3aff377f76e62f792284d9c89feca",
+          "sha256": "5e3a33c571b8d09983b6a18600ecf7b218b487c5ea111712728fe1a808241387",
           "executable": false
         },
         ".agents/skills/babysit/merge.mjs": {
@@ -2621,7 +2859,7 @@
         },
         ".github/pull-request-reviewer.json": {
           "type": "file",
-          "sha256": "556b981cb82beee87a3759dac0f8d3723ed6805e69d9f03f3abbdf743cc72c51",
+          "sha256": "0ef25c9c8abf367924209d9ea032b1d3c7ff70351f94d74f65cd5560821a300c",
           "executable": false
         },
         ".github/scripts/validate-pr-metadata.mjs": {
@@ -2631,7 +2869,7 @@
         },
         ".github/workflows/deploy-site.yml": {
           "type": "file",
-          "sha256": "dc83dbc7cc623d167d727b873126ab4e2f111c747d2f96b026c2937c8e2a873c",
+          "sha256": "9f20638fbad9aa1f05c1fd35b35494776be6df925c22dea6423f837e09c621a2",
           "executable": false
         },
         ".github/workflows/issue-contracts.yml": {
@@ -2656,7 +2894,7 @@
         },
         ".github/workflows/validate.yml": {
           "type": "file",
-          "sha256": "496041c7cdd7c9ccceebeb375ba6a1a0c258cc1cb48b5c3b770ea7cdf7b7f21a",
+          "sha256": "dadcef6992c2ad2e096a7690a58a08d6ed47d79fa092906a274f23d9613d712e",
           "executable": false
         },
         ".gitignore": {
@@ -2671,12 +2909,12 @@
         },
         ".oxlintrc.json": {
           "type": "file",
-          "sha256": "8db6e28d1f3f2c7f639d3f32cbc638a22d77212f62dcae60cc2a413efa4df40c",
+          "sha256": "79998f4646630af2bf09bf705637b9fd268df3e460119b9d4b45b7b08ea8ddee",
           "executable": false
         },
         ".prettierignore": {
           "type": "file",
-          "sha256": "8448f109f016570ee298c8e285ad24adfe1450321ace5e667a8a48dc042c70ab",
+          "sha256": "6aa73a851db482e037b1bb0cefcb6ab1bf7cf2d176924335be660fe2c59a0d14",
           "executable": false
         },
         "AGENTS.md": {
@@ -2686,12 +2924,12 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "a1e6d09d5957e84812609c295f5a0fdbf9777ac9e005338758b74940c4bec7cc",
+          "sha256": "4ed2b1336f77e4af7bc8c86b9497d6696c14a38b5d7a98f5a97df4d0c71aedd2",
           "executable": false
         },
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "2674bf1a27300a14b982f642a437e901079a1115319f32e23dcdb4e466f3504e",
+          "sha256": "d44d21489d5e95274be1c692501e8294fc773e99d972fa43ce5ac099adef4efd",
           "executable": false
         },
         "LICENSE": {
@@ -2701,12 +2939,12 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "c37336ed92b4bde30a2b52ca41fdafc787d9767f040b161cd7a665a128266578",
+          "sha256": "d7f9255341300a02b002dff58f32f49dd2bce79ac1c5a2a35b09b6299999285b",
           "executable": false
         },
         "acceptance/README.md": {
           "type": "file",
-          "sha256": "45a9066876e4436ee93f54255f57700bc21faec1831f4eca043ef41d75ac8e2b",
+          "sha256": "3639bb0e0571cad1ddd73dce25b4230aafef261485c032728cf28f371b91442a",
           "executable": false
         },
         "acceptance/cli.ts": {
@@ -2714,9 +2952,14 @@
           "sha256": "6c7086494c654313bdfd51e6e16c3d553043b560238a68c359c9dbe1534d077d",
           "executable": false
         },
+        "acceptance/observe-public-requests.ts": {
+          "type": "file",
+          "sha256": "a5744da930cb54d0d5bf3a21d8af66c56e80058958c632b6a3f18acebcdc99a9",
+          "executable": false
+        },
         "acceptance/prepare-author.ts": {
           "type": "file",
-          "sha256": "5dcb9b3e573df12eb9f22dfce652ba2a98c23e56a5d52229ff0a7201c03ca948",
+          "sha256": "ae986495fa7789635602c36c5cddf3e99b35b4aeed2ec3e5802baa720fd8972c",
           "executable": false
         },
         "acceptance/prepare-public.ts": {
@@ -2876,7 +3119,12 @@
         },
         "acceptance/public-installation.ts": {
           "type": "file",
-          "sha256": "d068d80bb319820b777137eb8bc45519710ad57790f78a78db87ed1fd6f0d7de",
+          "sha256": "794e3ddb2374ca5836bc073354f7cbd891b5fe30b561086c6d6bb1d6557416bb",
+          "executable": false
+        },
+        "acceptance/public-update.ts": {
+          "type": "file",
+          "sha256": "b198b1973f9de0a4e564d424029e07979ed89eea8147699dd175e315daa93007",
           "executable": false
         },
         "acceptance/sources/wayfinder/LICENSE": {
@@ -2914,6 +3162,31 @@
           "sha256": "f43d76afa9fca6feb971917e37f8824d7145d723d0799bd9b364935a9335d14a",
           "executable": false
         },
+        "action.yml": {
+          "type": "file",
+          "sha256": "66f69581429b6f1fcff01e75926a58f086e716cbe86bf6a146b82af25192482c",
+          "executable": false
+        },
+        "action/content.ts": {
+          "type": "file",
+          "sha256": "1d1f0e2b0ffb93e809dafb41b286326e97a7a9cef733be6aa63b5c816e27f96a",
+          "executable": false
+        },
+        "action/github.ts": {
+          "type": "file",
+          "sha256": "d0281d11c5ad327c91373c28bae13621317079023ba705fe4f478f08f4e164df",
+          "executable": false
+        },
+        "action/main.ts": {
+          "type": "file",
+          "sha256": "bba49fb78e24f2fa85a277526c0abf1cfd164ac393d4eb1eda9da0be95d9ca4e",
+          "executable": false
+        },
+        "action/update.ts": {
+          "type": "file",
+          "sha256": "187572c235e304502556b195688ceecee026acd0fb6635ebc5d4da6c0272971f",
+          "executable": false
+        },
         "bootstrap/repo-standards": {
           "type": "file",
           "sha256": "9d40afa6059d5dd8d8b6fb5b101bf60dc9d2bc9147b4cec85592db02b43b64bb",
@@ -2921,7 +3194,7 @@
         },
         "docs/README.md": {
           "type": "file",
-          "sha256": "3164ddcf8c46a5688ca3a609373ec34b6bec1dd0d70f8e1cc15d67c34a51c5d1",
+          "sha256": "de27d264182a44eab012175e8f6c192c6ea4a261765e848f7ef9549e5ff43f1a",
           "executable": false
         },
         "docs/adr/0001-separate-authorship-from-adoption.md": {
@@ -2936,7 +3209,7 @@
         },
         "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md": {
           "type": "file",
-          "sha256": "1cc5d9090cf7008f4046d3c30378aadebebbe5bc2063c401bacb7b782f44fc53",
+          "sha256": "c37b3de7f434b5830675704faf5dd38d68b6a1db9da9ddc46f0dc778a8e726c7",
           "executable": false
         },
         "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md": {
@@ -2956,7 +3229,7 @@
         },
         "docs/adr/0007-write-and-read-one-evidence-format.md": {
           "type": "file",
-          "sha256": "5c525421dfa74b7c199379240ebd65e994d8766ce50d914e598e5ec5fc519b77",
+          "sha256": "21880cb9ea1473cbb9b466874c9822ebae8020e1ff4bf6d12a535664e12892ab",
           "executable": false
         },
         "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md": {
@@ -2966,7 +3239,7 @@
         },
         "docs/adr/0009-correct-scope-by-adopting-again.md": {
           "type": "file",
-          "sha256": "d69c042605dfa80f0225fb74b97fafbb01614c45ef18ee7e91896d44027c1902",
+          "sha256": "272f54cb6321b9517d3bbff9130b4bc52613f3f002469235a586d4703aecc24c",
           "executable": false
         },
         "docs/adr/0010-replace-tracked-content-block-only-untracked.md": {
@@ -2991,7 +3264,7 @@
         },
         "docs/adr/0014-leave-available-updates-to-the-maintainer.md": {
           "type": "file",
-          "sha256": "e6f2c2db4138d7cd23fb898b24a34f595cc34aae462e3542bfa85b733c1196a1",
+          "sha256": "4924c0704e6d76a59142cd051587b590751de0036e0a57f62fe10a160dfe67ca",
           "executable": false
         },
         "docs/adr/0015-leave-delivery-to-standards-sources.md": {
@@ -3006,7 +3279,7 @@
         },
         "docs/adr/0017-confirm-only-confirmation-required-changes.md": {
           "type": "file",
-          "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
+          "sha256": "cc881e7c07074f2a4dc9ebadb12dc645f9fb81043be01ffff4ba26acb73e3e7c",
           "executable": false
         },
         "docs/adr/0018-add-a-private-astro-site-workspace.md": {
@@ -3024,9 +3297,54 @@
           "sha256": "4384a310cecc27e73613108419c80d1799ce5352d7b12203910c60cc3785d121",
           "executable": false
         },
+        "docs/adr/0021-let-agents-decide-what-git-can-undo.md": {
+          "type": "file",
+          "sha256": "8edfcdb8375cde3b740cd5237aafc9ee5c98919afd99c367ae6b5348ea17215e",
+          "executable": false
+        },
+        "docs/adr/0022-replace-a-stopped-run-in-place.md": {
+          "type": "file",
+          "sha256": "5f8e0ae63260454d45c2ec7477600735695da28b51ff85b8414c582d8b5fe7da",
+          "executable": false
+        },
+        "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md": {
+          "type": "file",
+          "sha256": "1fdd20042898f772ed2524dcf41f5c42eb1d33fe1c4a44181aee01a86d836163",
+          "executable": false
+        },
+        "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md": {
+          "type": "file",
+          "sha256": "5e8970c30d42d5dd146e9db7dc24492458c2ac9a0d7565061fb22a27e0e6b7f7",
+          "executable": false
+        },
+        "docs/adr/0025-start-when-nothing-is-open.md": {
+          "type": "file",
+          "sha256": "d38303009d6e7a7a37d5b647c3987a8a81663a250cc9f2237766d2f7483d0a52",
+          "executable": false
+        },
+        "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md": {
+          "type": "file",
+          "sha256": "8252057e56cd0aba54efc9185aa31d66aaab3678a0e0d999caafe84bfae1e79e",
+          "executable": false
+        },
+        "docs/adr/0027-choose-the-platform-inside-each-profile.md": {
+          "type": "file",
+          "sha256": "2be220eb553876799c4f9619a684893ab0a668dffeb11cf519771b4697e9dd04",
+          "executable": false
+        },
+        "docs/adr/0028-keep-generated-shadcn-source-read-only.md": {
+          "type": "file",
+          "sha256": "d6e0a25adde2d2e50f4901d233da969bbcc27ec81082f026cc9097f9944ab056",
+          "executable": false
+        },
+        "docs/adr/0029-leave-archived-run-v6-reports-unread.md": {
+          "type": "file",
+          "sha256": "9b04c910361e63354f17537027dcb9df82f454c10d2100d33f270320ec78f47b",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "58e3cd239bdbc47cfa4835cec5576ee6d615063a184ee67a2a79c5bf3dcd4e96",
+          "sha256": "81e523e0b133676773e3a78050dce02d809b53d31cc04994a44dcb983840186a",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -3046,7 +3364,7 @@
         },
         "docs/agents/project.md": {
           "type": "file",
-          "sha256": "3103e76761ca77ff34e3bc97b4b2e06f80c7f5dae06fd06588741d0f29e4a532",
+          "sha256": "919630c948f424c1bc92346f27640d2b2840d56591b740232635418b3276d0c7",
           "executable": false
         },
         "docs/agents/triage-labels.md": {
@@ -3056,77 +3374,117 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "b5229355228a9ecf6c977eedadb50d839a32b4381dd98dcf6b7606db9efb8ea4",
+          "sha256": "7e63443f527f6e18451a960d83d740ae430e905f12aa6b9077c6093357a1293d",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "a7d74704fbe7ddf0829f18e565167be11293a0c63a78cd16afef4b916774a62c",
+          "sha256": "b09e6b539a2183e949f5483e3c1fc3dab651ab1658ee68d83b3b556c22af3585",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "d90023e26d4e70288ea90c2694c052b0775fb4b494463126ce9aaea3348d9f3a",
+          "sha256": "2d4f990edae4655655e65fabbde1174d57623942fa984f375c022ff904706263",
+          "executable": false
+        },
+        "docs/development/retained-exact-content.md": {
+          "type": "file",
+          "sha256": "4bc0bd7403af6da569c830d82acb524fc11ed8b120f5de9672eb9f1f2919e0d3",
           "executable": false
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "83ed9e9a6e5264a9241a1139efa35ed8c985dcf38162b0b3e4235bdfea77e544",
+          "sha256": "e586e70c610b1d0018e4c0e8ee4050837b36eef5c03f7be9e2f47a308b5405f8",
           "executable": false
         },
-        "docs/usage/adoption.md": {
+        "docs/usage/guides/README.md": {
           "type": "file",
-          "sha256": "a6e48c3d1df2527bebeb28b0f2357c8e5350bcdefe86756800f3bd9b27b03151",
+          "sha256": "5153dac98cc9c6e4b5a049824c3269b0db56a20e534c5082aee8c22488abea0a",
           "executable": false
         },
-        "docs/usage/assessment-protocol.md": {
+        "docs/usage/guides/adopt.md": {
           "type": "file",
-          "sha256": "837c1c2ab7843cce8c72819adc35445b191c4742c54f361a08c9635f5af4e3aa",
+          "sha256": "232e5cd9fdc05146936c579feb474b62bd2073df5c9f36526c4f37281b76d840",
           "executable": false
         },
-        "docs/usage/author-format.md": {
+        "docs/usage/guides/author-a-source.md": {
           "type": "file",
-          "sha256": "95bb4da781d506e035548edc73422349b2d899eb9be7cc8afa6530bff76720e1",
+          "sha256": "baa97b4e7acf2f89a3a8b8280bd5443ce6ea33e4a4f0e6824a54f54763d89a01",
           "executable": false
         },
-        "docs/usage/authoring.md": {
+        "docs/usage/guides/automated-updates.md": {
           "type": "file",
-          "sha256": "c84a81b9cab5953c5a1bc54a1770df464e6e6be4851ae83856b3090bc992f01e",
+          "sha256": "ad47b6a0ba0672c79bcc6304f03dd4935f86ed2191a6ad143bc6f4b01e392397",
           "executable": false
         },
-        "docs/usage/available-updates.md": {
+        "docs/usage/guides/find-sources.md": {
           "type": "file",
-          "sha256": "463e9a92965f0334b2d9b67cab220e4c0207b49ac85acf2b1aac5f033e8e5b04",
+          "sha256": "dd3342d6e6ae9d1148195888de57b36f43c7241bd756c21fc1fa79317b77128e",
           "executable": false
         },
-        "docs/usage/check.md": {
+        "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "5a318ba4fa10ee0abdd7751a4b4cff1e68ac2d12b72f61276f13145e413f2828",
+          "sha256": "3bd41e3a074fe8bcca39b398bba07ade08fbd895acc889584a33557cc011e3e0",
           "executable": false
         },
-        "docs/usage/discovery.md": {
+        "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "9e1e12e13c816ca55390791c1b50e5b4e11d34ee7d32e4341461f111d581f425",
+          "sha256": "25eeb4ef95c26025d656bbef669912020b42cd2196fbf7e128d8aec167c58d90",
           "executable": false
         },
-        "docs/usage/inspection.md": {
+        "docs/usage/guides/update.md": {
           "type": "file",
-          "sha256": "babef24c0feaa9198df89f45033ae25ee20a7ad903d65fd53c373ae34d0258bb",
+          "sha256": "89110a5c781aa40a6ba9b59696af5e6fa89c76fe35a024d2be79eb289943a52b",
           "executable": false
         },
-        "docs/usage/installation.md": {
+        "docs/usage/reference/README.md": {
           "type": "file",
-          "sha256": "88f20974e286fa95af98353fc99464926b7c3cda769f72121c2db79ac365f217",
+          "sha256": "05ddf2569d53a9bf75dd65028da479af9cb4161f1171d61b9b9a66a828671d6b",
           "executable": false
         },
-        "docs/usage/rules.md": {
+        "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "22447d686953e1596b18ec737fed15f7c119c4b60565a1a7609ac9e57f043b5f",
+          "sha256": "af3d8d1ed87cc7b18a79200d4d5eb3853ab03448aebca1dd2b53000867a36fea",
           "executable": false
         },
-        "docs/usage/script-protocol.md": {
+        "docs/usage/reference/assessment-protocol.md": {
           "type": "file",
-          "sha256": "29fc99a09aa54f0ed59e35c10e22c55b7d1638416d97603a65cd0315fc8679fc",
+          "sha256": "bbdf8bc5d0dbd42e4d86e229233b218e8c35603d86ac74ab08d6d62240e1a1b5",
+          "executable": false
+        },
+        "docs/usage/reference/author-format.md": {
+          "type": "file",
+          "sha256": "6e382c8359c3e55dcab81bf94cfc8996cbf2c8a6259b5e2b40fffae621495eb8",
+          "executable": false
+        },
+        "docs/usage/reference/available-updates.md": {
+          "type": "file",
+          "sha256": "9125d3afd703707e654ae70d29cd334fb3d2817e5f750402b80a2f7fffa27514",
+          "executable": false
+        },
+        "docs/usage/reference/check.md": {
+          "type": "file",
+          "sha256": "e2d7116b72b9bde160ca37ed7441ad79c58445a53815bbbfcb24370b758a43c6",
+          "executable": false
+        },
+        "docs/usage/reference/github-requests.md": {
+          "type": "file",
+          "sha256": "bc45d1248f8c484ed43212465452f54a4bacc63cec2709f7533903e2911623de",
+          "executable": false
+        },
+        "docs/usage/reference/inspection.md": {
+          "type": "file",
+          "sha256": "d4e2d19871563af64727f963ba1deb6904ab541991f4ab9f6a7697f45c16679e",
+          "executable": false
+        },
+        "docs/usage/reference/rules.md": {
+          "type": "file",
+          "sha256": "f69afb2d1a8c8e52911216bba033cd9939fd48eecf99db0a009cd5055735cced",
+          "executable": false
+        },
+        "docs/usage/reference/script-protocol.md": {
+          "type": "file",
+          "sha256": "12f275bb78bbe9811cdd7d626e161b77509d47cd6278cf5fdf0c0a1f04d16bb5",
           "executable": false
         },
         "examples/alice/defaults/checks/readme.py": {
@@ -3231,17 +3589,17 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "f1d5568b832b58ad0a44efcde3882fd8fc61bf15dc0ce134b65cee0f3e7c8805",
+          "sha256": "0904d8a3a2294ba2de2653a068985d18ce11a6d6eb587eabf0ac576a43d8a5cc",
           "executable": false
         },
         "pnpm-lock.yaml": {
           "type": "file",
-          "sha256": "d69e8d4a2eada4b5a55909f8f7641babba71228aadfb84d8ba2231e47d29fdc9",
+          "sha256": "bc0f8b5a10384d76323366f80d2007c4943344437fa3faa71d65aaa749bb02eb",
           "executable": false
         },
         "pnpm-workspace.yaml": {
           "type": "file",
-          "sha256": "316e57563212a48f3ba705e87c482b1a2da056ead6397d52786ddd7ad47e9544",
+          "sha256": "bd14d0121b8f5e3f7bfa1e22d4fd12d4c130cd435f4390077162154f365cd9e0",
           "executable": false
         },
         "scripts/check-import-cycles.ts": {
@@ -3281,47 +3639,332 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "18b5a640101af3fc2c13e6093eb869604cfd22975e58ffd853e6840f9c610cb3",
+          "sha256": "1cb770a7fff414600c229a15b0613fab15a570171d75fb1f6f40bd4a92c85adb",
           "executable": false
         },
         "site/astro.config.mjs": {
           "type": "file",
-          "sha256": "61324cf6e6c4ba0bb6d37e9720253ddac9061a868cfc3d73b077f64c644aafb1",
+          "sha256": "9b766267684943b8d3f3a140ca78c08b5c5cf67ac48fdeba4cffbda8657b2317",
           "executable": false
         },
         "site/components.json": {
           "type": "file",
-          "sha256": "c6686338362943fea65d6882f9c9dac3051c19d36bf09178c538160bbb2ada56",
+          "sha256": "fa0dac70b33b4367fc197bb2f84da5ac960f52cac3f4ca9e884c1038d6157f01",
+          "executable": false
+        },
+        "site/fixtures/search/page-1.json": {
+          "type": "file",
+          "sha256": "c28f19e5d95ef7b1a4993a3a09e0b3c968e394d66a39b00367e11125914193a9",
+          "executable": false
+        },
+        "site/fixtures/search/standards/lutzseverino/repo-canon.yaml": {
+          "type": "file",
+          "sha256": "c82b974f3469552648c28f9b71065d4f8ecfd5bbf4cfdeae11e364286f070dae",
+          "executable": false
+        },
+        "site/fixtures/search/standards/lutzseverino/repo-standards-example.yaml": {
+          "type": "file",
+          "sha256": "818c69af75abe13cbed02f1eec3f42ef6c31e56c852312fca43783bbefbc5b39",
           "executable": false
         },
         "site/package.json": {
           "type": "file",
-          "sha256": "d7fcb6d7b5a90b4e6b5e7570061cf72ae839ab6a239e9c6b0e2a207526225128",
+          "sha256": "5ab7250e139a0094eb4f2e43cc18f57d4ed628b0cc2ff166fa74e544c922d156",
           "executable": false
         },
-        "site/src/components/repository-link.tsx": {
+        "site/public/apple-touch-icon.png": {
           "type": "file",
-          "sha256": "eb2206ec5995a30543bbf51990677ae0e64afd41b86b019000b9abacf69e4afa",
+          "sha256": "64a479229847f7a7b7bcc7801553832cf7060d7cc8b11ca3848a7334bb69a7a5",
+          "executable": false
+        },
+        "site/public/favicon.ico": {
+          "type": "file",
+          "sha256": "2e238aaeab6a18e8be8a1af351d777312b50cca10091ded32b51e4bf2b4a7eaa",
+          "executable": false
+        },
+        "site/public/favicon.svg": {
+          "type": "file",
+          "sha256": "c641679990ec94ee890ef49d1d267ebed0e44dfe32b15ea884c6863991228759",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/D-DIN-PRO-400-Regular.woff2": {
+          "type": "file",
+          "sha256": "dcc3561488968ca5cb3c9f0e1e2f81bf4d0470bb63b2b0be12771e3fb364b2f2",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/D-DIN-PRO-500-Medium.woff2": {
+          "type": "file",
+          "sha256": "730d5be32e3581acb77234581d2db46999a64548c7fb83eb54f655da038eb9ba",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/D-DIN-PRO-700-Bold.woff2": {
+          "type": "file",
+          "sha256": "adcea7529aee522343d1482784dedcdab40eda098147691d42239dd6aa02eeb0",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/D-DIN-PRO-Condensed-500-Medium.woff2": {
+          "type": "file",
+          "sha256": "6ed0c99d587b86e6cd818f85b9cb31f5bbb061258a3a58844f1c6db4b1c8eac0",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/D-DIN-PRO-Condensed-700-Bold.woff2": {
+          "type": "file",
+          "sha256": "b8bc87222ec25647167b58716a6e38d8e7f2cfc91b162e6590f37f41569401b1",
+          "executable": false
+        },
+        "site/public/fonts/d-din-pro/OFL-1.1.txt": {
+          "type": "file",
+          "sha256": "4b9161aa1e9978d729be842940dd14d9b865d195066346c3907f764f05518fa3",
+          "executable": false
+        },
+        "site/public/icon-192.png": {
+          "type": "file",
+          "sha256": "09d9099276a573b66a90e0ad1fa4f7f3d1c1f6bfe7172361f4d720a07aa4cfb3",
+          "executable": false
+        },
+        "site/public/icon-512.png": {
+          "type": "file",
+          "sha256": "c430c04ef68de3548d76a2a796b47a3198f455cdfc6b14d720c8384d031b347d",
+          "executable": false
+        },
+        "site/public/robots.txt": {
+          "type": "file",
+          "sha256": "e624d34e343fa997a2130cba784e8c3bfd1839243b2ef655403b20a2f2eaab22",
+          "executable": false
+        },
+        "site/registry-manifest.json": {
+          "type": "file",
+          "sha256": "a0b4251a02d4c986ab2a29b8e7c0c4abad12c1f1c182b4f70f437c4747a1295d",
+          "executable": false
+        },
+        "site/scripts/registry.mjs": {
+          "type": "file",
+          "sha256": "cec24decda041e325f2b8438e38250c3cf6cf061ae880a8b5e7c6ee466d292ea",
+          "executable": false
+        },
+        "site/src/components/app/badge.ts": {
+          "type": "file",
+          "sha256": "55fa7b0b94bcd1a02b8fc757b7afdd962ac698f7d9cc219253c63d6b1f2c7514",
+          "executable": false
+        },
+        "site/src/components/app/button.ts": {
+          "type": "file",
+          "sha256": "7f0246349143006681f8e1fa560c354738aaf015d70d6a8ee1eebd7ea7986b25",
+          "executable": false
+        },
+        "site/src/components/app/card.ts": {
+          "type": "file",
+          "sha256": "d97862e45992af592e95473cb471488231eacf5d67e218c9d98057dbc1077089",
+          "executable": false
+        },
+        "site/src/components/app/empty.ts": {
+          "type": "file",
+          "sha256": "0db578fc33a76b7de7bd850aa259eabbefeed4836f37f9cec14c3750fe5c6780",
+          "executable": false
+        },
+        "site/src/components/app/input-group.ts": {
+          "type": "file",
+          "sha256": "e36eff02c451b517a3bb61feee153623610a94e144e7935bdb124249b9630626",
+          "executable": false
+        },
+        "site/src/components/app/kbd.ts": {
+          "type": "file",
+          "sha256": "dd7ba8e47bfdc53936e19630c8cf81e8ccb832f352f4472f0954ca106832b438",
+          "executable": false
+        },
+        "site/src/components/app/toggle-group.ts": {
+          "type": "file",
+          "sha256": "b6d2362b19f844a5fc873af87f2cb6db2e0367714aa0c1db9de9406c9ec6d46f",
+          "executable": false
+        },
+        "site/src/components/app/tooltip.ts": {
+          "type": "file",
+          "sha256": "ffd35486116f32edc5045d964571defc54cc38d97dbc644c52ec2fcd1a4d751a",
+          "executable": false
+        },
+        "site/src/components/home.tsx": {
+          "type": "file",
+          "sha256": "d446c578ca77c92454b790defb11c1b6eafd67d66bb821e24343fbda1e5754d5",
+          "executable": false
+        },
+        "site/src/components/install.tsx": {
+          "type": "file",
+          "sha256": "0e65ca1dbac857ba1899c0826d083cbaec0866f080601239535a31d32ef89237",
+          "executable": false
+        },
+        "site/src/components/profiles.tsx": {
+          "type": "file",
+          "sha256": "77340871574dca7644de52b429a21bacb4d08a730e12ca48c6b806043243be53",
+          "executable": false
+        },
+        "site/src/components/search.tsx": {
+          "type": "file",
+          "sha256": "0e65def3222c5b0680689dabb55d296b204e3ac7c863df454b0d878e5928e278",
+          "executable": false
+        },
+        "site/src/components/sign/arrow.tsx": {
+          "type": "file",
+          "sha256": "b7811caa9abaecf60d8def09c799f1474c074bbfc4a0b644bb43123fd9790eb9",
+          "executable": false
+        },
+        "site/src/components/sign/assembly.tsx": {
+          "type": "file",
+          "sha256": "1374e10d15cb06064a05c67efefb0f06a7d515fc990f516cf2b0d8451c566af8",
+          "executable": false
+        },
+        "site/src/components/sign/face.tsx": {
+          "type": "file",
+          "sha256": "36a886176ba7d03f74ecd1c0efb7ed71b93899882b01cbc2b80c1c58fef2e661",
+          "executable": false
+        },
+        "site/src/components/sign/light.css": {
+          "type": "file",
+          "sha256": "dc48a725679c610d3e5d016018a0078605c2b8c82d98cb3a16f1d57eae1e8be5",
+          "executable": false
+        },
+        "site/src/components/sign/rail.tsx": {
+          "type": "file",
+          "sha256": "1c7b4df178fa00ec5dcbb5a78eeb117207bea7bb0f202576efb6dc4f873f2a5e",
+          "executable": false
+        },
+        "site/src/components/sign/rig.ts": {
+          "type": "file",
+          "sha256": "f46916aea2b1a3327ead310fbc0522dd88af92b594464a5ada18ab7c34d1b587",
+          "executable": false
+        },
+        "site/src/components/sign/sign.css": {
+          "type": "file",
+          "sha256": "c9e04dff7e5b49d2b0b7a225a794ef8e7ce4e20ac2840b7d945cebfae96d8c8a",
+          "executable": false
+        },
+        "site/src/components/sign/signposts.tsx": {
+          "type": "file",
+          "sha256": "2a797e1778d599ce6521e0d3af6d10e74067997d13e5db640bb3bfb365ca7489",
+          "executable": false
+        },
+        "site/src/components/sign/torch.ts": {
+          "type": "file",
+          "sha256": "09436d1ce4615a53160c2074246c7b5e9a86b173c8c06b2141e687c7a4babb12",
+          "executable": false
+        },
+        "site/src/components/theme-toggle.tsx": {
+          "type": "file",
+          "sha256": "189cc8fe95c98d0aa5dad06af6fc9aa05fa59168f7598d32ee2071af96d87d9c",
+          "executable": false
+        },
+        "site/src/components/ui/AGENTS.md": {
+          "type": "file",
+          "sha256": "9095a1595632c7e6ab054adc45bf304fa7cb4cc5279aa0d7f6c49f8d4dda737a",
+          "executable": false
+        },
+        "site/src/components/ui/badge.tsx": {
+          "type": "file",
+          "sha256": "d9fb280e266119c4b62a4c518e63152de27b094c68d3e5f8929d05bfb0c1bc6c",
           "executable": false
         },
         "site/src/components/ui/button.tsx": {
           "type": "file",
-          "sha256": "e1b46928ec47d09b41d6334a28f5dcefd1c193031b14e4f4462831f29af40bd9",
+          "sha256": "313353436d0fcc8e44ab470adb614b9fd013d28626f624328ea0d66d41a6c81b",
+          "executable": false
+        },
+        "site/src/components/ui/card.tsx": {
+          "type": "file",
+          "sha256": "8ad3a18d36bda0598dc0e9aa96ea22854944d5443ee4946f1d173815e115375f",
+          "executable": false
+        },
+        "site/src/components/ui/empty.tsx": {
+          "type": "file",
+          "sha256": "1280f9207787f9e7c219f7181459387b5e103606b6d91872de33a7a9752ee7a7",
+          "executable": false
+        },
+        "site/src/components/ui/input-group.tsx": {
+          "type": "file",
+          "sha256": "492310e6d519441c3e2a3b11330b3f35da71bd37630672f749271b9585a88e64",
+          "executable": false
+        },
+        "site/src/components/ui/input.tsx": {
+          "type": "file",
+          "sha256": "dab990dfefa0ba78854ab6602ad074270dba9d7d1262184d9bfbb62bd990903b",
+          "executable": false
+        },
+        "site/src/components/ui/kbd.tsx": {
+          "type": "file",
+          "sha256": "d17724eb15923ea4f0432cd1cf22538addb14a386f4f9326661efcce7f97e33b",
+          "executable": false
+        },
+        "site/src/components/ui/textarea.tsx": {
+          "type": "file",
+          "sha256": "82601c91ffc6c727d924162c78d7cb853114bcced4e2eb922a68ca12d4239c0f",
+          "executable": false
+        },
+        "site/src/components/ui/toggle-group.tsx": {
+          "type": "file",
+          "sha256": "ea72fb41374a94a1585e282cc77b4c90de0c50715f912286646ec24f4c092c2d",
+          "executable": false
+        },
+        "site/src/components/ui/toggle.tsx": {
+          "type": "file",
+          "sha256": "48ab6456afc25c4cf79537252cb9512c5c2846d2b1796170eab8aca91ebf7ddf",
+          "executable": false
+        },
+        "site/src/components/ui/tooltip.tsx": {
+          "type": "file",
+          "sha256": "100101631756e1bebc1f1831e1642b26cd11a6a6c4affb6c638c42001dc14e83",
+          "executable": false
+        },
+        "site/src/lib/catalogue.ts": {
+          "type": "file",
+          "sha256": "f6757302c78eddd5f39a0423f09fe3b9a27c47c22346c61d8941f68a84b74f08",
+          "executable": false
+        },
+        "site/src/lib/load-catalogue.ts": {
+          "type": "file",
+          "sha256": "643f3a2f3a424c27e8f63bb6211926765744d78ae8bac9e13dcfd62ce03ab41d",
+          "executable": false
+        },
+        "site/src/lib/search-report.ts": {
+          "type": "file",
+          "sha256": "e30b60f75bd8ebcdbdd240e3bc46112559e9ec25b7448cbdaf0b7ea77fe49cf2",
+          "executable": false
+        },
+        "site/src/lib/structured-data.ts": {
+          "type": "file",
+          "sha256": "11a011dc42345d31c7d0b4db634c15ba689c65b12d619dc339ede0fa7de62885",
+          "executable": false
+        },
+        "site/src/lib/theme.ts": {
+          "type": "file",
+          "sha256": "c069e35b7fa5ecdc8e08acd30904ed2a9059553904aa1ddb2c4173e2fbf1b4c8",
           "executable": false
         },
         "site/src/lib/utils.ts": {
           "type": "file",
-          "sha256": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27",
+          "sha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08",
           "executable": false
         },
         "site/src/pages/index.astro": {
           "type": "file",
-          "sha256": "d72f13fb5ec49efd3cdf236d7a2b5075954994c3769b0c2fb182a026e3df4d44",
+          "sha256": "bc70295758e1f7920b107f6e89acfff7db93267566cb9f1e72084e86120b3d55",
           "executable": false
         },
         "site/src/styles/global.css": {
           "type": "file",
-          "sha256": "b02e882e1d165996718a59a8d90a542cb74e9a9598f8fac309e8d05ce0e79dd3",
+          "sha256": "2c00b82b928a0d1396932d35aa27a81dbea5ac65cc6755210a03cfa6072b4caa",
+          "executable": false
+        },
+        "site/test/crawlability.test.ts": {
+          "type": "file",
+          "sha256": "5de3f6430cc1ffaad339d77ebc9e2aba261e7037007e34e4a1dc4ba3cad92acc",
+          "executable": false
+        },
+        "site/test/search-report.test.ts": {
+          "type": "file",
+          "sha256": "43bea2a547abbe567bb8659524ee40f9c2ed01447b63ad8270360020aa654e97",
+          "executable": false
+        },
+        "site/test/structured-data.test.ts": {
+          "type": "file",
+          "sha256": "4d66e59502bded0df3e331c3605190734e51c65246a884dbe053aadc4af0658d",
           "executable": false
         },
         "site/tsconfig.json": {
@@ -3329,9 +3972,19 @@
           "sha256": "65a1e0eae32a37289a11b9869f9c98a8dfc433b917215e011494c35e6236cd29",
           "executable": false
         },
+        "skills/adopt-repository-standards/SKILL.md": {
+          "type": "file",
+          "sha256": "963371dff771e7f114ebf3a8e922b5faaae628a8565cce34fc272a9fe9dcab91",
+          "executable": false
+        },
+        "skills/adopt-repository-standards/agents/openai.yaml": {
+          "type": "file",
+          "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935",
+          "executable": false
+        },
         "skills/author-standards/SKILL.md": {
           "type": "file",
-          "sha256": "40f0ad7c525b311ebaeb445d4e6a2de3182fc0e2badea90691672e0a63a97cdc",
+          "sha256": "89bd39ded528626f3898d095e4b91dc498ee0f9c2654f17d8dbe7cdfde8e5a6c",
           "executable": false
         },
         "skills/author-standards/agents/openai.yaml": {
@@ -3341,17 +3994,17 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "163fbce9659217c02cd8e1874e17e2db538cefca3239d6055c342fbdd2a03fa6",
+          "sha256": "6bf43c3e86ecf98c84a35cc5ea1c3ef226635b70bd396cd1ba20f8b9846a195a",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
           "type": "file",
-          "sha256": "8b9e6ec747cc929140dfa6fbcf1af5e6f948c97aef7a93dcf386e2e14462fec5",
+          "sha256": "b2dbf7473dad9872d7bc139b8508aa24049f76d542943c7367b7d104f9713234",
           "executable": false
         },
         "skills/author-standards/references/profiles.md": {
           "type": "file",
-          "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851",
+          "sha256": "c8ada63fd21f3abedeb9ef990b632d295af1c37ed009b3ee3a6912181ff284f1",
           "executable": false
         },
         "skills/author-standards/references/revision.md": {
@@ -3371,62 +4024,67 @@
         },
         "src/acquisition.ts": {
           "type": "file",
-          "sha256": "c46c3f51ff65bcf8db89bb82a334a0ec3341c78816b9bb4c324a61aaf8b0a6d2",
+          "sha256": "a73182480a9dfc15b59d9ec70b0cd78c5413b9f51d206f3e03ce4ce080ecead7",
           "executable": false
         },
         "src/adopt-terminal.ts": {
           "type": "file",
-          "sha256": "3501896089252a3f1e32cd2191ad66e7460b5e278f21a8d05a48ea00b037651d",
+          "sha256": "bff53bd7c88f737a8a2a6b695e6b3f85728c68987929d9a86f97408a164b2dd1",
           "executable": false
         },
         "src/adopt.ts": {
           "type": "file",
-          "sha256": "630dced49bb98f206073d2a739658decf12b8e45dd6f0cadefaec076be549e49",
+          "sha256": "1bba1c012567a42ee4991503a6e92beb1f56b6bb77610c88642a15155b0e9ac6",
+          "executable": false
+        },
+        "src/adopter-action.ts": {
+          "type": "file",
+          "sha256": "d7fdbdc803705a7845f32ad7cd4b124635493af0ef40b0deb9503f2ace1e25fa",
           "executable": false
         },
         "src/adoption-files.ts": {
           "type": "file",
-          "sha256": "9fe75218496af2e198526d9731843e5f0bf21302623de613c4b0c447be0b2ec2",
+          "sha256": "c2a2df2ecb61ba4b01e375482193af0d5597ce6bc793218443cc99914179c501",
           "executable": false
         },
         "src/adoption-run.ts": {
           "type": "file",
-          "sha256": "85b3747b12b174a137e3f59bda25eb1805c92c5cba5449a2d127ccb4ce29feac",
+          "sha256": "983eb0617c53bb914c42a0bfde6686f36210db5ca087c8f4b6582fa47979b880",
           "executable": false
         },
         "src/adoption.ts": {
           "type": "file",
-          "sha256": "e51d797decdc3e17be5c91d5956f4017e715e270a47d56f7f56e773e8285009c",
+          "sha256": "9a023693eda53dc6c89ac4639fa558caaffcac7ca99954bab5be032addb1a0eb",
           "executable": false
         },
         "src/assessment.ts": {
           "type": "file",
-          "sha256": "7d16be93635ec844902bcffa8f729389c31daf6541e4562461244e0c8b2c53fa",
+          "sha256": "2a9d155bec1e4bb363b5216762bdf5cd17818faa62d4b0a38006dbe209b726c4",
           "executable": false
         },
         "src/check.ts": {
           "type": "file",
-          "sha256": "0cc60cf1f69795f464e7656edc5bc1e5fed1ac1c9d7f35193205bfcf64944e87",
+          "sha256": "7e48ea06639f88429afcd3e180ead97a507658de42f9e56d37a5f1b0076c2887",
           "executable": false
         },
         "src/cli.ts": {
           "type": "file",
-          "sha256": "66389439e564e1d2c17b262edb9264db5d25d4eba572e159a3065c005e49d842",
+          "sha256": "e72a8f7a4090a65d8655b2184f708bd82beca3578f8524de369a4e103bf1cea2",
           "executable": false
         },
         "src/declarations.ts": {
           "type": "file",
-          "sha256": "f8aa23928fd11b58b27e73845b3790942e1369b7d89e3a0a5963a2985b1d78b3",
+          "sha256": "c60f31bc15ec1c4252608a5db932cff9ecdbfa450a5619938a5e258b056709b1",
           "executable": false
         },
         "src/discovery-script.ts": {
           "type": "file",
-          "sha256": "dfc8006a6a4e24aa9ea1e8586148202b969fe0a6d026c427827889e88eaf6b4c",
+          "sha256": "8e91c3170aef34a5b26764c61853ac27a545219b2d2e047217972f941d79d4f8",
           "executable": false
         },
         "src/discovery.ts": {
           "type": "file",
-          "sha256": "213ccb46a9c86f8196ffb5fddb24e3d7bf5dee2d9d305d2cfb3d8fe2a631f11c",
+          "sha256": "836d0f6bd17f8058f2526ad49bba047fb464f54b37fcbeda200c6e3557825119",
           "executable": false
         },
         "src/errors.ts": {
@@ -3436,42 +4094,52 @@
         },
         "src/execution.ts": {
           "type": "file",
-          "sha256": "24e654b0a83c8a1e64d7692052ecd972ee43afee2b161f858728f3271f869a02",
+          "sha256": "0b3fce676005dd5a56027ebdfe67573c1da3b71d729f10d01e5d1ee6d4921911",
           "executable": false
         },
         "src/formats.ts": {
           "type": "file",
-          "sha256": "6eeb03880807aa40f36fcaa7fd5e54c88bc55859a7450c787b2f64bf26bb8a58",
+          "sha256": "98051d784ac8509c0df106901790476c47cc0e6bae3cd19f562dc8fe38cf25a3",
           "executable": false
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "c64f9e6ba77b600db674b83d198bf2afb647a449a32ff66867808a985c33d7a6",
+          "sha256": "bd264018838f5919f9821682e333e14651a4be4744aea59c5617045dae3818d8",
           "executable": false
         },
         "src/installation.ts": {
           "type": "file",
-          "sha256": "15e529e458d779d4116685fd83fdb9a3014b83aaa0b4c4ff0f165cdecff3688b",
+          "sha256": "c9166f0c6c290d8cc4741c599576f47fd557561061acfd3cc8b2d42f44dc2bb4",
           "executable": false
         },
         "src/model.ts": {
           "type": "file",
-          "sha256": "6ab36fab8f22078b92867e6b0c5bfaf4c41ce75c03d9600ab4d2ebbf800eb568",
+          "sha256": "6d369d346d6e176eb409334649c0b6d81e97d576fa6230ca520d1f9607c38782",
           "executable": false
         },
         "src/observation.ts": {
           "type": "file",
-          "sha256": "e194ec6a8adcf42747f8c4502f1d729c20dd0975eb15a8820cf71f7c616192eb",
+          "sha256": "41caac4ba596720101975a86884d4358d415892790fc69cad4144aa91d0e1bc1",
           "executable": false
         },
         "src/outdated.ts": {
           "type": "file",
-          "sha256": "43ce25667d3a0368ff5e24125dbd7bae156d823dca792d29226e30ef038a3400",
+          "sha256": "aa3971b3ffd6472bb55b51ac94c04916c2b6c94c281ffc8ba0799042aa4b9e78",
           "executable": false
         },
         "src/paths.ts": {
           "type": "file",
-          "sha256": "677daa5c6d5455a7171d7a852214153cf8de02634f702c9370d2d0d31b7fef3a",
+          "sha256": "93528e8d9d9a7b167cd36a8f2c13d8b7b3e70444d59147f18b9f8e923d8cb314",
+          "executable": false
+        },
+        "src/platforms.ts": {
+          "type": "file",
+          "sha256": "41f09c4e5ed1d0355b256176a373e3a2cda627f7f9a3e3523a68fc11fe3a3020",
+          "executable": false
+        },
+        "src/preserved-run.ts": {
+          "type": "file",
+          "sha256": "7e956dab1659a3b86f4a1479ccab7132deda946f8ac73865c1b691806570e89f",
           "executable": false
         },
         "src/process-identity.ts": {
@@ -3486,7 +4154,7 @@
         },
         "src/recorded-state.ts": {
           "type": "file",
-          "sha256": "d66082548c60d98125c8ce7ec258bdeb10bf24a5f209eff410df536bcb432335",
+          "sha256": "f370871041eda7c6ece3e7c3120a5fcf7e35cf8a08267d208208b94cb52b3fbe",
           "executable": false
         },
         "src/records.ts": {
@@ -3496,17 +4164,22 @@
         },
         "src/remote-setup.ts": {
           "type": "file",
-          "sha256": "a9013d58363c3b90b1aecce54184490be40d6ebc6ee4022e9e613881e2fcb601",
+          "sha256": "cebedfed27eccc4627d802316b6b24a075a6fcfdcf96b16508b84dc3326d42b2",
           "executable": false
         },
         "src/resolver.ts": {
           "type": "file",
-          "sha256": "dce63aa8c4ab544715ef9bef18a3da3202e2eee327a0a1d9253eb786659be687",
+          "sha256": "26631ee12fdc6b0750cf52251d1d224b0a5a90620b72880d1670f205348e6201",
+          "executable": false
+        },
+        "src/reused-answers.ts": {
+          "type": "file",
+          "sha256": "042839dd0d142aff1fa170d3bcd0f46d9bd0508acb6a95ea9ec5ea9c192c33c2",
           "executable": false
         },
         "src/rules.ts": {
           "type": "file",
-          "sha256": "96c9ff17600255be8ec836157ff702e0b21393b108fbbefd3a02ab83348ed725",
+          "sha256": "8096cca055b537f5eac9f5c38147d58fc3923666439a638807330d1bb4f74ca2",
           "executable": false
         },
         "src/run-lock.ts": {
@@ -3516,7 +4189,7 @@
         },
         "src/scope-evidence.ts": {
           "type": "file",
-          "sha256": "235d8b01bade575344272fc1894585c17a9851df09bb1e013048075927feda43",
+          "sha256": "eb5e2da8f89647214db89accf019036bf05eb4fc92fe788aef013ed1fde3faaf",
           "executable": false
         },
         "src/scope-observation.ts": {
@@ -3526,7 +4199,7 @@
         },
         "src/scope.ts": {
           "type": "file",
-          "sha256": "22bacbdafc2fedaa552cbbee3449c37dfb1ffc512f69a124b0d78b5b1e314144",
+          "sha256": "f839e30486e41741cc7b0d1e85a268a4a3cdca5f3c9cebf5348ce8c654d48780",
           "executable": false
         },
         "src/skill-invocation.ts": {
@@ -3536,7 +4209,7 @@
         },
         "src/summary.ts": {
           "type": "file",
-          "sha256": "7b0300e67a3661bda18c3f03ca9156f2a13c48566f6ff22f362dd3034a632c8d",
+          "sha256": "d6aca1eba99eb5306280377f5de08ec27cd28db734ef761c79e06204d5efd3ce",
           "executable": false
         },
         "src/target-ownership.ts": {
@@ -3546,7 +4219,7 @@
         },
         "src/targets.ts": {
           "type": "file",
-          "sha256": "44142f7e7426b32ba93507c9b3606424c10ae9c3b8e236840ddcaa6cdb1ea914",
+          "sha256": "efbf32b5f18b8c22d83c7e7969cf9678365af7cd16ba5ceab4f85ae639a76dfc",
           "executable": false
         },
         "src/unified-diff.ts": {
@@ -3556,22 +4229,22 @@
         },
         "src/update-comparison.ts": {
           "type": "file",
-          "sha256": "d85d731cfc74d5cef0cbfc5152854bab72c8fc95068b9bb016df9958ff8c5042",
+          "sha256": "14310ae9b7259b3c863e1a764e740f4690a6bfcdb8e011b0d1e6905b4c50e948",
           "executable": false
         },
         "src/work-evidence.ts": {
           "type": "file",
-          "sha256": "be40042ec7e04019acdcbc7979a94faed06d82c3391df65724e9c1ec32ae34d0",
+          "sha256": "12eb83bb936e96267f0f13435de475362ba97f058a9206e9f0e2deb0eb4e0a02",
           "executable": false
         },
         "src/work-observation.ts": {
           "type": "file",
-          "sha256": "d2c671b2c8f13f912e3853aa7d67fb6491c15c69eccfe25fd6758f5250f1ddd7",
+          "sha256": "ac2cbe3d9b704b368d27c95c9d26db6615837d1f101d430e9875908c0a077cf2",
           "executable": false
         },
         "src/yaml.ts": {
           "type": "file",
-          "sha256": "fc6556cd04467321af1ba65aa14a3cdae5b17a1d02f95425001fbe8fa4a6cf4b",
+          "sha256": "107f1f39718791b139d90d9fa01f329f965347f33038615310947ba34bc768de",
           "executable": false
         },
         "test/acceptance-sources.test.ts": {
@@ -3581,27 +4254,32 @@
         },
         "test/acquisition.test.ts": {
           "type": "file",
-          "sha256": "c016e084574cbb9a932bca3736e2c372b2a94dc7f57e15534e8678910b6cf7e9",
+          "sha256": "55a4d49f5039854945b8fffc1d45357540910a97086b86344917851f530b1be5",
           "executable": false
         },
         "test/adopt-fixture.ts": {
           "type": "file",
-          "sha256": "115a17704f6531512d3f1e67347dc72e2d6cff37fe5578ab2c493976978a2d61",
+          "sha256": "8da7b2dcd0acdf8a3fea6de51c8c4367ab785f8019b33a57dfcdf0b62f066f6d",
           "executable": false
         },
         "test/adopt-terminal.test.ts": {
           "type": "file",
-          "sha256": "2fc2834d75275a67d42335d9ada40f30931bedd82d8cf46bc7d2c57fedcab20a",
+          "sha256": "963713974e44e9c39f2464b1a2b755bf32d6c3b43236ab9a78cfb1b5ec56c043",
           "executable": false
         },
         "test/adopt.test.ts": {
           "type": "file",
-          "sha256": "66520a0817a31c5f91c16431d0cddb0600fc3229db01e60a3b02bf2ef377a9a3",
+          "sha256": "88a1df6c792e2c83e87dffc806019ec0b239540e696640086862e8dfc1e2e454",
+          "executable": false
+        },
+        "test/adopter-action.test.ts": {
+          "type": "file",
+          "sha256": "28ebb7bd0d3b41f4f0fab0fd2cf49635dbed177e239725954e68f7bb493d20a6",
           "executable": false
         },
         "test/adoption-faults.ts": {
           "type": "file",
-          "sha256": "a5915fe6718279e8b7c9b0203b133a1ffc316fe29b9abb23b25d9b46845d15e8",
+          "sha256": "110818beb915bd5df840daaadd557206fadb81b71b84aa6f6c627da94dcdc5df",
           "executable": false
         },
         "test/adoption-fixture.ts": {
@@ -3611,12 +4289,12 @@
         },
         "test/adoption.test.ts": {
           "type": "file",
-          "sha256": "953d9957f4acc9a062d1dc90d8ad0c14349a27807087500dc2102f3bc50d8149",
+          "sha256": "a30ae1f7966511a0c86b9cfe2c43e5ebc3e40035c5dc52afa07b7fced570cc86",
           "executable": false
         },
         "test/assessment.test.ts": {
           "type": "file",
-          "sha256": "d4ddbdb150f4a65426a6c4353b744452df8a23617b506cab82a68d95d91126ca",
+          "sha256": "edf98a53752ac04bec7cbaa5ae3cd27cd971da1c9d43ef0c489efca9f6bf18e3",
           "executable": false
         },
         "test/bootstrap.test.ts": {
@@ -3626,52 +4304,67 @@
         },
         "test/check.test.ts": {
           "type": "file",
-          "sha256": "2955b8fb7cc22d0c68c93fb92016387ff5305f9f715770419355f00c4bc35037",
+          "sha256": "2b7ce3f6427be943eb907fe1506f7bdd2fc49d2fa76631ddcee4523e34fb29a9",
           "executable": false
         },
         "test/cli-pin.test.ts": {
           "type": "file",
-          "sha256": "e858b81ec351906f5e9a807aa83743ea951b193742b472c694de7691ac44f0dd",
+          "sha256": "d54908617b6ec0ce14ff4951c3ddf791af485fc142f13cc6949a2ee08e011488",
+          "executable": false
+        },
+        "test/committed-evidence.test.ts": {
+          "type": "file",
+          "sha256": "26fe0f0a9e0aaffb1d4423e5c653af8c2cd18d39bbdaf37ff54c970b10345b36",
           "executable": false
         },
         "test/committed-evidence.ts": {
           "type": "file",
-          "sha256": "fe8e4fe9fc7329ee6dbb97f4c147579b2a4c9a77a0f40b09cd208772d3110977",
+          "sha256": "a92a390f97f497ff471e21bba3c2cc1cdeb9eaafe826c86e31df99cc150273ef",
           "executable": false
         },
         "test/discovery-lifecycle.test.ts": {
           "type": "file",
-          "sha256": "0c70e5e1d821aa417427dd07d7aa5ffcfaed29baa7f90d51336f72b2e5483ddf",
+          "sha256": "653c9484980a03c39038f88cee52f97f19e17352234d632feb5a62fbeb16ff28",
           "executable": false
         },
         "test/discovery-script.test.ts": {
           "type": "file",
-          "sha256": "5fcf251a15458183b7486a589d5549c86a0d167610737a4beaeb435b0e02b268",
+          "sha256": "7b29cdade8c246da4532c3bb6a35825a2c88393ea6546c6ee99010c06cdf2408",
           "executable": false
         },
         "test/examples.test.ts": {
           "type": "file",
-          "sha256": "8cfeba13e756ae9a5e3c2d361c07b13afdbd7ccfa73cc23776606952cd542ad0",
+          "sha256": "ff75d6fbed2afe9be1481ff30697e5d46f3163e899b37e9e10fc5cea3520d40d",
           "executable": false
         },
         "test/execution.test.ts": {
           "type": "file",
-          "sha256": "d519f069dae4f2d5e7cc90f5a6d42a5bb0fd4af6b7f6567153349c666f4c350b",
+          "sha256": "1dcdb6783cfab3abdbb77fda850276fbbde152142e9028fcf8cf557b36aa05b1",
           "executable": false
         },
         "test/github-fixture.ts": {
           "type": "file",
-          "sha256": "8ad8d29f367a5003d4751ed9e68002ae71a5bfaeb0ea5d3d68de05339d6535d3",
+          "sha256": "16136ba0c51b50eee2d5f49a31a0a4c9467e42bc3c2772c73c68b1c9d8282fc9",
           "executable": false
         },
         "test/github-token.test.ts": {
           "type": "file",
-          "sha256": "b34d8586af6ba4a41d421fb1b962b080ec4b6a61b30e5192a55be6beae7787e7",
+          "sha256": "2d2984da74004e44ed4be2c50846552a39c4299fb567a2bd9c40bcd2fca4f245",
+          "executable": false
+        },
+        "test/headless.test.ts": {
+          "type": "file",
+          "sha256": "41ddb2431826fb1aa97adcd7a929bbd66adc0bfe3f7b5605170405969a926ec2",
           "executable": false
         },
         "test/import-cycles.test.ts": {
           "type": "file",
           "sha256": "8d0abd5d02f8544b78cec93110765df99aa5774f92f8ca7bcebb8fdc19d9502a",
+          "executable": false
+        },
+        "test/in-place-recovery.test.ts": {
+          "type": "file",
+          "sha256": "546d1ac559fbf4ff4416b204ea91491afcec1477a796a9b59fa4c2773feffd30",
           "executable": false
         },
         "test/inspection.test.ts": {
@@ -3686,12 +4379,12 @@
         },
         "test/json-reports.ts": {
           "type": "file",
-          "sha256": "30a76e1ea94d449352f0eed3d681183e24b2afd20408197aec4ec08538408fde",
+          "sha256": "81bd8e369188f11861ee188b41895436c4977a30dcd150317302fce7248eb854",
           "executable": false
         },
         "test/observed-scope.test.ts": {
           "type": "file",
-          "sha256": "b72ded17d459c0be083f7cbf0604fafa378dec4441c4cc5835f0f5d658dabb42",
+          "sha256": "911e881f8e348f8e3f69889257e014eaf007fb5e43ef9888bfec3ba10023742d",
           "executable": false
         },
         "test/operation-validation.test.ts": {
@@ -3699,19 +4392,34 @@
           "sha256": "da7284128177b64a433994498190cda74a9af03f0f4b3b0198676473d4d4c766",
           "executable": false
         },
+        "test/optional-scope.test.ts": {
+          "type": "file",
+          "sha256": "5cba955b8913062376c7bcf76c9394e852693e3ba6c914ce335c6d5caf5a3684",
+          "executable": false
+        },
         "test/outdated.test.ts": {
           "type": "file",
-          "sha256": "17acccb0fd8bbbb43f3a36277cf72fbc46567d163ba60d862d6e80020365f4c5",
+          "sha256": "c17a100f56fd0c0a5d1da307887c1517f9bf1e3ebfe8656c89cfd796a9ac66e3",
           "executable": false
         },
         "test/path-validation.test.ts": {
           "type": "file",
-          "sha256": "8652f7f0588af1fc50ff60ed479bb2ed69d5fb2e728f69b1ee85f9a92ea3befc",
+          "sha256": "d09389a3ec90b81ab953c8290a5394a721f576bde4ce1a2bec7830b57718fe8f",
+          "executable": false
+        },
+        "test/platform-selection.test.ts": {
+          "type": "file",
+          "sha256": "dfc502da1df83c496dfc2bda9ffad3b1a9d19f0eef6c060e2b7c3ba44848e6ec",
+          "executable": false
+        },
+        "test/public-update.test.ts": {
+          "type": "file",
+          "sha256": "b818304bc2d201adac3956a2ae6c2b297d27f9c99e9aab3336a35c8da16bcff9",
           "executable": false
         },
         "test/recovery.test.ts": {
           "type": "file",
-          "sha256": "02f7a32fc5b78790d257273cef1ed9ed51faeb2bf681b411dd6f7115e5326acc",
+          "sha256": "52d8059c31fc44a4b54d0888dcfebd654633a07474c5864160bce981e33be814",
           "executable": false
         },
         "test/registry-fixture.ts": {
@@ -3721,37 +4429,42 @@
         },
         "test/release-acceptance.test.ts": {
           "type": "file",
-          "sha256": "9e311af6deeb88458e525a34a2b36b9e971ca3534c393c57407d44c7c7cedcc0",
+          "sha256": "4b28e9aa85cd788f28bbc85b47add905b68b3d88f57ae2fdcbea3ad2439008e8",
           "executable": false
         },
         "test/release.test.ts": {
           "type": "file",
-          "sha256": "d7237078e68720618176bf94a615965136e81775821af6f32fc2b736a1ddfa4f",
+          "sha256": "71a39a17f2585c61fc135f2c69e56c5e9ed35802a132942307e818f115fbc334",
           "executable": false
         },
         "test/remote-fixture.ts": {
           "type": "file",
-          "sha256": "d28834ca6606d18347cfc320b22aba0b4b484bb25160f8417410482c372227b6",
+          "sha256": "22ef4e6557af993b8fddb9db9df2fbfbead3dda64f4b7635e8e647f39d8d5778",
           "executable": false
         },
         "test/remote-setup.test.ts": {
           "type": "file",
-          "sha256": "ad2b43129d1f44d55742484f22667470705be7efb77f933685d802545afdf36f",
+          "sha256": "2823890c52c7e6453e0229538c3d6fa0df7745923e72dd037eee9d7d4c77873a",
           "executable": false
         },
         "test/request-budget.test.ts": {
           "type": "file",
-          "sha256": "255ebc6452bcad54516d0bb6cee765ee7c30a754a7fea38619782c2d76810c43",
+          "sha256": "03c56f000248ff28029f725274305f0c3017494666ca67535e97a1d1bc0636ff",
           "executable": false
         },
         "test/retired-formats.test.ts": {
           "type": "file",
-          "sha256": "7a58d7f1d097891543c8f27c7efb7265da3c4dd22f291538b990b41b854136da",
+          "sha256": "78df413f3b4630f06a41fe144bdf70a251d05d7f0c4a2a3464180be0e7468545",
+          "executable": false
+        },
+        "test/reused-answers.test.ts": {
+          "type": "file",
+          "sha256": "11e49ffac28daa503550c0c93c3cca426ec27c45a67c148149541e40dca46ef1",
           "executable": false
         },
         "test/rules.test.ts": {
           "type": "file",
-          "sha256": "a3be3041c0ea36dbc381d3dee911c7e72f5c45297eff39b506020209a1d90a47",
+          "sha256": "eb0513adfd8c44436b91265cde3c0f31119e670e7c102398615dda365f8c2406",
           "executable": false
         },
         "test/runtime-acquisition.test.ts": {
@@ -3761,22 +4474,22 @@
         },
         "test/scope-adoption.test.ts": {
           "type": "file",
-          "sha256": "14e03a7a3040488846f376b0a1118aa732283ee1ec98ddbafed2ce98e9ac406b",
+          "sha256": "42a923e9400549e492bca69b252ad3aa8c285d2f1588876019d3cc23d3144507",
           "executable": false
         },
         "test/scope-inspection.test.ts": {
           "type": "file",
-          "sha256": "1dd88d4284a8f46cc9ccffecd4c20e15f244d82105d573b9baa358a8f9bfdaec",
+          "sha256": "24eb44c61490f5407ca39837d8d4688f92308c99b96c659fa9dcf6e1ebfa8e67",
           "executable": false
         },
         "test/search.test.ts": {
           "type": "file",
-          "sha256": "9bce540e3ebed3f91e06125455de37cf579defdd4c5f7a8095f9017bd92e80d1",
+          "sha256": "67fedcd72bbae1f1a56a1da7cb105a2131f15998a20fd50413aa99b6caa126cb",
           "executable": false
         },
         "test/source-validation.test.ts": {
           "type": "file",
-          "sha256": "a30876f9c64a4cb1aaa806fc0dd1c065ac2d062b28a6fdffd4594066f070709b",
+          "sha256": "5acb861c82957c33db249832ec2e76d342b9d000ee9e2b96ddf8b3e6bfbd8301",
           "executable": false
         },
         "test/status.test.ts": {
@@ -3786,12 +4499,22 @@
         },
         "test/summary.test.ts": {
           "type": "file",
-          "sha256": "fe3ec56cf31f6ec4f3ab70bd822c8a6a9b8051d98038744229c21da635de9d1a",
+          "sha256": "296bb4a1f40b2d73d3ba23a7974e6b027299896b0d2342844bf6b5a465e76005",
           "executable": false
         },
         "test/terminal.ts": {
           "type": "file",
           "sha256": "01124126b9fe68e24ba501c488627eb4107eceb598d14db9f8981ba97690c779",
+          "executable": false
+        },
+        "test/update-action-cli.mjs": {
+          "type": "file",
+          "sha256": "6b1d9f9d242eef7abbe2917b2c1810abef46c0c54dd7569516c084116926c9d9",
+          "executable": false
+        },
+        "test/update-action.test.ts": {
+          "type": "file",
+          "sha256": "5dc90132792b45410105b9687b6a4edc8d7c298ab8c3a8eb52d0d4ccc12d39df",
           "executable": false
         },
         "test/update-class.test.ts": {
@@ -3801,7 +4524,7 @@
         },
         "test/update.test.ts": {
           "type": "file",
-          "sha256": "27b284e986c70ddd4042119c98f7e08cf89c559040b24f01721e323812685019",
+          "sha256": "30044bdedd8915892eca1dfc2baf67b5bef8909917af95db63d31e544565baa2",
           "executable": false
         },
         "tsconfig.build.json": {
@@ -3811,7 +4534,7 @@
         },
         "tsconfig.json": {
           "type": "file",
-          "sha256": "56d6be254f710fc7458d8c51dc9615cbd705dcfc5767687b19ec07a1068853af",
+          "sha256": "01ccde6fd03a34258521c6a0bb0f8d6727c09b2a43e3abb96b585e5c4b94c08a",
           "executable": false
         },
         "vendor/marked/LICENSE": {
@@ -3866,6 +4589,8 @@
           "LICENSE",
           "README.md",
           "acceptance",
+          "action",
+          "action.yml",
           "bootstrap",
           "docs",
           "examples",
@@ -4113,11 +4838,13 @@
         "acceptance": [
           "acceptance/README.md",
           "acceptance/cli.ts",
+          "acceptance/observe-public-requests.ts",
           "acceptance/prepare-author.ts",
           "acceptance/prepare-public.ts",
           "acceptance/prepare.ts",
           "acceptance/projects",
           "acceptance/public-installation.ts",
+          "acceptance/public-update.ts",
           "acceptance/sources"
         ],
         "acceptance/projects": [
@@ -4274,6 +5001,12 @@
           "acceptance/sources/wayfinder/operations/required-sections.json",
           "acceptance/sources/wayfinder/operations/service-evidence.mjs"
         ],
+        "action": [
+          "action/content.ts",
+          "action/github.ts",
+          "action/main.ts",
+          "action/update.ts"
+        ],
         "bootstrap": [
           "bootstrap/repo-standards"
         ],
@@ -4305,6 +5038,15 @@
           "docs/adr/0018-add-a-private-astro-site-workspace.md",
           "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
           "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+          "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+          "docs/adr/0022-replace-a-stopped-run-in-place.md",
+          "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+          "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+          "docs/adr/0025-start-when-nothing-is-open.md",
+          "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+          "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+          "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+          "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -4317,21 +5059,35 @@
         "docs/development": [
           "docs/development/README.md",
           "docs/development/architecture.md",
-          "docs/development/release.md"
+          "docs/development/release.md",
+          "docs/development/retained-exact-content.md"
         ],
         "docs/usage": [
           "docs/usage/README.md",
-          "docs/usage/adoption.md",
-          "docs/usage/assessment-protocol.md",
-          "docs/usage/author-format.md",
-          "docs/usage/authoring.md",
-          "docs/usage/available-updates.md",
-          "docs/usage/check.md",
-          "docs/usage/discovery.md",
-          "docs/usage/inspection.md",
-          "docs/usage/installation.md",
-          "docs/usage/rules.md",
-          "docs/usage/script-protocol.md"
+          "docs/usage/guides",
+          "docs/usage/reference"
+        ],
+        "docs/usage/guides": [
+          "docs/usage/guides/README.md",
+          "docs/usage/guides/adopt.md",
+          "docs/usage/guides/author-a-source.md",
+          "docs/usage/guides/automated-updates.md",
+          "docs/usage/guides/find-sources.md",
+          "docs/usage/guides/install.md",
+          "docs/usage/guides/run-checks.md",
+          "docs/usage/guides/update.md"
+        ],
+        "docs/usage/reference": [
+          "docs/usage/reference/README.md",
+          "docs/usage/reference/adoption-run.md",
+          "docs/usage/reference/assessment-protocol.md",
+          "docs/usage/reference/author-format.md",
+          "docs/usage/reference/available-updates.md",
+          "docs/usage/reference/check.md",
+          "docs/usage/reference/github-requests.md",
+          "docs/usage/reference/inspection.md",
+          "docs/usage/reference/rules.md",
+          "docs/usage/reference/script-protocol.md"
         ],
         "examples": [
           "examples/alice",
@@ -4427,9 +5183,51 @@
           "site/README.md",
           "site/astro.config.mjs",
           "site/components.json",
+          "site/fixtures",
           "site/package.json",
+          "site/public",
+          "site/registry-manifest.json",
+          "site/scripts",
           "site/src",
+          "site/test",
           "site/tsconfig.json"
+        ],
+        "site/fixtures": [
+          "site/fixtures/search"
+        ],
+        "site/fixtures/search": [
+          "site/fixtures/search/page-1.json",
+          "site/fixtures/search/standards"
+        ],
+        "site/fixtures/search/standards": [
+          "site/fixtures/search/standards/lutzseverino"
+        ],
+        "site/fixtures/search/standards/lutzseverino": [
+          "site/fixtures/search/standards/lutzseverino/repo-canon.yaml",
+          "site/fixtures/search/standards/lutzseverino/repo-standards-example.yaml"
+        ],
+        "site/public": [
+          "site/public/apple-touch-icon.png",
+          "site/public/favicon.ico",
+          "site/public/favicon.svg",
+          "site/public/fonts",
+          "site/public/icon-192.png",
+          "site/public/icon-512.png",
+          "site/public/robots.txt"
+        ],
+        "site/public/fonts": [
+          "site/public/fonts/d-din-pro"
+        ],
+        "site/public/fonts/d-din-pro": [
+          "site/public/fonts/d-din-pro/D-DIN-PRO-400-Regular.woff2",
+          "site/public/fonts/d-din-pro/D-DIN-PRO-500-Medium.woff2",
+          "site/public/fonts/d-din-pro/D-DIN-PRO-700-Bold.woff2",
+          "site/public/fonts/d-din-pro/D-DIN-PRO-Condensed-500-Medium.woff2",
+          "site/public/fonts/d-din-pro/D-DIN-PRO-Condensed-700-Bold.woff2",
+          "site/public/fonts/d-din-pro/OFL-1.1.txt"
+        ],
+        "site/scripts": [
+          "site/scripts/registry.mjs"
         ],
         "site/src": [
           "site/src/components",
@@ -4438,13 +5236,56 @@
           "site/src/styles"
         ],
         "site/src/components": [
-          "site/src/components/repository-link.tsx",
+          "site/src/components/app",
+          "site/src/components/home.tsx",
+          "site/src/components/install.tsx",
+          "site/src/components/profiles.tsx",
+          "site/src/components/search.tsx",
+          "site/src/components/sign",
+          "site/src/components/theme-toggle.tsx",
           "site/src/components/ui"
         ],
+        "site/src/components/app": [
+          "site/src/components/app/badge.ts",
+          "site/src/components/app/button.ts",
+          "site/src/components/app/card.ts",
+          "site/src/components/app/empty.ts",
+          "site/src/components/app/input-group.ts",
+          "site/src/components/app/kbd.ts",
+          "site/src/components/app/toggle-group.ts",
+          "site/src/components/app/tooltip.ts"
+        ],
+        "site/src/components/sign": [
+          "site/src/components/sign/arrow.tsx",
+          "site/src/components/sign/assembly.tsx",
+          "site/src/components/sign/face.tsx",
+          "site/src/components/sign/light.css",
+          "site/src/components/sign/rail.tsx",
+          "site/src/components/sign/rig.ts",
+          "site/src/components/sign/sign.css",
+          "site/src/components/sign/signposts.tsx",
+          "site/src/components/sign/torch.ts"
+        ],
         "site/src/components/ui": [
-          "site/src/components/ui/button.tsx"
+          "site/src/components/ui/AGENTS.md",
+          "site/src/components/ui/badge.tsx",
+          "site/src/components/ui/button.tsx",
+          "site/src/components/ui/card.tsx",
+          "site/src/components/ui/empty.tsx",
+          "site/src/components/ui/input-group.tsx",
+          "site/src/components/ui/input.tsx",
+          "site/src/components/ui/kbd.tsx",
+          "site/src/components/ui/textarea.tsx",
+          "site/src/components/ui/toggle-group.tsx",
+          "site/src/components/ui/toggle.tsx",
+          "site/src/components/ui/tooltip.tsx"
         ],
         "site/src/lib": [
+          "site/src/lib/catalogue.ts",
+          "site/src/lib/load-catalogue.ts",
+          "site/src/lib/search-report.ts",
+          "site/src/lib/structured-data.ts",
+          "site/src/lib/theme.ts",
           "site/src/lib/utils.ts"
         ],
         "site/src/pages": [
@@ -4453,9 +5294,22 @@
         "site/src/styles": [
           "site/src/styles/global.css"
         ],
+        "site/test": [
+          "site/test/crawlability.test.ts",
+          "site/test/search-report.test.ts",
+          "site/test/structured-data.test.ts"
+        ],
         "skills": [
+          "skills/adopt-repository-standards",
           "skills/author-standards",
           "skills/repository-standards"
+        ],
+        "skills/adopt-repository-standards": [
+          "skills/adopt-repository-standards/SKILL.md",
+          "skills/adopt-repository-standards/agents"
+        ],
+        "skills/adopt-repository-standards/agents": [
+          "skills/adopt-repository-standards/agents/openai.yaml"
         ],
         "skills/author-standards": [
           "skills/author-standards/SKILL.md",
@@ -4482,6 +5336,7 @@
           "src/acquisition.ts",
           "src/adopt-terminal.ts",
           "src/adopt.ts",
+          "src/adopter-action.ts",
           "src/adoption-files.ts",
           "src/adoption-run.ts",
           "src/adoption.ts",
@@ -4500,12 +5355,15 @@
           "src/observation.ts",
           "src/outdated.ts",
           "src/paths.ts",
+          "src/platforms.ts",
+          "src/preserved-run.ts",
           "src/process-identity.ts",
           "src/read-only.ts",
           "src/recorded-state.ts",
           "src/records.ts",
           "src/remote-setup.ts",
           "src/resolver.ts",
+          "src/reused-answers.ts",
           "src/rules.ts",
           "src/run-lock.ts",
           "src/scope-evidence.ts",
@@ -4527,6 +5385,7 @@
           "test/adopt-fixture.ts",
           "test/adopt-terminal.test.ts",
           "test/adopt.test.ts",
+          "test/adopter-action.test.ts",
           "test/adoption-faults.ts",
           "test/adoption-fixture.ts",
           "test/adoption.test.ts",
@@ -4534,6 +5393,7 @@
           "test/bootstrap.test.ts",
           "test/check.test.ts",
           "test/cli-pin.test.ts",
+          "test/committed-evidence.test.ts",
           "test/committed-evidence.ts",
           "test/discovery-lifecycle.test.ts",
           "test/discovery-script.test.ts",
@@ -4541,14 +5401,19 @@
           "test/execution.test.ts",
           "test/github-fixture.ts",
           "test/github-token.test.ts",
+          "test/headless.test.ts",
           "test/import-cycles.test.ts",
+          "test/in-place-recovery.test.ts",
           "test/inspection.test.ts",
           "test/installed-cli.ts",
           "test/json-reports.ts",
           "test/observed-scope.test.ts",
           "test/operation-validation.test.ts",
+          "test/optional-scope.test.ts",
           "test/outdated.test.ts",
           "test/path-validation.test.ts",
+          "test/platform-selection.test.ts",
+          "test/public-update.test.ts",
           "test/recovery.test.ts",
           "test/registry-fixture.ts",
           "test/release-acceptance.test.ts",
@@ -4557,6 +5422,7 @@
           "test/remote-setup.test.ts",
           "test/request-budget.test.ts",
           "test/retired-formats.test.ts",
+          "test/reused-answers.test.ts",
           "test/rules.test.ts",
           "test/runtime-acquisition.test.ts",
           "test/scope-adoption.test.ts",
@@ -4566,6 +5432,8 @@
           "test/status.test.ts",
           "test/summary.test.ts",
           "test/terminal.ts",
+          "test/update-action-cli.mjs",
+          "test/update-action.test.ts",
           "test/update-class.test.ts",
           "test/update.test.ts"
         ],
@@ -4850,6 +5718,9 @@
         "acceptance/sources/wayfinder/operations": {
           "type": "directory"
         },
+        "action": {
+          "type": "directory"
+        },
         "bootstrap": {
           "type": "directory"
         },
@@ -4866,6 +5737,12 @@
           "type": "directory"
         },
         "docs/usage": {
+          "type": "directory"
+        },
+        "docs/usage/guides": {
+          "type": "directory"
+        },
+        "docs/usage/reference": {
           "type": "directory"
         },
         "examples": {
@@ -4937,10 +5814,40 @@
         "site": {
           "type": "directory"
         },
+        "site/fixtures": {
+          "type": "directory"
+        },
+        "site/fixtures/search": {
+          "type": "directory"
+        },
+        "site/fixtures/search/standards": {
+          "type": "directory"
+        },
+        "site/fixtures/search/standards/lutzseverino": {
+          "type": "directory"
+        },
+        "site/public": {
+          "type": "directory"
+        },
+        "site/public/fonts": {
+          "type": "directory"
+        },
+        "site/public/fonts/d-din-pro": {
+          "type": "directory"
+        },
+        "site/scripts": {
+          "type": "directory"
+        },
         "site/src": {
           "type": "directory"
         },
         "site/src/components": {
+          "type": "directory"
+        },
+        "site/src/components/app": {
+          "type": "directory"
+        },
+        "site/src/components/sign": {
           "type": "directory"
         },
         "site/src/components/ui": {
@@ -4955,7 +5862,16 @@
         "site/src/styles": {
           "type": "directory"
         },
+        "site/test": {
+          "type": "directory"
+        },
         "skills": {
+          "type": "directory"
+        },
+        "skills/adopt-repository-standards": {
+          "type": "directory"
+        },
+        "skills/adopt-repository-standards/agents": {
           "type": "directory"
         },
         "skills/author-standards": {
@@ -5004,7 +5920,7 @@
         },
         "info": {
           "type": "file",
-          "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+          "sha256": "321dffcb77a68a6c079d35da12944866b895b4cc9fb3b1fae72fe9468c7eafeb",
           "executable": false
         },
         ".gitignore": {
@@ -5276,6 +6192,9 @@
         "acceptance/sources/wayfinder/operations/.gitignore": {
           "type": "missing"
         },
+        "action/.gitignore": {
+          "type": "missing"
+        },
         "bootstrap/.gitignore": {
           "type": "missing"
         },
@@ -5292,6 +6211,12 @@
           "type": "missing"
         },
         "docs/usage/.gitignore": {
+          "type": "missing"
+        },
+        "docs/usage/guides/.gitignore": {
+          "type": "missing"
+        },
+        "docs/usage/reference/.gitignore": {
           "type": "missing"
         },
         "examples/.gitignore": {
@@ -5365,10 +6290,40 @@
           "sha256": "853e19fb559c1d9d8df469c8dce09df4c37d495c02dc09fef40de174572a36e9",
           "executable": false
         },
+        "site/fixtures/.gitignore": {
+          "type": "missing"
+        },
+        "site/fixtures/search/.gitignore": {
+          "type": "missing"
+        },
+        "site/fixtures/search/standards/.gitignore": {
+          "type": "missing"
+        },
+        "site/fixtures/search/standards/lutzseverino/.gitignore": {
+          "type": "missing"
+        },
+        "site/public/.gitignore": {
+          "type": "missing"
+        },
+        "site/public/fonts/.gitignore": {
+          "type": "missing"
+        },
+        "site/public/fonts/d-din-pro/.gitignore": {
+          "type": "missing"
+        },
+        "site/scripts/.gitignore": {
+          "type": "missing"
+        },
         "site/src/.gitignore": {
           "type": "missing"
         },
         "site/src/components/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/components/app/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/components/sign/.gitignore": {
           "type": "missing"
         },
         "site/src/components/ui/.gitignore": {
@@ -5383,7 +6338,16 @@
         "site/src/styles/.gitignore": {
           "type": "missing"
         },
+        "site/test/.gitignore": {
+          "type": "missing"
+        },
         "skills/.gitignore": {
+          "type": "missing"
+        },
+        "skills/adopt-repository-standards/.gitignore": {
+          "type": "missing"
+        },
+        "skills/adopt-repository-standards/agents/.gitignore": {
           "type": "missing"
         },
         "skills/author-standards/.gitignore": {
@@ -5425,5 +6389,52 @@
       }
     }
   },
-  "scopeChanges": []
+  "scopeChanges": [
+    {
+      "id": "documentation",
+      "additions": [
+        "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+        "docs/adr/0022-replace-a-stopped-run-in-place.md",
+        "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+        "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+        "docs/adr/0025-start-when-nothing-is-open.md",
+        "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+        "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+        "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+        "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+        "docs/development/retained-exact-content.md",
+        "docs/usage/guides/README.md",
+        "docs/usage/guides/adopt.md",
+        "docs/usage/guides/author-a-source.md",
+        "docs/usage/guides/automated-updates.md",
+        "docs/usage/guides/find-sources.md",
+        "docs/usage/guides/install.md",
+        "docs/usage/guides/run-checks.md",
+        "docs/usage/guides/update.md",
+        "docs/usage/reference/README.md",
+        "docs/usage/reference/adoption-run.md",
+        "docs/usage/reference/assessment-protocol.md",
+        "docs/usage/reference/author-format.md",
+        "docs/usage/reference/available-updates.md",
+        "docs/usage/reference/check.md",
+        "docs/usage/reference/github-requests.md",
+        "docs/usage/reference/inspection.md",
+        "docs/usage/reference/rules.md",
+        "docs/usage/reference/script-protocol.md"
+      ],
+      "removals": [
+        "docs/usage/adoption.md",
+        "docs/usage/assessment-protocol.md",
+        "docs/usage/author-format.md",
+        "docs/usage/authoring.md",
+        "docs/usage/available-updates.md",
+        "docs/usage/check.md",
+        "docs/usage/discovery.md",
+        "docs/usage/inspection.md",
+        "docs/usage/installation.md",
+        "docs/usage/rules.md",
+        "docs/usage/script-protocol.md"
+      ]
+    }
+  ]
 }

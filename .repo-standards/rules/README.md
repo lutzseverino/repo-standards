@@ -27,22 +27,39 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0018-add-a-private-astro-site-workspace.md`
   - `docs/adr/0019-run-declared-discovery-scripts-read-only.md`
   - `docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md`
+  - `docs/adr/0021-let-agents-decide-what-git-can-undo.md`
+  - `docs/adr/0022-replace-a-stopped-run-in-place.md`
+  - `docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md`
+  - `docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md`
+  - `docs/adr/0025-start-when-nothing-is-open.md`
+  - `docs/adr/0026-propose-updates-through-one-rolling-pull-request.md`
+  - `docs/adr/0027-choose-the-platform-inside-each-profile.md`
+  - `docs/adr/0028-keep-generated-shadcn-source-read-only.md`
+  - `docs/adr/0029-leave-archived-run-v6-reports-unread.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`
   - `docs/development/release.md`
+  - `docs/development/retained-exact-content.md`
   - `docs/usage/README.md`
-  - `docs/usage/adoption.md`
-  - `docs/usage/assessment-protocol.md`
-  - `docs/usage/author-format.md`
-  - `docs/usage/authoring.md`
-  - `docs/usage/available-updates.md`
-  - `docs/usage/check.md`
-  - `docs/usage/discovery.md`
-  - `docs/usage/inspection.md`
-  - `docs/usage/installation.md`
-  - `docs/usage/rules.md`
-  - `docs/usage/script-protocol.md`
+  - `docs/usage/guides/README.md`
+  - `docs/usage/guides/adopt.md`
+  - `docs/usage/guides/author-a-source.md`
+  - `docs/usage/guides/automated-updates.md`
+  - `docs/usage/guides/find-sources.md`
+  - `docs/usage/guides/install.md`
+  - `docs/usage/guides/run-checks.md`
+  - `docs/usage/guides/update.md`
+  - `docs/usage/reference/README.md`
+  - `docs/usage/reference/adoption-run.md`
+  - `docs/usage/reference/assessment-protocol.md`
+  - `docs/usage/reference/author-format.md`
+  - `docs/usage/reference/available-updates.md`
+  - `docs/usage/reference/check.md`
+  - `docs/usage/reference/github-requests.md`
+  - `docs/usage/reference/inspection.md`
+  - `docs/usage/reference/rules.md`
+  - `docs/usage/reference/script-protocol.md`
 - [`factory-sandbox-image`](factory-sandbox-image.md) covers:
   - `.factory/Dockerfile`
 - [`factory-workflow`](factory-workflow.md) covers the whole repository.
