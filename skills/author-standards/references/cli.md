@@ -29,10 +29,10 @@ npm install --prefix "$author_cli_dir" --ignore-scripts --no-audit --no-fund \
 
 Keep the printed/selected absolute directory for subsequent commands; shell
 variables may not survive between agent tool calls. Read
-`<author_cli_dir>/node_modules/@lutzseverino/repo-standards/docs/usage/author-format.md`
-before writing YAML, and `docs/usage/script-protocol.md` before generating or
+`<author_cli_dir>/node_modules/@lutzseverino/repo-standards/docs/usage/reference/author-format.md`
+before writing YAML, and `docs/usage/reference/script-protocol.md` before generating or
 exercising checks/fixes. That installation also carries
-`docs/usage/authoring.md` for the publication handoff and examples for
+`docs/usage/guides/author-a-source.md` for the publication handoff and examples for
 reference; examples supply syntax, not author preferences. Use these matching
 documents rather than a moving website or paths relative to the installed
 skill. No additional skill is required.

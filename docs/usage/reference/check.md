@@ -1,8 +1,12 @@
-# Run the adopted checks
+# Check reference
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards check --json
 ```
+
+This page is the contract for `check`: what runs, its report, how it detects
+checks that write, and its failures. [Run the adopted checks](../guides/run-checks.md)
+covers using it.
 
 `check` runs every check of the last complete adoption against the current
 working tree and reports each result. Use it between runs, for example to
@@ -148,7 +152,7 @@ index.
 `check` fails with the diagnostics other commands use:
 
 - `CLI_PIN_MISMATCH` under a CLI other than the pinned one, as for
-  [`status`](adoption.md#fresh-checkout-and-source-disappearance), before
+  [`status`](adoption-run.md#fresh-checkout-and-source-disappearance), before
   reading any record. Only the pin is read for it.
 - `GIT_VERSION_UNSUPPORTED` under Git older than 2.32, as for
   [`inspect`](inspection.md), after the pin and before reading records or

@@ -1,45 +1,29 @@
 # Usage
 
-Repository Standards gives maintainers a CLI and agent skills to publish and
-apply versioned repository conventions.
+Repo Standards is for maintainers who work with coding agents: write your setup down once, and your coding agent applies it to every repository.
 
-Start with `adopt` to apply a standards source: a repository's published
-conventions. Ask your agent to run the command below with its public GitHub URL,
-or run it yourself in a terminal. It installs and pins the CLI it ran without
-a manual external installation.
+A standards source is a published, versioned setup: agent instructions, docs,
+templates and checks that its author wrote down once. Adopting one with a
+single command changes your repository. It installs the source's exact files
+and skills, which replace the tracked content at their paths, and an overwrite
+that discards edits needs confirmation first. It adapts only content your
+project owns, such as its documentation, installs the rules those files keep
+satisfying, and runs the source's checks. Every change stays uncommitted for
+you to review. [Repo Canon](https://github.com/lutzseverino/repo-canon) is a
+ready-made setup to start from.
 
 ```sh
 npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 ```
 
-A profile selects a complete set of conventions. Adoption installs shared files and skills, adapts project
-documentation, and runs the publisher's checks and setup commands. Inspection
-previews that work, and an update applies a new selection to an already
-configured repository. Source discovery finds publishers without applying their
-conventions. Installed rules state the requirements files must keep satisfying;
-an assessment records an agent's judgment that project-specific work meets them.
+Ask your coding agent to run it with the source's public GitHub URL, or run it
+yourself in a terminal; [Adopt a standards source](guides/adopt.md) walks
+through both. The command installs and pins the CLI it ran, so nothing needs
+installing first.
 
-- [Adoption](adoption.md): `adopt` in a terminal or with an agent's answers
-  file, remote setup deferral, updates, and the lower-level adoption run reference.
-- [Installation](installation.md): prerequisites, adoption without a manual
-  install, optional CLI tools, the adoption and authoring skills, and fresh-checkout restoration.
-- [Authoring](authoring.md): validating and publishing a standards source,
-  and where the `author-standards` skill and author contracts fit.
-- [Source discovery](discovery.md): searching the public `repo-standards` topic
-  for standards sources without selecting or adopting them.
-- [Inspection](inspection.md): the read-only bootstrap and inspection, its
-  report and identity, update inspection, summaries, and discovery scope.
-- [Available updates](available-updates.md): the read-only `outdated` report
-  of newer CLI and standards versions and its cache.
-- [Automated updates](automated-updates.md): the update action that keeps an
-  adopting repository current through one rolling pull request or issue.
-- [Adopted checks](check.md): running the adopted checks on demand with
-  `check`, its report, and how it detects checks that write.
-- [Installed rules](rules.md): the rules adoption installs, their index, the
-  `rules` lookup by path, and how failed checks cite them.
-- [Author format](author-format.md): the `repo-standards/v2` source format,
-  its declarations, profiles, checks and fixes, and validation errors.
-- [Script protocol](script-protocol.md): how trusted checks, fixes and
-  discovery scripts run, report results, and are observed.
-- [Assessment protocol](assessment-protocol.md): contextual work requests,
-  agent assessment submissions, and discovery scope reviews.
+- [Guides](guides/README.md): task pages for adopting, updating, running the
+  adopted checks, automated updates, writing and publishing a standards source,
+  and finding one.
+- [Reference](reference/README.md): the exact contracts agents and authors rely
+  on: the adoption run, inspection, the author format, the script and
+  assessment protocols, and the reports of `outdated`, `check` and `rules`.

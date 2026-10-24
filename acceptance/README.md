@@ -98,7 +98,7 @@ That helper also establishes a prepared public-source adoption with the
 previous stable npm CLI, commits it, then requires one unanswered invocation of
 the candidate CLI to complete an update ready to commit. Its scripted baseline
 judgments and request counts establish automated update-path evidence, not a
-real-agent assessment; the [release policy](../docs/usage/available-updates.md#release-policy)
+real-agent assessment; the [release policy](../docs/usage/reference/available-updates.md#release-policy)
 and [published acceptance](../docs/development/release.md#published-acceptance)
 describe its gate and evidence.
 Public release evidence must also cover the normal project commit, fresh-checkout

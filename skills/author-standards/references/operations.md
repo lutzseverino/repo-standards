@@ -2,7 +2,7 @@
 
 Use this branch when configuration or guidance leaves a concrete need for a
 check, fix, or ordinary-work author skill. Read the acquired CLI's matching
-`docs/usage/author-format.md` and `docs/usage/script-protocol.md` using [the
+`docs/usage/reference/author-format.md` and `docs/usage/reference/script-protocol.md` using [the
 acquisition guide](cli.md). Those documents define the format and operation
 protocol.
 

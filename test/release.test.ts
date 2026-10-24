@@ -13,7 +13,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { after, before, test } from "node:test";
 import { parse } from "yaml";
 import { packPackage } from "../scripts/pack-package.ts";
@@ -305,7 +305,9 @@ test("the package carries only product material, and its usage documents resolve
   );
   // No packaged document names a usage document at a legacy docs/<name>.md path.
   const usageDocuments = new Set(
-    readdirSync(resolve("docs/usage")).filter((name) => name !== "README.md"),
+    readdirSync(resolve("docs/usage"), { encoding: "utf8", recursive: true })
+      .map((path) => basename(path))
+      .filter((name) => name.endsWith(".md") && name !== "README.md"),
   );
   for (const documentPath of packaged.filter((entry) =>
     entry.endsWith(".md"),
@@ -476,7 +478,7 @@ test("the packed README reaches repository documents outside the package through
       "](https://github.com/lutzseverino/repo-standards/blob/main/CONTRIBUTING.md)",
     ),
   );
-  assert.ok(readme.includes("](docs/usage/installation.md)"));
+  assert.ok(readme.includes("](docs/usage/guides/install.md)"));
 });
 
 test("packing keeps README query strings and fragments on repository URLs and rejects links that leave the repository", (t) => {

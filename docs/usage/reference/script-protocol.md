@@ -135,7 +135,7 @@ the value the standard sets:
 }
 ```
 
-That is a [confirmation-required change](adoption.md#confirmation-required-changes):
+That is a [confirmation-required change](adoption-run.md#confirmation-required-changes):
 the run stops resumably at the fix, recording its result, and the fixes after
 it wait. Once the maintainer confirms, `resume --confirmed` invokes the same
 fix again with `overwriteAllowed: true`, and the fix makes the change; the run
@@ -198,7 +198,7 @@ checks before completion. It never implicitly retries an uncertain operation.
 Use `abandon` to preserve incomplete work and its report without asserting
 completion. A surviving author process group blocks retry and abandonment even
 after its direct fix or prerequisite probe returns. See the
-[recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
+[recovery commands](adoption-run.md#recover-or-abandon-an-interrupted-run).
 
 Checks must leave project content unchanged. The CLI compares tracked and
 non-ignored untracked content before and after each check, independently of
@@ -215,7 +215,7 @@ same input and prerequisites, and fails when a check changes the project.
 
 Use `status --json` and the incomplete report to review actual changes and
 successful, failed or uncertain work. Follow the recovery instructions in
-[Adoption](adoption.md#completion-and-incomplete-results). No process error,
+[Adoption](adoption-run.md#completion-and-incomplete-results). No process error,
 blocked result, failed check or contextual handoff asserts complete adoption.
 
 ## Discovery scripts
@@ -383,12 +383,12 @@ lock remains `repo-standards/lock/v1` and binds the new state bytes.
 
 State v8 is the only state format written. An update also reads the previous
 release's state v7 and scope-history v5 as the adoption it replaces, so that it
-[reuses the answers](adoption.md#reused-answers) they prove. A committed state
+[reuses the answers](adoption-run.md#reused-answers) they prove. A committed state
 whose intervals carry observation maps, whose closed interval is missing either
 identity, or that carries an earlier run's `history`, fails state integrity
 validation. A state, run record, or scope
 history in a retired format is never read or converted; the project
-[adopts fresh](adoption.md#adopt-fresh-from-a-retired-format), and a run record
+[adopts fresh](adoption-run.md#adopt-fresh-from-a-retired-format), and a run record
 calls for the CLI that wrote it.
 A newer version of these records fails with `NEWER_FORMAT`, requiring the
 pinned CLI without changing anything. `status`, `resume`, and `abandon` reject

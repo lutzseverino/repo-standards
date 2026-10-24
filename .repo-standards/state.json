@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -68,22 +68,39 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
           ],
           "directories": []
         },
@@ -126,8 +143,8 @@
           "directories": []
         }
       },
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -159,22 +176,39 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
           ],
           "directories": []
         },
@@ -217,8 +251,8 @@
           "directories": []
         }
       },
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -250,22 +284,39 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
           ],
           "directories": []
         }
@@ -276,8 +327,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -296,8 +347,8 @@
         "id": "pull-request-reviewer"
       },
       "operationIndex": 3,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -318,8 +369,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -340,8 +391,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -373,22 +424,39 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
             "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
           ],
           "directories": []
         },
@@ -431,8 +499,8 @@
           "directories": []
         }
       },
-      "before": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
-      "after": "sha256:99782af85e939d197c22538393726edecc259d48017fbf5ab3c9bd8383335886",
+      "before": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
+      "after": "sha256:3145547e2bb9725778e8f6208b7b784ab7b325c4e20a1b5bbd935fb98d792b70",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -567,25 +635,12 @@
     }
   ],
   "retryHistory": [],
-  "changeSet": [
-    {
-      "path": ".agents/skills/babysit/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "phases": [
-        "installation"
-      ]
-    }
-  ],
+  "changeSet": [],
   "lastComplete": {
-    "run": "231f7115-671c-4c8e-9024-814c03bb0cc7",
-    "inspection": "sha256:53fd1d33bd6f021ab3c9ec4d75080ad92a2d0e151f54304b6e0924aabec53220",
-    "completedAt": "2026-10-17T23:19:17.975Z",
-    "head": "d79da452166e8b04819631c83f42c4815a2901cb"
+    "run": "3ad13a69-ff2a-40f9-bceb-1769e737b9ce",
+    "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
+    "completedAt": "2026-10-24T16:33:09.235Z",
+    "head": "70f7099e44e3ad1e40d89c821bc0d5124b350f82"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -1123,38 +1178,40 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:53fd1d33bd6f021ab3c9ec4d75080ad92a2d0e151f54304b6e0924aabec53220",
-        "afterFixes": "sha256:500e6c103d6ad613a2c3d2c47b6786d167cc895a6d60ebc3afc6fedfb300fe1b"
+        "inspection": "sha256:d9cdba05757c92ce66df2013485450e6fcc2ba7b2ef7105ab0f1509ca264d334",
+        "afterFixes": "sha256:3a39eb6439161f1ae1fba677321c5ce62e196840688ed19200d4d64655896ec5"
       },
-      "run": "231f7115-671c-4c8e-9024-814c03bb0cc7",
+      "run": "3ad13a69-ff2a-40f9-bceb-1769e737b9ce",
       "selection": "sha256:9a0c5ac2e41ea30f24f643fecb96f8baa16247b3c536c3b389515e9270952141",
-      "snapshot": "sha256:500e6c103d6ad613a2c3d2c47b6786d167cc895a6d60ebc3afc6fedfb300fe1b",
+      "snapshot": "sha256:3a39eb6439161f1ae1fba677321c5ce62e196840688ed19200d4d64655896ec5",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "Existing documentation retains the confirmed category and index layout and accurate setup; no contextual edit is required.",
+          "explanation": "The usage documents now sit in docs/usage/guides/ and docs/usage/reference/, each directory has a README index with a one-sentence purpose and one entry per document, docs/usage/README.md lists the two directory indexes, and every local link resolves. The moves and link repairs were committed before this run, so the run needed no contextual edit.",
           "changedPaths": [],
           "evidence": [
-            "Reviewed docs/README.md and docs/development/README.md against the retained documentation rules. The previous scope decisions remain applicable; no moves or link repairs are needed.",
-            "The update changes installed guidance and rules, rather than the documented product commands."
+            "Ran the documentation-navigation check script against the confirmed paths before the run: passed. Removing docs/usage/guides/README.md made it fail with a missing index, so it reads the new layout.",
+            "docs/usage/README.md opens with one sentence saying what the project is and who it is for, with no GLOSSARY.md term, then defines a standards source and what adopting one changes before linking guides/README.md and reference/README.md.",
+            "A link check over every tracked Markdown file outside .repo-standards found no missing file or heading anchor; node --test test/release.test.ts confirms the packaged usage documents resolve their links and anchors inside the package.",
+            "docs/development/README.md keeps its purpose, Setup and validation section, then its index."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, including the moved usage documents at their new paths, ADRs 0021 to 0029, docs/development/retained-exact-content.md and the new guides and reference indexes; nothing outside it needed an edit.",
               "evidence": [
-                "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/authoring.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair.",
-                "No contextual content edits were necessary."
+                "The discovery script draft for this run lists the same included documentation paths as the confirmed scope.",
+                "The old docs/usage/*.md paths no longer exist and are out of the scope."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "The confirmed scope covers every Markdown document under docs that no other declaration owns, including the moved usage documents at their new paths, ADRs 0021 to 0029, docs/development/retained-exact-content.md and the new guides and reference indexes; nothing outside it needed an edit.",
               "evidence": [
-                "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/authoring.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair.",
-                "No contextual content edits were necessary."
+                "The discovery script draft for this run lists the same included documentation paths as the confirmed scope.",
+                "The old docs/usage/*.md paths no longer exist and are out of the scope."
               ],
               "additionalPaths": []
             }
@@ -1163,39 +1220,36 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": "The existing Debian-based toolchain supplies the supported Node.js 24 delivery runtime and the tools its development guide requires.",
+          "explanation": ".factory/Dockerfile and these rules are unchanged since the last complete adoption, which assessed it satisfied; this run changes neither.",
           "changedPaths": [],
           "evidence": [
-            "Reviewed .factory/Dockerfile and docs/development/README.md against factory-sandbox-image rules and the installed babysit skill, which now supports stable Node.js 24 or 26.",
-            "The toolchain installs no project dependencies, agent user or entrypoint and needs no repository build context."
+            "git log b32f720..HEAD -- .factory/Dockerfile lists no commit.",
+            "The run reports no exact content changes and the same Repo Canon v0.15.0 commit."
           ]
         },
         {
           "id": "factory-workflow",
           "status": "satisfied",
-          "explanation": "The relocated rules agree with the repository factory configuration and tracker workflow; no reconciliation or tracker mutation is needed.",
+          "explanation": "The repository-wide factory workflow rules are unchanged and installed; the repository already carries the factory state labels and model labels they describe, and this run makes no change they govern.",
           "changedPaths": [],
           "evidence": [
-            "Reviewed installed factory-workflow rules for parent readiness, model selection, state labels, owner handoff and recovery, stop notes and issue closure.",
-            ".factory/config.json retains the ready-for-agent and factory state labels, model: prefix and implement prompt. Read-only review of open issue labels found no workflow conflict; existing planning and owner-handoff work is outside this update.",
-            "The confirmed content scope is intentionally empty because these rules govern all work, including tracker work changing no files."
+            "gh label list shows factory:failed, factory:needs-input, factory:paused and factory:running, and model: labels such as model:claude-opus-5-5@high.",
+            "repo-standards rules prints the factory-workflow rules for the whole repository."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "An empty scope keeps the declaration repository-wide, as in the last complete adoption; it governs work rather than files.",
               "evidence": [
-                "Intentionally empty content scope. The factory workflow declaration governs work throughout this factory-profile repository, including tracker work that changes no files. .factory/config.json stays owned by its separate exact declaration.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry has no candidates and no unresolved questions."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "An empty scope keeps the declaration repository-wide, as in the last complete adoption; it governs work rather than files.",
               "evidence": [
-                "Intentionally empty content scope. The factory workflow declaration governs work throughout this factory-profile repository, including tracker work that changes no files. .factory/config.json stays owned by its separate exact declaration.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry has no candidates and no unresolved questions."
               ],
               "additionalPaths": []
             }
@@ -1204,29 +1258,27 @@
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "The repository-wide GitHub rules and unchanged remote setup agree with the repository configuration.",
+          "explanation": "The repository already has the canonical labels with their colors and descriptions, squash merging as its only merge method with PR title and body as the squash defaults, and a valid pull request reviewer file; the run's fixes found nothing to change.",
           "changedPaths": [],
           "evidence": [
-            "Both canonical-labels and pull-request-integration fixes returned unchanged. Existing .github/pull-request-reviewer.json remains the repository-owned reviewer choice.",
-            "Authenticated gh reports PUBLIC visibility and no repository-level REPO_CANON_RUNS_ON variable: classified unset, selecting the hosted default. The owner is a personal User account, so there is no organization-level inheritance.",
-            "Read the relocated readiness role, native blocker, review request, no-check merge, Agent Brief and Wayfinder requirements in installed github-repository-configuration rules. Empty content scope is intentional; this assessment changes no remote setting."
+            "gh label list shows needs-triage fbca04, needs-info d4c5f9, ready-for-agent 0e8a16, ready-for-human 1d76db, wontfix ffffff, bug d73a4a, enhancement a2eeef and the five wayfinder labels with the rules' colors and descriptions.",
+            "gh api repos/lutzseverino/repo-standards reports allow_squash_merge true, allow_merge_commit false, allow_rebase_merge false, squash_merge_commit_title PR_TITLE and squash_merge_commit_message PR_BODY.",
+            ".github/pull-request-reviewer.json is version 1 with every required field."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "An empty scope keeps the declaration repository-wide, as in the last complete adoption.",
               "evidence": [
-                "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh has admin access. gh variable list returns no repository variables; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry has no candidates and no unresolved questions."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "An empty scope keeps the declaration repository-wide, as in the last complete adoption.",
               "evidence": [
-                "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh has admin access. gh variable list returns no repository variables; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry has no candidates and no unresolved questions."
               ],
               "additionalPaths": []
             }
@@ -1235,38 +1287,37 @@
         {
           "id": "project-agent-guidance",
           "status": "satisfied",
-          "explanation": "Useful repository-specific guidance is preserved without duplicating the shared rules.",
+          "explanation": "docs/agents/project.md holds only repository-specific agent constraints: the architecture contracts, the author format, Repo Canon as a separate source, branching from main, and the release completion rule. Its only change is the author-format link, now pointing at docs/usage/reference/author-format.md.",
           "changedPaths": [],
           "evidence": [
-            "Reviewed HEAD:AGENTS.md and current AGENTS.md: it contains shared pointers, with no additional project instructions to recover.",
-            "docs/agents/project.md remains unchanged where present and absent where there are no useful project-specific instructions."
+            "git diff b32f720 HEAD -- docs/agents/project.md changes only the link target.",
+            "The file restates no installed rule or CONTRIBUTING.md requirement."
           ]
         },
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "The existing confirmed Project membership and READMEs remain correct.",
+          "explanation": "site/README.md has a plain title and a developer-facing description of the private Astro site, its commands with their working directory, configuration, source layout and data, and links the development guide and contribution guidelines instead of duplicating them. Its local links resolve.",
           "changedPaths": [],
           "evidence": [
-            "The root CLI is covered by repository-readme. pnpm-workspace.yaml identifies site as the only internal workspace with independent commands and maintained source. acceptance fixtures, examples, packaged skills, vendor and organizational directories are not additional maintained Projects.",
-            "Reviewed the root manifests and development guide; this update adds no Project or development command."
+            "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md with visible text.",
+            "It says the commands run from the repository root and lists pnpm --dir site dev, check, build, build:fixture, test and preview.",
+            "The link check over every tracked Markdown file found no missing target in site/README.md."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "The recorded scope still names the one Project README, site/README.md; no other directory is a Project with its own development commands.",
               "evidence": [
-                "The root CLI is covered by repository-readme. pnpm-workspace.yaml identifies site as the only internal workspace with independent commands and maintained source. acceptance fixtures, examples, packaged skills, vendor and organizational directories are not additional maintained Projects.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry's candidates still exist and the discovery draft proposes no other Project."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers the declaration after fixes and after contextual review; no additional content paths are needed.",
+              "explanation": "The recorded scope still names the one Project README, site/README.md; no other directory is a Project with its own development commands.",
               "evidence": [
-                "The root CLI is covered by repository-readme. pnpm-workspace.yaml identifies site as the only internal workspace with independent commands and maintained source. acceptance fixtures, examples, packaged skills, vendor and organizational directories are not additional maintained Projects.",
-                "No contextual content edits were necessary."
+                "The recorded scope entry's candidates still exist and the discovery draft proposes no other Project."
               ],
               "additionalPaths": []
             }
@@ -1275,20 +1326,22 @@
         {
           "id": "repository-license",
           "status": "satisfied",
-          "explanation": "The existing maintainer-selected license remains unchanged and the repository README links to it accurately.",
+          "explanation": "LICENSE and these rules are unchanged since the last complete adoption; it holds the MIT License the README's License section names.",
           "changedPaths": [],
           "evidence": [
-            "LICENSE retains the MIT License and Copyright (c) 2026 Jasper Lutz Severino; the README license pointer agrees."
+            "git log b32f720..HEAD -- LICENSE lists no commit.",
+            "README.md links [MIT License](LICENSE)."
           ]
         },
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The existing repository entry document remains accurate and satisfies its installed rules.",
+          "explanation": "README.md keeps a centered title, a one-sentence description and runtime badges, Installation first, then Features, Usage, Documentation, Contributing and License, with the pointer sections holding only their links. The only change in this branch repoints its usage links to the moved documents.",
           "changedPaths": [],
           "evidence": [
-            "Reviewed README.md: centered title and description, applicable runtime badge, project purpose and usage, and documentation, contribution and license pointers remain correct.",
-            "No application behavior, installation path or repository toolchain changes in this adoption."
+            "The repository-readme-structure check passed against the current README.md before this run.",
+            "git diff 853f3d9 HEAD -- README.md changes only the targets of links into docs/usage/.",
+            "Every README.md link into docs/usage/ resolves, and node --test test/release.test.ts passes the packed README link checks."
           ]
         }
       ]

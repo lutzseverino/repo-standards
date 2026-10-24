@@ -1,4 +1,9 @@
-# Public installation
+# Install the CLI and skills
+
+Adopting needs no installation: `adopt` installs and pins its own CLI, as
+[Adopt a standards source](adopt.md) describes. Install the CLI yourself for
+authoring commands or the lower-level inspection and adoption run interface,
+and install a skill to start adoption or authoring from your coding agent.
 
 Each version's [GitHub release](https://github.com/lutzseverino/repo-standards/releases)
 carries its release notes, and its assets carry the publication identities. The
@@ -13,35 +18,10 @@ discloses these, and start checks them before changing the project.
 
 Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
 is outside the support policy; odd majors, prereleases and future majors are
-also excluded.
-
-## Adopt without a manual installation
-
-Optionally, set a GitHub token before you start. Without one, the CLI uses
-GitHub's anonymous API quota, which every user and tool on your IP address
-shares, so repeated adoption rounds and other users can exhaust it; a token
-raises the allowance. The CLI reads `GH_TOKEN`, or `GITHUB_TOKEN` when
-`GH_TOKEN` is unset or empty, and sends it only on its GitHub REST requests.
-Signing in to `gh` alone does not authenticate them. Public sources need no
-credentials; see [GitHub requests and tokens](#github-requests-and-tokens).
-
-```sh
-export GH_TOKEN=<token>
-```
-
-From a committed, clean Git working tree, give your agent this command with
-your standards source's public GitHub URL:
-
-```sh
-npx --yes @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS --json
-```
-
-The flags avoid npm's installation prompt and select the agent route, which
-prints an answers-file template while a question is open, even in a terminal. To run it yourself, omit `--json`; `adopt` asks questions
-and walks you through edits and checks. It installs and pins the exact CLI it ran into the project's runtime,
-leaving changes uncommitted. No product checkout, TypeScript compiler, pnpm,
-or manual external CLI installation is needed. Follow the
-[adoption guide](adoption.md) for both paths, remote setup deferral, and updates.
+also excluded. Windows, private sources, SSH and Git hosts other than public
+GitHub are unsupported. Trusted author scripts have normal host and network
+access; `--ignore-scripts` disables npm lifecycle scripts, not disclosed author
+operations.
 
 ## Install outside your project
 
@@ -58,7 +38,7 @@ repo-standards source search --json
 
 This installs both `repo-standards` and `repo-standards-bootstrap`. If your global
 prefix is not writable, use the external directory installation in
-[inspection](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
+[inspection](../reference/inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
 Do not add the CLI to your adopting project's dependency manifest.
 
 Alternatively download the standalone bootstrap from the matching GitHub release:
@@ -86,45 +66,17 @@ Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit
 stderr discloses the exact selection. Keep that version for
 start. Inspection does not change project content or run author operations;
 the only author scripts it runs are read-only
-[remote setup](adoption.md#remote-setup) readiness probes.
+[remote setup](../reference/adoption-run.md#remote-setup) readiness probes.
 Discovery is optional and is not an endorsement of any source.
 
-The standards format, including [remote setup](adoption.md#remote-setup), names
+The standards format, including [remote setup](../reference/adoption-run.md#remote-setup), names
 no hosting platform: a source's own probes and fixes decide what a platform
 needs. Source acquisition is the known blocker to platform independence: it
 accepts only public `github.com` sources.
 
-The standalone bootstrap only inspects; to drive [inspection](inspection.md)
-and [inspect and start](adoption.md#inspect-and-start) directly, retain an
+The standalone bootstrap only inspects; to drive [inspection](../reference/inspection.md)
+and [inspect and start](../reference/adoption-run.md#inspect-and-start) directly, retain an
 external installation of its selected exact CLI for start and recovery.
-
-## GitHub requests and tokens
-
-Public source acquisition uses a bounded set of GitHub REST requests to resolve
-the repository, immutable tag, commit and tree, then obtains all source objects
-through Git's anonymous smart protocol. The number of REST requests does not grow
-with the source's file count. The CLI keeps each verified source outside the
-project, in `$XDG_CACHE_HOME/repo-standards/` or `~/.cache/repo-standards/`,
-and reuses it only once its bytes match their Git identities. A later command
-or answer round then makes two REST requests, plus one per annotated tag
-object, resolving the repository and its tag afresh. A complete guided adoption
-with a lightweight tag makes at most 16, plus one per additional page of
-releases. Annotated tags add one request per object on each observation,
-including start's second observation after it acquires the runtime.
-Deleting the cache only makes the next command acquire the source again.
-Every GitHub REST request, including inspection,
-start, source search and the `outdated` releases lookup, uses `GH_TOKEN`, or
-otherwise `GITHUB_TOKEN`, as bearer authorization when present. Values are
-trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota instead of the shared
-anonymous quota and is never sent on Git object downloads or recorded in output,
-retained inputs or caches. Private sources remain unsupported. An exhausted
-quota fails inspection, start and search with `QUOTA_EXHAUSTED`, naming the
-retry time or delay when available and both token variables, preferring
-`retry-after` over `x-ratelimit-reset` when both arrive. Retry after the
-reported reset rather than repeatedly restarting a failed command. A rejected
-token (HTTP 401) is `SOURCE_UNAVAILABLE`, without anonymous retry. `outdated`
-reports either failure as `unknown` and still exits 0. Credentials are not
-required for supported public sources.
 
 ## Install the adoption skill
 
@@ -132,7 +84,10 @@ The product provides three separate skills: `adopt-repository-standards` starts
 adoption in an adopting project, `author-standards` helps publishers author a
 standards source, and the project-local `repository-standards` looks up installed
 rules and reports updates after adoption. Adoption installs only the last of
-these automatically.
+these automatically. `repository-standards` replaces `standards-updates`; an
+update removes the
+old skill and its Claude link when unedited. Edited old copies stay as
+project-owned content under the normal retirement policy.
 
 `adopt-repository-standards` is a single-sentence pointer to `adopt`, using the
 standards source you name, with Repo Canon as the fallback. The CLI owns all
@@ -140,7 +95,7 @@ adopting-agent guidance. The entry command uses `npx --yes` and `adopt --json`
 so npm and a terminal cannot start an interactive conversation. The agent
 decides what Git can undo and records its decisions in the review handoff;
 only an unsettled profile choice or a remote setting overwrite needs your
-answer. See [adoption with an agent](adoption.md#with-an-agent).
+answer. See [adoption with an agent](adopt.md#with-an-agent).
 
 The first public release containing this skill is **v8.0.0**; that tag contains
 `skills/adopt-repository-standards`. The command below selects this release's
@@ -197,8 +152,7 @@ how you work. Optional references supply candidates for discussion, not policy.
 
 The bundled `references/cli.md` explains installing the exact compatible npm CLI
 `@lutzseverino/repo-standards@10.0.0` in an external directory, then reading that
-installation's matching `docs/usage/author-format.md` and
-`docs/usage/script-protocol.md`.
+installation's matching author format and script protocol documents.
 Node.js 24 or 26, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
@@ -215,38 +169,3 @@ containing the skill. That is candidate installation, even if its CLI comes
 from public npm. The
 [acceptance procedure](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#published-authoring-installation)
 provides isolated installation without changing your real global skills.
-
-## Restore and update
-
-The model-invocable `repository-standards` skill looks up
-[installed rules](rules.md) before changing a project file and reports
-[available updates](available-updates.md). It replaces `standards-updates`;
-an update removes the old skill and its Claude link when unedited. Edited old
-copies stay as project-owned content under the normal retirement policy.
-
-Record the `status` ready-to-commit verdict before committing: it describes
-uncommitted changes, and after the commit reports them not ready.
-After reviewing all adoption output, commit through your project's usual
-workflow, including retained inputs, runtime manifest/lock, state, exact content,
-skills and contextual changes. Dependencies and local execution records remain
-ignored. In a fresh checkout:
-
-```sh
-npm ci --ignore-scripts --prefix .repo-standards/runtime
-.repo-standards/runtime/node_modules/.bin/repo-standards status --json
-.repo-standards/runtime/node_modules/.bin/repo-standards inspect --json
-```
-
-The lock restores the exact CLI and dependencies. Retained standards remain
-inspectable if their source disappears. Restoring the runtime still requires
-its npm package and dependencies to be available or cached; new standards
-versions still require the source. These are independent availability limits.
-Status reports historical adoption evidence, not ongoing compliance.
-
-Use [`adopt`](adoption.md#updates-with-adopt) again to update the standards
-version, source, profile, or CLI pin. Each update is one inspection and one
-run; no manual external CLI installation is required.
-
-Windows, private sources, SSH and Git hosts other than public GitHub are
-unsupported. Trusted author scripts have normal host and network access;
-`--ignore-scripts` disables npm lifecycle scripts, not disclosed author operations.

@@ -64,7 +64,7 @@ covered path or lies inside a covered directory tree.
 
 The command reads only the last complete adoption, which it verifies against
 the lock as `status` does, and makes no network call. It needs the
-[pinned CLI](adoption.md#fresh-checkout-and-source-disappearance). Without a complete adoption
+[pinned CLI](adoption-run.md#fresh-checkout-and-source-disappearance). Without a complete adoption
 it fails with `NO_SELECTION`, and during an active or incomplete run with
 `ACTIVE_RUN`. During contextual work in such a run, the skill reads the
 installed index and its covering rules directly, including repository-wide

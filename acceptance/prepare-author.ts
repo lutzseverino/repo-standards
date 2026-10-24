@@ -316,9 +316,9 @@ try {
       "Conventional skill installation must match the published npm release",
     );
     for (const document of [
-      "author-format.md",
-      "script-protocol.md",
-      "authoring.md",
+      "reference/author-format.md",
+      "reference/script-protocol.md",
+      "guides/author-a-source.md",
     ]) {
       assert.ok(
         readFileSync(join(installed, "docs/usage", document)).length > 0,

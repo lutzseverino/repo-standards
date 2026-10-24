@@ -3,7 +3,7 @@
 Before designing or implementing product behavior, read the
 [architecture contracts](../development/architecture.md). Keep product behavior
 scoped to the agreed contract. The public author contract is
-[the author format](../usage/author-format.md).
+[the author format](../usage/reference/author-format.md).
 
 Repo Canon supplies this repository's contribution and agent conventions as a
 separate standards source that this repository adopts like any other project.

@@ -31,7 +31,7 @@ To adopt Repo Canon, give your coding agent this prompt in your repository:
 Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon --json` in this repository and follow what it prints.
 ```
 
-Or [install the adoption skill from a verified release tag](docs/usage/installation.md#install-the-adoption-skill).
+Or [install the adoption skill from a verified release tag](docs/usage/guides/install.md#install-the-adoption-skill).
 
 To run it yourself, run `adopt` in a terminal, from your committed,
 clean Git working tree:
@@ -44,14 +44,14 @@ At a terminal, `adopt` asks questions and guides your edits. For an agent, it
 starts the run when nothing is open, and otherwise prints an answers-file
 template and next steps. It installs and pins the CLI
 it ran; no manual CLI installation is needed. See
-[adoption](docs/usage/adoption.md) for both paths and
-[installation](docs/usage/installation.md) for prerequisites and other tools.
+[adoption](docs/usage/guides/adopt.md) for both paths and
+[installation](docs/usage/guides/install.md) for prerequisites and other tools.
 
 ## Author your own standards source
 
 To publish your own conventions instead, author them in a separate standards
-repository: read [authoring](docs/usage/authoring.md) for that workflow and the
-[author format](docs/usage/author-format.md) for the source format. Adopt a
+repository: read [authoring](docs/usage/guides/author-a-source.md) for that workflow and the
+[author format](docs/usage/reference/author-format.md) for the source format. Adopt a
 published source with the same command and its public GitHub URL in place of
 Repo Canon's.
 
@@ -62,7 +62,7 @@ Repo Canon's.
 - Adopt through disclosed operations and agent assessments, retaining evidence.
 - Update any pin, the source, or the profile in one run, reviewing discarded edits from Git.
 - Report available updates and render inspections and runs as Markdown summaries.
-- Propose every available update as one rolling pull request through the opt-in [update action](docs/usage/automated-updates.md).
+- Propose every available update as one rolling pull request through the opt-in [update action](docs/usage/guides/automated-updates.md).
 - Run the adopted checks on demand against the working tree.
 - Install each declaration's rules and print the rules that cover a path.
 - Discover sources by topic without automatically selecting or adopting them.
@@ -84,7 +84,7 @@ product's behavior.
 Releases are frequent and carry no stability promise. Every release must update
 from the previous one in one `adopt`, without hand edits; published acceptance
 verifies that path. Check `outdated` to stay current, or opt in to automated
-update pull requests. See the [release policy](docs/usage/available-updates.md#release-policy).
+update pull requests. See the [release policy](docs/usage/reference/available-updates.md#release-policy).
 
 ## Documentation
 
