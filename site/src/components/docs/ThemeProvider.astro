@@ -1,0 +1,47 @@
+---
+import { themes } from "../../lib/theme-core";
+
+// The supported Starlight override replaces its separate storage key. Keep
+// the shared theme's first-paint behavior and its class/attribute pair.
+function initialise(theme: ReturnType<typeof themes>) {
+  let preference: "auto" | "dark" | "light" = theme.stored() ?? "auto";
+  theme.apply(preference === "auto" ? theme.system() : preference);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const selects = document.querySelectorAll<HTMLSelectElement>(
+      "docs-theme-select select",
+    );
+    const update = () => {
+      for (const select of selects) select.value = preference;
+      theme.apply(preference === "auto" ? theme.system() : preference);
+    };
+    for (const select of selects) {
+      select.addEventListener("change", () => {
+        const value = select.value;
+        if (value !== "auto" && value !== "dark" && value !== "light") return;
+        preference = value;
+        if (value === "auto") {
+          try {
+            // Auto means no explicit choice under the site's existing key.
+            window.localStorage.removeItem("theme");
+          } catch {
+            // As in the shared module, storage may be unavailable.
+          }
+        } else {
+          theme.choose(value);
+        }
+        update();
+      });
+    }
+    window.matchMedia(theme.DARK).addEventListener("change", () => {
+      if (preference === "auto") update();
+    });
+    update();
+  });
+}
+---
+
+<script
+  is:inline
+  set:html={`(${initialise.toString()})((${themes.toString()})());`}
+/>
