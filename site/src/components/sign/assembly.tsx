@@ -325,6 +325,10 @@ export function SignAssembly({
                 aria-label="How it works: play a short story"
                 onClick={() => play()}
               />
+              {/* the story in words, a plain link that needs no script */}
+              <a className="story-read" href="/how-it-works/">
+                Read how it works
+              </a>
             </div>
 
             {/* the title and the notice play the story too; the tab and the

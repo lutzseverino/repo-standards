@@ -1,0 +1,270 @@
+---
+// "How it works" in words: the homepage story, one section per caption,
+// then who does what, when another tool fits better, and the current limits.
+// Every claim follows the usage documents and the ADRs.
+import BaseLayout from "@/layouts/base.astro";
+
+const title = "How Repo Standards works | Repo Standards";
+const description =
+  "How Repo Standards works: the CLI installs a pinned setup, your coding agent adapts the rest and you review it, and when a template or Copier fits better.";
+
+const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
+const REPO_CANON = "https://github.com/lutzseverino/repo-canon";
+
+// each comparison's primary documentation
+const DOCS = {
+  template:
+    "https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template",
+  copier: "https://copier.readthedocs.io/en/stable/",
+  copierUpdate: "https://copier.readthedocs.io/en/stable/updating/",
+  renovate: "https://docs.renovatebot.com/modules/manager/copier/",
+  projen: "https://github.com/projen/projen",
+  nxGenerators: "https://nx.dev/docs/features/generate-code",
+  nxMigrate: "https://nx.dev/docs/features/automate-updating-dependencies",
+  fileSync: "https://github.com/BetaHuhn/repo-file-sync-action",
+  healthFiles:
+    "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file",
+  skills: "https://github.com/vercel-labs/skills",
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-2xl px-6 pt-10 pb-32">
+    <nav class="mb-12 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
+      <a class="font-bold" href="/">
+        Repo Standards
+      </a>
+      <a href="/docs/">Documentation</a>
+      <a href={REPOSITORY}>GitHub</a>
+    </nav>
+
+    <article>
+      <h1>How Repo Standards works</h1>
+      <p class="lede">
+        Write your setup down once. Your coding agent applies it to every
+        repository. This page tells the homepage's short story in words, says
+        what the CLI and your coding agent each do, names the tools that fit
+        some jobs better, and states the current limits.
+      </p>
+
+      <h2>Every repository, set up its own way</h2>
+      <p>
+        Repositories differ. Each one collects its own agent instructions,
+        contribution guide, README, issue templates and checks, written at a
+        different time by a different hand. Nothing keeps them in step, so a
+        convention settled in one repository is copied by hand into the next, or
+        forgotten there.
+      </p>
+
+      <h2>Write the setup down once</h2>
+      <p>
+        A standards source is a published, versioned setup: agent instructions,
+        docs, templates and checks, written down once in a public GitHub
+        repository and released as versions. A source can offer profiles for
+        different kinds of repository. <a href={REPO_CANON}>Repo Canon</a> is a
+        ready-made setup to start from, with documentation, contribution, agent
+        workflow and GitHub conventions. You can also write and
+        <a href="/docs/guides/author-a-source/">publish your own</a>.
+      </p>
+
+      <h2>Your coding agent applies it</h2>
+      <p>
+        Adoption applies a pinned version. Ask your coding agent to run one
+        command with the source's URL, or run it yourself in a terminal:
+      </p>
+      <pre><code>npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS</code></pre>
+      <p>
+        The run selects a version and a profile, records them under
+        <code>.repo-standards/</code>, pinning that version and the CLI that
+        ran, and applies the version to the repository. Part of the work is
+        exact and part needs judgment about your repository;{" "}
+        <a href="#who-does-what">who does what</a> splits them. Every change
+        stays uncommitted for you to review.{" "}
+        <a href="/docs/guides/adopt/">Adopt a standards source</a> walks through
+        both paths.
+      </p>
+
+      <h2>All alike, and kept that way</h2>
+      <p>
+        Updates move the pin. When the source publishes a newer release,
+        <code>outdated</code> reports it, and running <code>adopt</code> again
+        moves the pin and applies the new version, reviewed and committed like
+        the first adoption. Repositories on the same pin carry the same setup,
+        and each keeps the content it owns. Whether and when to update stays
+        your decision, unless you opt in to having every update proposed.
+      </p>
+
+      <h2 id="who-does-what">Who does what</h2>
+      <h3>The CLI</h3>
+      <p>
+        The CLI resolves the pinned release from GitHub, installs the source's
+        exact files and skills, installs the rules they keep satisfying, and
+        runs the source's fixes and checks. Exact files replace the tracked
+        content at their paths: an edit to an installed file does not survive an
+        update. An overwrite that discards edits needs confirmation first, and
+        untracked content at such a path, which Git cannot recover, stops the
+        run instead. The CLI never commits.
+      </p>
+      <h3>Your coding agent</h3>
+      <p>
+        Your coding agent does the contextual work. It reads the source's
+        guidance, finds which of your files it covers, and adapts only content
+        your project owns, such as its documentation, against the rules the
+        source wrote down. It leaves the exact files to the CLI, and the project
+        keeps owning what it adapts.
+      </p>
+      <h3>You</h3>
+      <p>
+        You choose the source and ask for the adoption. Before committing, you
+        review the scope your agent found and every change in the uncommitted
+        diff, through your project's usual workflow. With an agent, only an
+        unsettled profile choice or an overwrite of a remote setting needs your
+        answer during the run.
+      </p>
+      <h3>Updates</h3>
+      <p>
+        Updates arrive when you run <code>adopt</code> again, or through the
+        opt-in
+        <a href="/docs/guides/automated-updates/">update action</a>, a GitHub
+        action that proposes every available update as one rolling pull request,
+        much like a dependency bot. It never merges: you review and merge its
+        pull request like any other.
+      </p>
+
+      <h2>When something else fits better</h2>
+      <p>
+        Other tools share a setup too, and for these jobs they are the better
+        choice.
+      </p>
+      <ul>
+        <li>
+          <strong>A new repository.</strong> Start it from a
+          <a href={DOCS.template}>GitHub template repository</a>, which copies
+          its files and directory structure into a new repository with its own
+          history, or render it from a <a href={DOCS.copier}>Copier</a>
+          template.
+        </li>
+        <li>
+          <strong>Many repositories on one stack.</strong> If their differences
+          fit template variables, use Copier: it records your answers in
+          <code>.copier-answers.yml</code>, and <code>copier update</code>
+          renders the newer tagged template and
+          <a href={DOCS.copierUpdate}>reapplies your project's own changes</a>.
+          <a href={DOCS.renovate}>Renovate's Copier manager</a> proposes that
+          update when the template tags a release. It is deterministic and needs
+          no agent.
+        </li>
+        <li>
+          <strong>Generated configuration nobody edits by hand.</strong> Use
+          <a href={DOCS.projen}>projen</a>. It synthesizes files such as
+          <code>package.json</code> and GitHub workflows from a typed definition
+          in <code>.projenrc</code>, and marks them read-only.
+        </li>
+        <li>
+          <strong>An Nx monorepo.</strong> Use
+          <a href={DOCS.nxGenerators}>Nx generators</a> to scaffold, and
+          <code>nx migrate</code> to update package versions and run
+          <a href={DOCS.nxMigrate}>the migrations</a> that change your
+          configuration and code to match.
+        </li>
+        <li>
+          <strong>Identical files in repositories you own.</strong> A file-sync
+          action, such as <a href={DOCS.fileSync}>Repo File Sync Action</a>,
+          opens pull requests that copy files from one repository to others. For
+          community health files such as <code>CONTRIBUTING.md</code> and issue
+          templates, an organisation's public <code>.github</code> repository
+          supplies <a href={DOCS.healthFiles}>default files</a> to every
+          repository that has no file of its own.
+        </li>
+        <li>
+          <strong>Only agent skills.</strong> Use the
+          <a href={DOCS.skills}>skills CLI</a>, <code>npx skills</code>, which
+          installs skills for many coding agents and checks them for updates.
+        </li>
+      </ul>
+      <p>
+        Repo Standards fits a shared setup that is mostly prose and process,
+        applied across many differently shaped repositories, where part of it is
+        exact files and part needs judgment about each repository, and kept
+        current by updates you review.
+      </p>
+
+      <h2>Current limits</h2>
+      <ul>
+        <li>
+          GitHub only: standards sources come from public GitHub repositories,
+          and the update action is a GitHub action.
+        </li>
+        <li>No private standards sources.</li>
+        <li>Node.js 24 or 26, on macOS or Linux.</li>
+        <li>
+          The contextual part needs a coding agent. Without one, the terminal
+          walks you through it, and you make the edits yourself.
+        </li>
+        <li>
+          One real public source today: <a href={REPO_CANON}>Repo Canon</a>.
+        </li>
+      </ul>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  nav a {
+    text-decoration: none;
+  }
+  nav a:hover {
+    text-decoration: underline;
+  }
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .lede {
+    margin-top: 20px;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  h2 {
+    margin-top: 48px;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  h3 {
+    margin-top: 28px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  p,
+  ul,
+  pre {
+    margin-top: 14px;
+  }
+  ul {
+    padding-left: 1.25em;
+    list-style: disc;
+  }
+  li + li {
+    margin-top: 10px;
+  }
+  code {
+    font-size: 0.9em;
+  }
+  pre {
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--muted);
+    font-size: 15px;
+  }
+  h2,
+  h3 {
+    scroll-margin-top: 24px;
+  }
+</style>

@@ -41,8 +41,9 @@ keeps the explicit sitemap integration and disables prefetch to preserve the
 homepage's output. Starlight builds the Pagefind index alongside the pages.
 `test/docs.test.ts` checks the rendered corpus, links and fragments, sitemap,
 beacon, theme navigation, and a nested-folder fixture. Its homepage fingerprint
-records the fixture build at `e95dba8` with the Documentation link changed,
-normalizing only the affected Home bundle hash and island UID.
+records the fixture build at `e95dba8` with the Documentation link changed and
+the How it works link added, normalizing only the affected Home bundle hash
+and island UID.
 
 The supported `ThemeProvider` and `ThemeSelect` overrides in `components/docs/`
 use `src/lib/theme-core.ts` and the existing `theme` storage key. Starlight's
@@ -51,7 +52,9 @@ follows the system. Docs retain Starlight's stock styles, search and pagination,
 and include the shared analytics beacon through Starlight's `head` option.
 
 `src/pages/index.astro` loads the data and renders the homepage,
-`src/components/home.tsx`. Every page outside the docs renders inside
+`src/components/home.tsx`. `src/pages/how-it-works.astro` tells the homepage
+story in words, with who does what, the tools that fit some jobs better and
+the current limits; its claims follow the usage documents and the ADRs. Every page outside the docs renders inside
 `src/layouts/base.astro`, which owns the head: the theme, the page's title,
 description and canonical URL, its own path on `site`, the favicons and the
 Cloudflare Web Analytics beacon. The beacon is `src/lib/analytics.ts`, a tag in
@@ -107,7 +110,9 @@ along the rail shows how long each caption stays, and the sign comes back
 at the end. The story plays on its own once per visitor, remembered in
 `localStorage`, after they have been still for 8 seconds with the sign in
 view, and never with reduced motion. Copying a prompt or command opens a
-dialog, `adoption-dialog.tsx`, that says what happens next.
+dialog, `adoption-dialog.tsx`, that says what happens next. Beside the tab,
+a plain link leads to the same story in words at `/how-it-works/`, with no
+script needed.
 
 `src/components/ui/` is generated shadcn source and read-only. Add components
 and refresh the installed ones only through the exactly pinned shadcn CLI:
