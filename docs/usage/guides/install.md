@@ -152,8 +152,8 @@ how you work. Optional references supply candidates for discussion, not policy.
 
 The bundled `references/cli.md` explains installing the exact compatible npm CLI
 `@lutzseverino/repo-standards@10.0.0` in an external directory, then reading that
-installation's matching `docs/usage/author-format.md` and
-`docs/usage/script-protocol.md`.
+installation's matching `docs/usage/reference/author-format.md` and
+`docs/usage/reference/script-protocol.md`.
 Node.js 24 or 26, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
