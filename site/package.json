@@ -11,6 +11,7 @@
     "ui:add": "node scripts/registry.mjs add",
     "ui:update": "node scripts/registry.mjs update",
     "ui:check": "node scripts/registry.mjs check",
+    "social-image": "node scripts/social-image.mjs",
     "test": "node --test test/*.test.ts"
   },
   "dependencies": {
@@ -42,8 +43,10 @@
     "@types/mdast": "4.0.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "fontkitten": "1.0.3",
     "parse5": "8.0.0",
     "shadcn": "4.22.1",
+    "sharp": "0.34.5",
     "typescript": "6.0.3",
     "vite": "7.3.7"
   }

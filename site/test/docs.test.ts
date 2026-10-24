@@ -367,6 +367,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // Since #380 the plates link to the source pages, each release carries its
   // URL, the shared stylesheet holds the source pages' utilities too, and
   // they share the adoption dialog's stylesheet, which the build emits apart.
+  // The layout's social tags and manifest link came later, and pages.test.ts
+  // checks them.
   const html = read("index.html")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
@@ -376,6 +378,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
       /<link rel="alternate" type="text\/plain" href="\/llms\.txt" title="llms\.txt">/g,
       "",
     )
+    .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
+    .replace('<link rel="manifest" href="/site.webmanifest">', "")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"');
   assert.equal(
