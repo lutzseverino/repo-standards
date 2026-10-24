@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { build } from "astro";
+import { installText } from "../src/lib/catalogue.ts";
+import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 
 const site = (file: string) =>
   fileURLToPath(new URL(`../${file}`, import.meta.url));
@@ -140,6 +142,150 @@ test("the homepage links to the How it works page in its markup, beside the tab"
     read("index.html"),
     /aria-label="How it works: play a short story"><\/button><a class="story-read" href="\/how-it-works\/">Read how it works<\/a>/,
   );
+});
+
+const SOURCES = [
+  {
+    path: "sources/lutzseverino/repo-canon/",
+    title:
+      "repo-canon: AGENTS.md template, agent skills and contribution guidelines | Repo Standards",
+    description:
+      "A ready-made setup to start from: AGENTS.md, agent skills, contribution guidelines, issue and PR templates, and checks your coding agent installs for you.",
+    data: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareSourceCode",
+      name: "repo-canon",
+      description:
+        "Repository documentation, contribution, agent workflow, and GitHub validation standards",
+      codeRepository: "https://github.com/lutzseverino/repo-canon",
+      version: "v0.17.0",
+      dateModified: "2026-10-19T15:08:01Z",
+      url: "https://repo-standards.com/sources/lutzseverino/repo-canon/",
+    },
+  },
+  {
+    path: "sources/lutzseverino/repo-standards-example/",
+    title:
+      "repository-standards-examples: Synthetic service and project-documentation profiles for release acceptance | Repo Standards",
+    description:
+      "Synthetic service and project-documentation profiles for release acceptance. Installs AGENTS.md, .editorconfig, README.md, 1 agent skill and 2 checks.",
+    data: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareSourceCode",
+      name: "repository-standards-examples",
+      description:
+        "Synthetic service and project-documentation profiles for release acceptance",
+      codeRepository: "https://github.com/lutzseverino/repo-standards-example",
+      version: "v3.0.0",
+      dateModified: "2026-10-22T17:57:17Z",
+      url: "https://repo-standards.com/sources/lutzseverino/repo-standards-example/",
+    },
+  },
+];
+
+/** HTML's escapes in text and attribute values, undone. */
+const unescape = (html: string) =>
+  html
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&");
+
+test("each accepted source has a page, and a rejected candidate none", () => {
+  const owners = readdirSync(path.join(output, "sources"));
+  const pages = owners.flatMap((owner) =>
+    readdirSync(path.join(output, "sources", owner)).map(
+      (repo) => `sources/${owner}/${repo}/`,
+    ),
+  );
+  assert.deepEqual(
+    pages.sort(),
+    SOURCES.map((s) => s.path),
+  );
+});
+
+for (const source of SOURCES) {
+  test(`${source.path} has its own canonical, title, description and JSON-LD`, () => {
+    const html = read(`${source.path}index.html`);
+    assert.equal(
+      html.match(/<link rel="canonical"[^>]*>/g)?.join(),
+      `<link rel="canonical" href="https://repo-standards.com/${source.path}">`,
+    );
+    assert.equal(
+      unescape(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? ""),
+      source.title,
+    );
+    assert.equal(
+      unescape(
+        /<meta name="description" content="([^"]*)"/.exec(html)?.[1] ?? "",
+      ),
+      source.description,
+    );
+    assert.ok(source.description.length <= 155);
+    const scripts = [
+      ...html.matchAll(
+        /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
+      ),
+    ];
+    assert.equal(scripts.length, 1);
+    assert.deepEqual(JSON.parse(scripts[0][1]), source.data);
+    assert.equal(html.match(BEACON)?.length, 1);
+  });
+}
+
+test("each source page offers the source's own prompt and command", async () => {
+  const { sources } = await loadCatalogue();
+  for (const source of sources) {
+    const html = read(`sources/${source.repository}/index.html`);
+    const values = [...html.matchAll(/<input\b[^>]*\bvalue="([^"]*)"/g)].map(
+      (m) => unescape(m[1]),
+    );
+    assert.deepEqual(values, [
+      installText(source, "prompt"),
+      installText(source, "terminal"),
+    ]);
+    assert.match(values[0], /npx --yes @lutzseverino\/repo-standards adopt /);
+    assert.ok(
+      html.includes(
+        "Anyone can list a source here. Review one before you adopt it.",
+      ),
+    );
+    assert.ok(html.includes(`href="https://github.com/${source.repository}"`));
+    assert.ok(html.includes(`href="${source.release.url}"`));
+  }
+});
+
+test("Repo Canon's page names what it provides in searchers' words", () => {
+  const html = read("sources/lutzseverino/repo-canon/index.html");
+  const names = [...headings(html, 2), ...headings(html, 3)];
+  for (const heading of [
+    "AGENTS.md",
+    "Agent skills",
+    "Contribution guidelines",
+    "Issue and PR templates",
+    "Checks",
+  ])
+    assert.ok(names.includes(heading), heading);
+});
+
+test("every homepage row links to its source's page, and every source page is in the sitemap", async () => {
+  const { sources } = await loadCatalogue();
+  const plates = [
+    ...read("index.html").matchAll(
+      /<a class="[^"]*\bsignpost-plate\b[^"]*" href="([^"]*)"/g,
+    ),
+  ].map((m) => m[1]);
+  assert.deepEqual(
+    plates,
+    sources.map((s) => `/sources/${s.repository}/`),
+  );
+  const sitemap = read("sitemap-0.xml");
+  for (const source of SOURCES)
+    assert.match(
+      sitemap,
+      new RegExp(`<loc>https://repo-standards\\.com/${source.path}</loc>`),
+    );
 });
 
 /** The page's inline scripts, in document order. */

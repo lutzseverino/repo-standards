@@ -1,18 +1,19 @@
 // Build-time data step. It runs the repository's own CLI, built at the root,
 // with `source search --json`, and reads each candidate's `standards.yaml` at
-// its released commit for the profile descriptions search does not report.
+// its released commit for what search does not report: the profile
+// descriptions and what each profile installs.
 // `SITE_SEARCH_RECORDING` names a directory holding a recording of those
 // inputs instead (`page-<n>.json` and `standards/<owner>/<repo>.yaml`), so
 // checks build the page through the same transform without the network.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import type { Catalogue } from "./catalogue.ts";
+import type { Catalogue, DetailedSource } from "./catalogue.ts";
 import { buildCatalogue, type SearchInput } from "./search-report.ts";
 
-let loaded: Promise<Catalogue> | undefined;
+let loaded: Promise<Catalogue<DetailedSource>> | undefined;
 
-export function loadCatalogue(): Promise<Catalogue> {
+export function loadCatalogue(): Promise<Catalogue<DetailedSource>> {
   const recording = process.env.SITE_SEARCH_RECORDING;
   loaded ??= buildCatalogue(recording ? recorded(recording) : live());
   return loaded;

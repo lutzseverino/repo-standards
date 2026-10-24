@@ -128,7 +128,7 @@ test("docs links reach built pages and fragments or the original files on GitHub
   assert.ok(githubDevelopment > 0);
 });
 
-test("one sitemap lists the homepage, How it works and every docs page", () => {
+test("one sitemap lists the homepage, How it works, every source page and every docs page", () => {
   const index = read("sitemap-index.xml");
   assert.deepEqual(
     [...index.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]),
@@ -139,7 +139,13 @@ test("one sitemap lists the homepage, How it works and every docs page", () => {
   );
   assert.deepEqual(
     urls.sort(),
-    ["/", "/how-it-works/", ...docsPages().map(({ url }) => url)]
+    [
+      "/",
+      "/how-it-works/",
+      "/sources/lutzseverino/repo-canon/",
+      "/sources/lutzseverino/repo-standards-example/",
+      ...docsPages().map(({ url }) => url),
+    ]
       .map((url) => `https://repo-standards.com${url}`)
       .sort(),
   );
@@ -150,12 +156,15 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // and the How it works link beside the tab added. That page's styles also
   // split the shared layout's stylesheet out of the homepage's. Astro's Home
   // bundle hash and island UID change when the rendered links change.
+  // Since #380 the plates link to the source pages, each release carries its
+  // URL, the shared stylesheet holds the source pages' utilities too, and
+  // they share the adoption dialog's stylesheet, which the build emits apart.
   const html = read("index.html")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"');
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "ba409265da06128fc6906cf0bfb1bd1495e628af540a78988a5384a32c5989ac",
+    "2fcb3efd41a483efbfe66dcb7d3bea1c993b09254b4b915de905bcf6f6265eb0",
   );
 });
 

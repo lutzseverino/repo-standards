@@ -46,6 +46,94 @@ test("the recorded search becomes the catalogue", async () => {
   assert.equal(catalogue.rejectedCount, recordedPage().rejected.length);
 });
 
+test("each source lists what its profiles install, resolved over its defaults", async () => {
+  const catalogue = await buildCatalogue(input(() => {}));
+  const example = catalogue.sources.find(
+    (s) => s.repository === "lutzseverino/repo-standards-example",
+  );
+  assert.equal(
+    example?.release.url,
+    "https://github.com/lutzseverino/repo-standards-example/releases/tag/v3.0.0",
+  );
+  // the work profile replaces agent-guidance and both exclude
+  // contribution-guidance, so no profile installs CONTRIBUTING.md
+  assert.deepEqual(example?.installs, [
+    {
+      id: "agent-guidance",
+      kind: "file",
+      targets: ["AGENTS.md"],
+      checks: [],
+      profiles: ["work"],
+    },
+    {
+      id: "editor-settings",
+      kind: "file",
+      targets: [".editorconfig"],
+      checks: [],
+      profiles: ["service"],
+    },
+    {
+      id: "operations-guide",
+      kind: "repository",
+      targets: ["docs/operations.md", "docs/operating-status.json"],
+      checks: ["operational-evidence"],
+      profiles: ["service"],
+    },
+    {
+      id: "readme",
+      kind: "file",
+      targets: ["README.md"],
+      checks: ["headings"],
+      profiles: ["work"],
+    },
+    {
+      id: "review-skill",
+      kind: "skill",
+      targets: [".agents/skills/review/"],
+      checks: [],
+      profiles: ["work"],
+    },
+    {
+      id: "source-layout",
+      kind: "repository",
+      targets: ["src/"],
+      checks: [],
+      profiles: ["work"],
+    },
+  ]);
+  const canon = catalogue.sources.find(
+    (s) => s.repository === "lutzseverino/repo-canon",
+  );
+  const documentation = canon?.installs.find((d) => d.id === "documentation");
+  // discovered scope has no fixed paths
+  assert.deepEqual(documentation, {
+    id: "documentation",
+    kind: "repository",
+    targets: [],
+    checks: ["documentation-navigation"],
+    profiles: ["standard", "factory"],
+  });
+  assert.deepEqual(
+    canon?.installs.find((d) => d.id === "factory-workflow")?.profiles,
+    ["factory"],
+  );
+});
+
+test("a declaration of a kind the site does not know fails the build", async () => {
+  const standards = (repository: string) =>
+    readFileSync(new URL(`standards/${repository}.yaml`, recording), "utf8");
+  await assert.rejects(
+    buildCatalogue({
+      ...input(() => {}),
+      standards: (repository) =>
+        Promise.resolve(
+          standards(repository).replace("kind: skill", "kind: plugin"),
+        ),
+    }),
+    /repo-canon.s standards\.yaml declaration skill-babysit has the kind plugin, which the site does not know/,
+  );
+});
+
 test("every source carries its released commit", async () => {
   const catalogue = await buildCatalogue(input(() => {}));
   const recorded = recordedPage().candidates as unknown as {

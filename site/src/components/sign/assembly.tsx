@@ -10,7 +10,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
-import { repositoryUrl, type Source } from "@/lib/catalogue";
+import { NOTICE, repositoryUrl, type Source } from "@/lib/catalogue";
 import { Arrow } from "./arrow";
 import { Face, Surface } from "./face";
 import { sinkPosts } from "./posts";
@@ -23,11 +23,6 @@ import {
 } from "./rail";
 import { lightRig } from "./rig";
 import { Story, type Beat } from "./story";
-
-/** The sign's notice, in the homepage's own words. It says why a listing is
- * no endorsement: any repository with the topic and a stable release is
- * listed. */
-const NOTICE = "Anyone can list a source here. Review one before you adopt it.";
 
 /** The pointer stands in for the viewer's eye and tilts the assembly. On entry
  * and when the pointer leaves, the sign settles into a presentational pose and
