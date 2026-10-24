@@ -118,13 +118,19 @@ to pick up new sources and releases, and publishes `site/dist/` with
 `https://repo-standards.lutzseverino.com`, served from the root path with no `base`.
 The site package is private and never published to npm.
 
+`public/robots.txt` allows every crawler and points to the absolute sitemap URL.
+`@astrojs/sitemap` includes the built pages automatically. The homepage also
+publishes JSON-LD describing the site and the listed standards sources, using
+the same catalogue as the visible page and escaping third-party metadata for
+the script element.
+
 The owner adds a DNS-only (unproxied) Cloudflare `CNAME` named `repo-standards`
 in the `lutzseverino.com` zone, targeting `lutzseverino.github.io`. Account-level
 GitHub Pages domain verification is optional. Once GitHub provisions the TLS
 certificate after DNS resolves, enable Enforce HTTPS in the repository's Pages
 settings.
 
-Moving to `repo-standards.com` changes only Astro's `site` setting, the Pages
-custom domain and DNS. Deployment from `main` can briefly describe merged but
+Moving to `repo-standards.com` changes Astro's `site` setting, the sitemap URL
+in `public/robots.txt`, the Pages custom domain and DNS. Deployment from `main` can briefly describe merged but
 unreleased CLI behaviour; releases normally follow within hours. The stack's
 rationale is recorded in the [architecture decisions](../docs/adr/README.md).

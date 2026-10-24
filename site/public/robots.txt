@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://repo-standards.lutzseverino.com/sitemap-index.xml
