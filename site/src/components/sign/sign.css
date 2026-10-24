@@ -157,7 +157,7 @@
 }
 .assembly .mount,
 .assembly .face-wrap,
-.assembly .lit-rot,
+.assembly .lit-copy,
 .assembly .face--lit,
 .assembly .glare {
   --gxp: inherit;
@@ -203,17 +203,6 @@
     100% 100%;
   background-blend-mode: soft-light, normal;
 }
-.tube::after {
-  /* contact shadow where the tube enters the ground */
-  content: "";
-  position: absolute;
-  left: -14px;
-  right: -14px;
-  bottom: -5px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.35), transparent);
-}
 
 /* A mount is one plate on the posts. */
 .mount {
@@ -238,10 +227,60 @@
     0 10px 16px -10px rgba(0, 0, 0, 0.55);
 }
 
+/* The posts end behind the guardrail, which stands in front of the hero. */
 .hero-rail {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 40px;
   margin-top: -8px;
+}
+
+/* The hero's stage: the sign sinks behind the rail and the story plays in its
+   place (story.css). clip-path only hides what overflows; it still counts
+   towards the page's scrollable size, so the story's growing wave and the
+   sunk sign would lengthen the page while they move. overflow: clip keeps
+   them out of it, with room for the tilted sign and the posts that reach
+   behind the rail. */
+.hero-stage {
+  position: relative;
+  overflow: clip;
+  overflow-clip-margin: 48px;
+}
+.sink {
+  transition: transform 750ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.hero-stage[data-sunk] .sink {
+  transform: translateY(calc(100% + 40px));
+  transition-timing-function: cubic-bezier(0.55, 0, 0.8, 0.3);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sink {
+    transition: none;
+  }
+}
+/* the title and the notice play the story too */
+[data-panel] {
+  cursor: pointer;
+}
+/* The "How it works" tab. The condensed face sits high in its line box:
+   line-height 1 and a little more room above centre the words between the
+   tab's top line and the plate. A button over the tab makes it one. */
+.story-cue .tab-face {
+  padding: 9px 12px 6px;
+  font-size: 15px;
+  line-height: 1;
+}
+.story-cue-button {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+}
+.story-cue-button:focus-visible {
+  outline: 4px solid var(--focus-edge);
+  outline-offset: 4px;
 }
 
 /* ================= plates =================
@@ -448,7 +487,7 @@ a.face:focus-visible {
 }
 
 /* ================= the torch =================
-   The torch writes the beam to each lit copy (.lit-rot) every frame. The
+   The torch writes the beam to each lit copy (.lit-copy) every frame. The
    properties are registered as not inherited, so a write restyles only the
    few elements that ask for them with `inherit`, not the whole plate. */
 @property --lx {
@@ -457,16 +496,6 @@ a.face:focus-visible {
   initial-value: -9999px;
 }
 @property --ly {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: -9999px;
-}
-@property --bx {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: -9999px;
-}
-@property --by {
   syntax: "<length>";
   inherits: false;
   initial-value: -9999px;
@@ -486,15 +515,27 @@ a.face:focus-visible {
   inherits: false;
   initial-value: 400px;
 }
-@property --hoff {
+/* the near side's smaller ellipse: its radii and its offset from the aim
+   point, towards the eye */
+@property --hrx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 220px;
+}
+@property --hry {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 240px;
+}
+@property --hx {
   syntax: "<length>";
   inherits: false;
   initial-value: 0px;
 }
-@property --bang {
-  syntax: "<angle>";
+@property --hy {
+  syntax: "<length>";
   inherits: false;
-  initial-value: 0rad;
+  initial-value: 0px;
 }
 @property --gain {
   syntax: "<number>";
@@ -502,8 +543,7 @@ a.face:focus-visible {
   initial-value: 1;
 }
 /* the lit plate, its sheeting, rainbow and glints read the beam */
-.lit-rot > .face--lit {
-  --bang: inherit;
+.lit-copy > .face--lit {
   --lx: inherit;
   --ly: inherit;
   --br: inherit;
@@ -519,49 +559,42 @@ a.face:focus-visible {
 }
 
 /* Each plate renders twice, an unlit copy and a lit copy masked to the beam.
-   The beam is a cone from the eye. .lit-rot is a frame rotated to the beam,
-   so its elliptical footprint can lie along the beam; the lit plate inside
-   is counter-rotated back. --bx/--by is the aim point in that frame. A
-   smaller ellipse on the near side makes that side brighter, and --gain dims
-   the light as it arrives at a slant. */
-.lit-rot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--S, 0px);
-  height: var(--S, 0px);
-  transform: translate(-50%, -50%) rotate(var(--bang));
-  pointer-events: none;
+   The lit copy shares the plate's grid cell, untransformed, so it has the
+   plate's exact layout: the same box, the same line breaks, and text on the
+   same pixels. (A frame rotated to the beam, with the copy counter-rotated
+   inside it, put the copy's text up to 1.6 px off the plate's, as a ghost.)
+   The beam is a cone from the eye, and its footprint an ellipse along the
+   beam; the mask takes the ellipse's extent along x and y (rig.ts), which is
+   exact along the axes and a little rounder on the diagonals. A smaller
+   ellipse on the near side makes that side brighter, and --gain dims the
+   light as it arrives at a slant. */
+.lit-copy {
+  position: relative;
   z-index: 1;
+  pointer-events: none;
   opacity: calc(var(--lit) * var(--gain));
   will-change: mask-image;
   mask-image:
     radial-gradient(
-      var(--brx) var(--bry) at var(--bx) var(--by),
+      var(--brx) var(--bry) at var(--lx) var(--ly),
       #000 0%,
       rgba(0, 0, 0, 0.9) var(--hot),
       rgba(0, 0, 0, 0.42) 72%,
       transparent 100%
     ),
     radial-gradient(
-      calc(var(--brx) * 0.55) calc(var(--bry) * 0.6) at
-        calc(var(--bx) - var(--hoff)) var(--by),
+      var(--hrx) var(--hry) at calc(var(--lx) - var(--hx))
+        calc(var(--ly) - var(--hy)),
       rgba(0, 0, 0, 0.35),
       transparent
     );
 }
-.lit-rot > .face--lit {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--W, 0px);
-  height: var(--H, 0px);
-  margin: 0;
-  transform: translate(-50%, -50%) rotate(calc(-1 * var(--bang)));
+.lit-copy > .face--lit {
+  height: 100%;
   pointer-events: none;
 }
 /* plates the beam cannot reach do no work at all */
-.lit-off > .lit-rot {
+.lit-off > .lit-copy {
   display: none;
 }
 /* the folded edge of a hero plate catches the beam */
@@ -799,6 +832,35 @@ a.face:focus-visible {
   stroke-width: 1.2;
   transform: translateY(-3px);
 }
+/* the ground just behind the rail, so the posts vanish behind and below it */
+.rail-ground {
+  fill: none;
+  stroke: var(--background);
+  stroke-width: 6;
+}
+/* while the story plays, a light runs along the rail's top edge over each
+   caption's time */
+.rail-progress {
+  fill: none;
+  stroke: #4d9bff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform: translateY(-3px);
+  filter: drop-shadow(0 0 4px rgb(77 155 255 / 0.85));
+  animation: rail-run var(--ms) linear forwards;
+}
+@keyframes rail-run {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-progress {
+    animation-duration: 0s;
+  }
+}
 .rail-hot {
   stop-color: var(--rail-hot);
 }
@@ -811,7 +873,8 @@ a.face:focus-visible {
 
 /* ================= signposts =================
    Each entry is a card headed by its plate, square where it meets the card,
-   with two tabs standing up from it. Entries span four rows of the grid and
+   with two tabs standing up from it: the exit number and the version
+   shield. Plates in a row share one height. Entries span four rows of the grid and
    line them up with their neighbours (subgrid): the plate, the copy control,
    the text, the profiles. A shorter plate sits down on its card. */
 .posts-grid {
@@ -826,7 +889,14 @@ a.face:focus-visible {
 }
 .entry-sign {
   display: grid;
-  align-self: end;
+  grid-template-rows: auto 1fr;
+  align-self: stretch;
+}
+.entry-sign > .face-wrap {
+  align-self: stretch;
+}
+.entry-sign > .face-wrap > a.signpost-plate {
+  height: 100%;
 }
 .signpost-tabs {
   display: flex;
@@ -842,7 +912,8 @@ a.face:focus-visible {
   padding: 4px 12px 3px;
   font-size: 15px;
 }
-.signpost-tabs .exit-tab {
+.signpost-tabs .exit-tab,
+.signpost-tabs .shield-tab {
   padding: 3px 10px 2px;
 }
 .signpost-tabs .tab-face::after {
@@ -867,17 +938,16 @@ a.signpost-plate:focus-visible {
 :root:not(.dark) a.signpost-plate:focus-visible {
   box-shadow: 0 0 0 4px var(--verkehrsgelb);
 }
+/* a long name shrinks to keep to one line, down to a floor (signposts.tsx);
+   past it, it wraps and the row's plates take the extra line */
 .signpost-name {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
   font-weight: 700;
   font-size: 25px;
   line-height: 1.05;
   overflow-wrap: anywhere;
-}
-.signpost-shield {
-  font-size: 15px;
-  padding: 1px 7px 2px;
 }
 .entry-body {
   align-content: start;

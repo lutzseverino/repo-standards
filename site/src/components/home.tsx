@@ -1,5 +1,6 @@
 // The homepage: the sign assembly over the signposts, lit by a hand torch.
 import { useState } from "react";
+import { AdoptionDialog } from "./adoption-dialog";
 import { buttonVariants } from "@/components/app/button";
 import {
   Empty,
@@ -20,6 +21,7 @@ import {
   formatDate,
   matches,
   type Catalogue,
+  type InstallMode,
 } from "@/lib/catalogue";
 import { useTheme } from "@/lib/theme";
 
@@ -38,6 +40,9 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
   const [theme, setTheme] = useTheme();
   const [mode, setMode] = useInstallMode();
   const [query, setQuery] = useState("");
+  // the nav asks the sign for its story
+  const [playRequest, setPlayRequest] = useState(0);
+  const [copied, setCopied] = useState<InstallMode | null>(null);
   useTorch(theme);
 
   const { sources } = catalogue;
@@ -64,13 +69,23 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
           >
             Documentation
           </a>
+          <button
+            type="button"
+            className={buttonVariants({ variant: "ghost" })}
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              setPlayRequest((n) => n + 1);
+            }}
+          >
+            How it works
+          </button>
           <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
             GitHub
           </a>
           <ThemeToggle theme={theme} onChange={setTheme} />
         </nav>
 
-        <SignAssembly start={start} notice={catalogue.notice} />
+        <SignAssembly start={start} playRequest={playRequest} />
 
         <section className="mt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -81,7 +96,11 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
             <SignpostList sources={visible}>
               {(s) => (
                 <>
-                  <Install source={s} mode={mode} />
+                  <Install
+                    source={s}
+                    mode={mode}
+                    onCopied={() => setCopied(mode)}
+                  />
                   <div>
                     <p className="leading-snug">{s.description}</p>
                     <div className="mt-1 text-[14px] text-muted-foreground">
@@ -118,6 +137,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
           </p>
         </section>
       </main>
+      <AdoptionDialog copied={copied} onClose={() => setCopied(null)} />
     </TooltipProvider>
   );
 }

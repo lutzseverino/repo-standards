@@ -5,9 +5,14 @@
 // The page also runs `lightRig` as an inline script right after the markup,
 // before the first paint (`restScript`), so the page is drawn in its resting
 // state, sign at its pose and lights on, instead of flat and dark until the
-// page hydrates. Hydration then writes the same values again. The inline copy
-// is the function's source, so `lightRig` must reference nothing outside its
-// own body.
+// page hydrates. It fits the list's plate names first (fit-name.ts), since
+// they set the plates' sizes, and sinks the posts behind the rail
+// (posts.ts). Hydration then writes the same values again.
+// The inline copy is the function's source, so `lightRig` must reference
+// nothing outside its own body.
+import { fitName } from "./fit-name";
+import { sinkPosts } from "./posts";
+import { HERO_RAIL_BASE, HERO_RAIL_WIDTH, heroBend } from "./rail";
 
 export type Beam = { x: number; y: number; r: number };
 export type Pose = { x: number; y: number };
@@ -132,10 +137,9 @@ export function lightRig() {
           el,
           x: r.left + sx,
           y: r.top + sy,
-          // the exact layout size: offsetWidth rounds, and a lit copy half a
-          // pixel narrower than its plate can wrap a legend differently
+          // the layout size, for how far the beam reaches
           ...layoutSize(el),
-          rot: el.querySelector<HTMLElement>(":scope > .lit-rot"),
+          rot: el.querySelector<HTMLElement>(":scope > .lit-copy"),
           off: false,
         };
       },
@@ -154,12 +158,7 @@ export function lightRig() {
       const s = o.el.style;
       s.setProperty("--ox", `${o.x.toFixed(1)}px`);
       s.setProperty("--oy", `${o.y.toFixed(1)}px`);
-      if (o.rot) {
-        s.setProperty("--W", `${o.w.toFixed(2)}px`);
-        s.setProperty("--H", `${o.h.toFixed(2)}px`);
-        s.setProperty("--S", `${Math.hypot(o.w, o.h).toFixed(1)}px`);
-        o.el.classList.remove("lit-off");
-      }
+      if (o.rot) o.el.classList.remove("lit-off");
     }
     origins = next;
     rails = nextRails;
@@ -184,13 +183,25 @@ export function lightRig() {
     const sinA = Math.sin(angle);
     const minor = beam.r / cos;
     const major = beam.r / (cos * cos);
+    // the lit copies take the footprint's extent along x and y: CSS draws no
+    // rotated ellipse, and rotating the copy would move its text
+    const extent = (k: number, l: number) => [
+      Math.hypot(k * major * cosA, l * minor * sinA),
+      Math.hypot(k * major * sinA, l * minor * cosA),
+    ];
+    const [ex, ey] = extent(1, 1);
+    const [hx, hy] = extent(0.55, 0.6);
+    // the near side's ellipse sits towards the eye, along the beam
+    const near = beam.r * 0.3 * Math.sin(slant);
     const props: [string, string][] = [
       ["--br", `${beam.r.toFixed(0)}px`],
-      ["--brx", `${major.toFixed(0)}px`],
-      ["--bry", `${minor.toFixed(0)}px`],
-      ["--bang", `${angle.toFixed(4)}rad`],
+      ["--brx", `${ex.toFixed(0)}px`],
+      ["--bry", `${ey.toFixed(0)}px`],
+      ["--hrx", `${hx.toFixed(0)}px`],
+      ["--hry", `${hy.toFixed(0)}px`],
+      ["--hx", `${(near * cosA).toFixed(1)}px`],
+      ["--hy", `${(near * sinA).toFixed(1)}px`],
       ["--gain", Math.max(0.6, cos * cos).toFixed(3)],
-      ["--hoff", `${(beam.r * 0.3 * Math.sin(slant)).toFixed(1)}px`],
     ];
 
     // the edges' gradient is fixed to the viewport, so they take the aim
@@ -239,18 +250,10 @@ export function lightRig() {
         o.el.classList.toggle("lit-off", off);
       }
       if (off) continue;
-      // the aim point in plate coordinates, and in the frame rotated to the
-      // beam, centred on the plate
-      const lx = ax - o.x;
-      const ly = ay - o.y;
-      const rx = lx - o.w / 2;
-      const ry = ly - o.h / 2;
-      const half = Math.hypot(o.w, o.h) / 2;
+      // the aim point in plate coordinates
       const s = o.rot.style;
-      s.setProperty("--lx", `${lx.toFixed(1)}px`);
-      s.setProperty("--ly", `${ly.toFixed(1)}px`);
-      s.setProperty("--bx", `${(half + rx * cosA + ry * sinA).toFixed(1)}px`);
-      s.setProperty("--by", `${(half - rx * sinA + ry * cosA).toFixed(1)}px`);
+      s.setProperty("--lx", `${(ax - o.x).toFixed(1)}px`);
+      s.setProperty("--ly", `${(ay - o.y).toFixed(1)}px`);
       for (const [name, value] of props) s.setProperty(name, value);
     }
   }
@@ -310,9 +313,22 @@ export function lightRig() {
  * the fonts arrive before the page hydrates, the plates change size, so it
  * measures them again, unless the torch has taken over. */
 export const restScript = () => `(() => {
+  const fitName = ${fitName.toString()};
+  const sinkPosts = ${sinkPosts.toString()};
+  const heroBend = ${heroBend.toString()};
+  const settle = () => {
+    document.querySelectorAll(".signpost-name").forEach((el) => fitName(el));
+    const assembly = document.querySelector(".assembly");
+    const rail = document.querySelector("svg.hero-rail");
+    if (assembly && rail)
+      sinkPosts(assembly, rail, (x) => heroBend(x, ${HERO_RAIL_WIDTH}), ${HERO_RAIL_BASE});
+  };
   const rig = (${lightRig.toString()})();
+  settle();
   rig.rest();
   void document.fonts.ready.then(() => {
-    if (!document.documentElement.hasAttribute("data-torch")) rig.rest();
+    if (document.documentElement.hasAttribute("data-torch")) return;
+    settle();
+    rig.rest();
   });
 })();`;

@@ -77,9 +77,12 @@ export function InstallModeSwitch({
 export function Install({
   source,
   mode,
+  onCopied,
 }: {
   source: Source;
   mode: InstallMode;
+  /** Something was copied, or offered to copy by hand. */
+  onCopied: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const text = installText(source, mode);
@@ -91,6 +94,7 @@ export function Install({
     } catch {
       window.prompt("Copy this", text);
     }
+    onCopied();
   };
   return (
     <InputGroup className="h-9">

@@ -9,10 +9,14 @@ import {
 import "@/styles/global.css";
 import "@/components/sign/sign.css";
 import "@/components/sign/light.css";
+import "@/components/sign/story.css";
+import "@/components/adoption-dialog.css";
 
 const catalogue = await loadCatalogue();
-const name = "Repository Standards";
-const description = "Standards sources you can adopt in one command.";
+const name = "Repo Standards";
+const title = `${name}: one setup for every repository`;
+const description =
+  "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.";
 const structuredData = buildStructuredData(catalogue, {
   name,
   url: Astro.site!.href,
@@ -26,7 +30,7 @@ const structuredData = buildStructuredData(catalogue, {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <title>{name}</title>
+    <title>{title}</title>
     <link rel="canonical" href={Astro.site} />
     <!-- the ICO's 32x32 size keeps browsers that read SVG on the SVG -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />

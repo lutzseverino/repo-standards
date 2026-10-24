@@ -69,9 +69,10 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
     assert.equal(data["@context"], "https://schema.org");
     assert.deepEqual(data["@graph"][0], {
       "@type": "WebSite",
-      name: "Repository Standards",
+      name: "Repo Standards",
       url: "https://repo-standards.com/",
-      description: "Standards sources you can adopt in one command.",
+      description:
+        "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.",
     });
     assert.equal(data["@graph"][1]["@type"], "ItemList");
     assert.deepEqual(data["@graph"][1].itemListElement, [
@@ -103,10 +104,13 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
         },
       },
     ]);
-    assert.match(html, /<title>Repository Standards<\/title>/);
     assert.match(
       html,
-      /<meta name="description" content="Standards sources you can adopt in one command\."/,
+      /<title>Repo Standards: one setup for every repository<\/title>/,
+    );
+    assert.match(
+      html,
+      /<meta name="description" content="Write your setup down once: agent instructions, docs, templates and checks\. Your coding agent applies it to every repository and keeps them in step\."/,
     );
   } finally {
     rmSync(output, { recursive: true, force: true });
