@@ -13,47 +13,38 @@ import { gfm } from "micromark-extension-gfm";
 import type { Root } from "mdast";
 import { SKIP, visit } from "unist-util-visit";
 import { markdownPath } from "./agent-paths.ts";
-import { docsFolders, docsId, docsLink } from "./docs-content.ts";
-
-const repository = fileURLToPath(new URL("../../../", import.meta.url));
+import { docsLink, readDocs } from "./docs-content.ts";
 
 export function agentPages(sitemapUrls: string[]): AstroIntegration {
   let site: URL;
+  let repositoryRoot: string;
   return {
     name: "agent-pages",
     hooks: {
       "astro:config:done": ({ config }) => {
         site = new URL(config.site!);
+        repositoryRoot = fileURLToPath(new URL("../", config.root));
       },
       "astro:build:done": async ({ dir }) => {
         const output = fileURLToPath(dir);
-        const documents = new Map<string, string>();
-        for (const [folder, prefix] of docsFolders) {
-          for (const file of await readdir(path.join(repository, folder), {
-            recursive: true,
-          })) {
-            if (file.endsWith(".md"))
-              documents.set(
-                `/${docsId(file, prefix).replace(/\/$/, "")}/`,
-                `${folder}/${file}`,
-              );
-          }
-        }
+        const documents = new Map(
+          (await readDocs(repositoryRoot)).map((document) => [
+            `/${document.id.replace(/\/$/, "")}/`,
+            document,
+          ]),
+        );
         sitemapUrls.length = 0;
         const files = await readdir(output, { recursive: true });
         for (const file of files.filter((file) => file.endsWith(".html"))) {
           const pathname = `/${file.replace(/index\.html$/, "")}`;
           const page = new URL(pathname, site);
           const markdown = markdownPath(pathname);
-          const original = documents.get(pathname);
-          const tree = original
-            ? fromMarkdown(
-                await readFile(path.join(repository, original), "utf8"),
-                {
-                  extensions: [gfm()],
-                  mdastExtensions: [gfmFromMarkdown()],
-                },
-              )
+          const document = documents.get(pathname);
+          const tree = document
+            ? fromMarkdown(document.markdown, {
+                extensions: [gfm()],
+                mdastExtensions: [gfmFromMarkdown()],
+              })
             : pageContent(await readFile(path.join(output, file), "utf8"));
           visit(tree, (node) => {
             if (
@@ -62,7 +53,7 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
               node.type === "image"
             ) {
               node.url = new URL(
-                original ? docsLink(node.url, original) : node.url,
+                document ? docsLink(node.url, document.original) : node.url,
                 page,
               ).href;
             }

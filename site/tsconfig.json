@@ -5,6 +5,9 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["astro/client"]
   }
 }

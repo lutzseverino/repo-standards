@@ -1,5 +1,5 @@
 // Adapt the repository's plain Markdown to Starlight without changing it.
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Loader } from "astro/loaders";
@@ -7,7 +7,7 @@ import type { Root } from "mdast";
 import { visit } from "unist-util-visit";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
-export const docsFolders = [
+const docsFolders = [
   ["docs/usage", "docs"],
   ["docs/adr", "docs/decisions"],
 ] as const;
@@ -16,6 +16,43 @@ export const docsFolders = [
 export function docsId(entry: string, prefix: string): string {
   const slug = entry.replace(/(?:^|\/)README\.md$/, "").replace(/\.md$/, "");
   return [prefix, slug].filter(Boolean).join("/");
+}
+
+/** Read the docs at their original paths, without generated Astro types. */
+export async function readDocs(repositoryRoot: string): Promise<
+  {
+    id: string;
+    title: string;
+    original: string;
+    markdown: string;
+  }[]
+> {
+  const documents = [];
+  for (const [folder, prefix] of docsFolders) {
+    for (const file of await readdir(path.join(repositoryRoot, folder), {
+      recursive: true,
+    })) {
+      if (!file.endsWith(".md")) continue;
+      const original = `${folder}/${file}`;
+      const markdown = await readFile(
+        path.join(repositoryRoot, original),
+        "utf8",
+      );
+      documents.push({
+        id: docsId(file, prefix),
+        title: docsTitle(markdown, original),
+        original,
+        markdown,
+      });
+    }
+  }
+  return documents;
+}
+
+function docsTitle(markdown: string, file: string): string {
+  const title = /^# (.+)$/m.exec(markdown)?.[1];
+  if (!title) throw new Error(`Missing plain ATX H1 in ${file}`);
+  return title;
 }
 
 /** Supply the H1 before schema validation, and keep each glob's cleanup
@@ -39,8 +76,7 @@ export function titledDocs(
           },
           async parseData({ filePath, data, ...entry }) {
             const source = await readFile(filePath!, "utf8");
-            const title = /^# (.+)$/m.exec(source)?.[1];
-            if (!title) throw new Error(`Missing plain ATX H1 in ${filePath}`);
+            const title = docsTitle(source, filePath!);
             return context.parseData({
               ...entry,
               filePath,

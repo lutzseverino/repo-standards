@@ -1,12 +1,14 @@
+import { fileURLToPath } from "node:url";
+import { root } from "astro:config/server";
 import type { APIRoute } from "astro";
-import { getCollection } from "astro:content";
+import { readDocs } from "../lib/docs-content";
 import { installText, STARTING_POINT, sourcePath } from "../lib/catalogue";
 import { markdownPath } from "../lib/agent-paths";
 import { loadCatalogue } from "../lib/load-catalogue";
 
 export const GET: APIRoute = async ({ site }) => {
   const catalogue = await loadCatalogue();
-  const docs = await getCollection("docs");
+  const docs = await readDocs(fileURLToPath(new URL("../", root)));
   const link = (name: string, pathname: string) =>
     `- [${name}](${new URL(pathname, site).href})`;
   const sections = [
@@ -19,7 +21,7 @@ export const GET: APIRoute = async ({ site }) => {
       `## ${title}\n\n${docs
         .filter(({ id }) => id === prefix || id.startsWith(`${prefix}/`))
         .sort((a, b) => a.id.localeCompare(b.id, "en"))
-        .map(({ id, data }) => link(data.title, markdownPath(`/${id}/`)))
+        .map(({ id, title }) => link(title, markdownPath(`/${id}/`)))
         .join("\n")}`,
   );
   const startingPoint = catalogue.sources.find(
