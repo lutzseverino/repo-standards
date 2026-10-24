@@ -1,4 +1,4 @@
-import { defineCollection } from "astro:content";
+import { defineCollection } from "astro/content/config";
 import { glob } from "astro/loaders";
 import { docsSchema } from "@astrojs/starlight/schema";
 import { docsId, titledDocs } from "./lib/docs-content";

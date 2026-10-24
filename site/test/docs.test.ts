@@ -329,7 +329,7 @@ test("nested documents keep their route, title, sidebar and original-file link r
       path.join(guides, "deep.md"),
     );
     const gettingStarted = path.join(project, "docs/usage/getting-started");
-    mkdirSync(gettingStarted);
+    mkdirSync(gettingStarted, { recursive: true });
     writeFileSync(path.join(gettingStarted, "hello.md"), "# First adoption\n");
     execFileSync(
       process.execPath,
