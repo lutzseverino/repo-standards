@@ -22,6 +22,7 @@ pnpm --dir site build
 pnpm --dir site build:fixture
 pnpm --dir site test
 pnpm --dir site preview
+pnpm --dir site social-image
 ```
 
 The development server listens on `http://localhost:4321`. The build writes
@@ -67,14 +68,22 @@ installs, or the build fails until the introduction is updated. A source page
 carries JSON-LD for its source, and its nav (`site-nav.tsx`) leads home.
 Every page outside the docs renders inside
 `src/layouts/base.astro`, which owns the head: the theme, the page's title,
-description and canonical URL, its own path on `site`, the favicons and the
-Cloudflare Web Analytics beacon. The beacon is `src/lib/analytics.ts`, a tag in
-the shape Starlight's `head` option takes, so the docs can include it too. A
+description and canonical URL, its own path on `site`, the Open Graph and
+Twitter card tags, the favicons, the web manifest and the Cloudflare Web
+Analytics beacon. `og:title`, `og:description` and `og:url` repeat the page's
+title, description and canonical URL, and `og:image` is the page's `image`
+prop, a `SocialImage` from `src/lib/social-image.ts`, as an absolute URL on
+`site`; a page that passes none takes the default, `public/social.png`.
+`public/site.webmanifest` names the site and lists the 192 and 512 pixel
+icons, in the sign palette's colours. The beacon is `src/lib/analytics.ts`, a
+tag in the shape Starlight's `head` option takes, so the docs can include it
+too. A
 page adds JSON-LD and its other head elements in the layout's `head` slot.
 Shared Tailwind styles and shadcn's colour tokens, set to the sign palette,
 live in `src/styles/global.css`; the fonts and the sign palette live in
 `src/styles/tokens.css`, which holds no Tailwind, so a page without Tailwind's
-preflight can load it. `components.json`
+preflight can load it. Tailwind reads its classes from the site's source
+but not from `scripts/`, which renders nothing. `components.json`
 configures shadcn's `base-nova` style with the `@/` alias from
 `tsconfig.json`.
 
@@ -112,6 +121,12 @@ names fitted to one line (`fit-name.ts`) and the lights on, and hydration
 changes nothing.
 D-DIN PRO, under the SIL Open Font License in `public/fonts/d-din-pro/`, sets
 the signs and the text.
+`scripts/social-image.mjs` draws the social preview, `public/social.png`: the
+homepage's title plate by day, at 1200 by 630 pixels. It outlines the title
+and the positioning line from the WOFF2 fonts, kerned with their GPOS pairs,
+and renders them with sharp, so the image needs no system fonts or browser.
+Run `pnpm --dir site social-image` and commit the image after changing either
+line or the day palette.
 
 The sign is also the way into "How it works" (`story.tsx`, `story.css`). Its
 tab, its title, its notice and the nav's link sink it behind the guardrail

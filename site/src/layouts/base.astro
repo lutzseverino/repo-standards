@@ -1,16 +1,21 @@
 ---
 // The document and its head for every page outside the docs: the theme,
 // applied before anything is drawn, each page's own title, description and
-// canonical URL, the favicons and the analytics beacon. A page adds its own
+// canonical URL, the Open Graph and Twitter card tags that a link to it
+// unfurls with, the favicons, the web manifest and the analytics beacon. A
+// page passes its own social image or takes the default one, and adds its own
 // head elements, such as JSON-LD, in the `head` slot.
 import { analyticsBeacon } from "@/lib/analytics";
 import { themeScript } from "@/lib/theme-core";
 import "@/styles/global.css";
 import "@/styles/tokens.css";
+// after the stylesheets: imported before them, it moves the layout's
+// stylesheet after the page's own
+import { defaultSocialImage, type SocialImage } from "@/lib/social-image";
 
-type Props = { title: string; description: string };
+type Props = { title: string; description: string; image?: SocialImage };
 
-const { title, description } = Astro.props;
+const { title, description, image = defaultSocialImage } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -22,10 +27,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Repo Standards" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(image.src, Astro.site)} />
+    <meta property="og:image:width" content={String(image.width)} />
+    <meta property="og:image:height" content={String(image.height)} />
+    <meta property="og:image:alt" content={image.alt} />
+    <meta name="twitter:card" content="summary_large_image" />
     <!-- the ICO's 32x32 size keeps browsers that read SVG on the SVG -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <slot name="head" />
     <!-- applies the stored or system theme before anything is drawn -->
     <script is:inline set:html={themeScript()} />

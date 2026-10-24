@@ -288,6 +288,57 @@ test("every homepage row links to its source's page, and every source page is in
     );
 });
 
+/** The content of each `<meta>` tag in the page, by its property or name. */
+const metaTags = (html: string) =>
+  Object.fromEntries(
+    [
+      ...html.matchAll(
+        /<meta (?:property|name)="([^"]+)" content="([^"]*)"\s*\/?>/g,
+      ),
+    ].map((m) => [m[1], m[2]]),
+  );
+
+test("the homepage unfurls as itself, with the default social image", () => {
+  const html = read("index.html");
+  const canonical = /<link rel="canonical" href="([^"]+)"/.exec(html)?.[1];
+  const meta = metaTags(html);
+  assert.equal(canonical, "https://repo-standards.com/");
+  assert.deepEqual(
+    Object.fromEntries(
+      Object.entries(meta).filter(([key]) => /^(og|twitter):/.test(key)),
+    ),
+    {
+      "og:type": "website",
+      "og:site_name": "Repo Standards",
+      "og:title": "Repo Standards: one setup for every repository",
+      "og:description":
+        "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.",
+      "og:url": canonical,
+      "og:image": "https://repo-standards.com/social.png",
+      "og:image:width": "1200",
+      "og:image:height": "630",
+      "og:image:alt":
+        "A blue road sign reading Repo Standards: Write your setup down once. Your coding agent applies it to every repository.",
+      "twitter:card": "summary_large_image",
+    },
+  );
+  assert.equal(meta["og:description"], meta.description);
+  assert.equal(
+    html.match(/<link rel="manifest"[^>]*>/g)?.join(),
+    '<link rel="manifest" href="/site.webmanifest">',
+  );
+});
+
+test("a page that passes its own social image unfurls with it", () => {
+  const meta = metaTags(read("layout-test/index.html"));
+  assert.equal(meta["og:url"], "https://repo-standards.com/layout-test/");
+  assert.equal(meta["og:title"], "Layout test");
+  assert.equal(meta["og:image"], "https://repo-standards.com/layout-test.png");
+  assert.equal(meta["og:image:width"], "800");
+  assert.equal(meta["og:image:height"], "400");
+  assert.equal(meta["og:image:alt"], "The layout test's own image.");
+});
+
 /** The page's inline scripts, in document order. */
 const inlineScripts = (html: string) =>
   [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
