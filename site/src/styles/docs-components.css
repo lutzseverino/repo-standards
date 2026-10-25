@@ -1,0 +1,30 @@
+/* The site's shadcn components on the docs, for the header's Support
+   control (components/support.tsx): Tailwind's theme and the utilities those
+   components use, and the shadcn tokens the site's pages load
+   (shadcn-theme.css). Tailwind's preflight stays off, so Starlight looks as
+   it did; Tailwind reads only the control and the components it renders,
+   so no utility reaches Starlight's own markup. Starlight declares its
+   layers first, so these come after them. */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./shadcn-theme.css";
+@source "../components/support.tsx";
+@source "../components/ui/button.tsx";
+@source "../components/ui/dropdown-menu.tsx";
+
+/* What preflight and the site's body would give these components: the
+   page's ink on the trigger, and menu items that are links drawn as items,
+   not in the browser's blue and underline. */
+@layer base {
+  [data-slot="dropdown-menu-trigger"] {
+    color: var(--foreground);
+  }
+  [data-slot="dropdown-menu-item"] {
+    color: inherit;
+    text-decoration: none;
+  }
+}
