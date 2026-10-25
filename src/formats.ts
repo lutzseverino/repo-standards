@@ -59,7 +59,8 @@ export function readableFormat(value: unknown, expected: RecordFormat) {
     value && typeof value === "object"
       ? (value as { format?: unknown }).format
       : undefined;
-  return found === expected || found === previousFormats[expected];
+  const previous = previousFormats[expected];
+  return found === expected || (previous !== undefined && found === previous);
 }
 
 // The path a diagnostic names: project-relative when the record is inside the
