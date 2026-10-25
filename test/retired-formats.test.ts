@@ -1320,26 +1320,35 @@ test("a committed record that is neither current nor retired beside retired stat
   // state that does not carry its own artifact's format.
   const lockFile = join(root, ".repo-standards/lock.json");
   const lock = readFileSync(lockFile);
-  writeFileSync(
-    lockFile,
-    JSON.stringify({ format: "repo-standards/lock/vnext" }),
-  );
-  commit(root);
-  const before = snapshot(root);
-  for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
-    const rejected = f.run<ErrorReport>(args);
-    assert.equal(rejected.result.status, 1, rejected.result.stdout);
-    assert.equal(rejected.report.errors.length, 1);
-    assert.equal(rejected.report.errors[0]!.code, "STATE_INTEGRITY", args[0]);
-    assert.deepEqual(rejected.report.errors[0]!.details, {
-      path: relative(root, lockFile),
+  for (const [name, content] of [
+    ["unknown marker", JSON.stringify({ format: "repo-standards/lock/vnext" })],
+    ["missing marker", "{}"],
+    ["unparseable record", "{"],
+    ["null record", "null"],
+  ] as const)
+    await t.test(name, () => {
+      writeFileSync(lockFile, content);
+      commit(root);
+      const before = snapshot(root);
+      for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
+        const rejected = f.run<ErrorReport>(args);
+        assert.equal(rejected.result.status, 1, rejected.result.stdout);
+        assert.equal(rejected.report.errors.length, 1);
+        assert.equal(
+          rejected.report.errors[0]!.code,
+          "STATE_INTEGRITY",
+          args[0],
+        );
+        assert.deepEqual(rejected.report.errors[0]!.details, {
+          path: relative(root, lockFile),
+        });
+        assert.deepEqual(
+          snapshot(root),
+          before,
+          `${args[0]} must not write or remove anything`,
+        );
+      }
     });
-    assert.deepEqual(
-      snapshot(root),
-      before,
-      `${args[0]} must not remove anything`,
-    );
-  }
   // The inspection holds again once the record is restored.
   writeFileSync(lockFile, lock);
   commit(root);
@@ -1347,6 +1356,46 @@ test("a committed record that is neither current nor retired beside retired stat
     f.run<Inspection>(inspectionArgs).report.identity,
     inspection.identity,
   );
+});
+
+test("a genuinely absent lock still allows fresh adoption over retired state", async (t) => {
+  const f = await retiredProject(t);
+  const { root } = f;
+  rmSync(join(root, ".repo-standards/lock.json"));
+  commit(root);
+  const before = snapshot(root);
+  const inspected = f.run<Inspection>(inspectionArgs);
+  assert.equal(inspected.result.status, 0, inspected.result.stdout);
+  assert.equal(inspected.report.start.eligible, true);
+  assert.deepEqual(snapshot(root), before, "inspection must not write");
+  const head = git(root, "rev-parse", "HEAD");
+  const index = git(root, "ls-files", "--stage");
+  const started = f.run<Run>(
+    startArgs(inspected.report.identity, inspectionArgs, true),
+  );
+  assert.equal(started.result.status, 0, started.result.stdout);
+  assert.equal(started.report.outcome, "complete");
+  assert.equal(committedState(root).format, "repo-standards/state/v8");
+  assert.equal(git(root, "rev-parse", "HEAD"), head);
+  assert.equal(git(root, "ls-files", "--stage"), index);
+});
+
+test("malformed locks without retired state still fail ordinary integrity validation without writes", async (t) => {
+  const f = await adoptedProject(t);
+  const { root } = f;
+  const inspection = f.run<Inspection>(inspectionArgs).report;
+  const lockFile = join(root, ".repo-standards/lock.json");
+  for (const content of ["{}", "{"]) {
+    writeFileSync(lockFile, content);
+    commit(root);
+    const before = snapshot(root);
+    for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
+      const rejected = f.run<ErrorReport>(args);
+      assert.equal(rejected.result.status, 1, rejected.result.stdout);
+      assert.equal(rejected.report.errors[0]!.code, "STATE_INTEGRITY");
+      assert.deepEqual(snapshot(root), before, `${args[0]} must not write`);
+    }
+  }
 });
 
 test("retired product state changed while its removal is recorded fails the start and is not removed", async (t) => {
