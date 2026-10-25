@@ -37,9 +37,16 @@ defaults, or `pnpm format` to format them locally. Prettier is exactly pinned in
 `package.json`, with no formatting options or configuration file. The
 `.prettierignore` file excludes vendored code, installed standards state and
 skills, the pnpm lockfile, and fixtures whose exact bytes are tested.
-`pnpm lint` runs oxlint with type-aware rules, configured in `.oxlintrc.json`;
-any finding, warning or error, fails it. Run `pnpm lint path ...` to lint
-particular files, or `pnpm lint --fix` to apply its safe fixes.
+`pnpm lint` first runs the site's `astro sync` to generate or refresh its
+ignored `.astro` collection types, then runs oxlint with type-aware rules,
+configured in `.oxlintrc.json`. Synchronization needs only the installed
+dependencies, with no CLI build or live catalogue lookup; if it fails, lint
+stops. Any lint finding, warning or error, fails the command. Run
+`pnpm lint path ...` to lint particular files, or `pnpm lint --fix` to apply
+its safe fixes. Root validation and CI use this same lint prerequisite.
+`node --test test/lint.test.ts` checks the root command without generated
+types, using a real collection consumer, and covers refresh, argument
+forwarding and synchronization failure.
 Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
