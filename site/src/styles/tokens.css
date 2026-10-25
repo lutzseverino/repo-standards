@@ -36,6 +36,68 @@
   font-display: swap;
 }
 
+/* Local fallbacks for documentation: width ratios measured across the usage
+   guides against the bundled D-DIN faces (Liberation Sans is Arial-compatible).
+   The regular Arial scale is refined against delayed-font browser loads.
+   Each vertical override is the D-DIN metric / units-per-em / size-adjust.
+   Keep separate weights because the bold faces have different advance widths.
+   These aliases add no font downloads and do not change the loaded face. */
+@font-face {
+  font-family: "D-DIN Arial Fallback";
+  src: local("Arial"), local("Liberation Sans");
+  font-weight: 400;
+  size-adjust: 90%;
+  ascent-override: 92.33%;
+  descent-override: 18.78%;
+  line-gap-override: 9.56%;
+}
+@font-face {
+  font-family: "D-DIN Arial Fallback";
+  src: local("Arial"), local("Liberation Sans");
+  font-weight: 500;
+  size-adjust: 95.23%;
+  ascent-override: 87.26%;
+  descent-override: 17.75%;
+  line-gap-override: 9.03%;
+}
+@font-face {
+  font-family: "D-DIN Arial Fallback";
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold");
+  font-weight: 700;
+  size-adjust: 89.19%;
+  ascent-override: 93.17%;
+  descent-override: 18.95%;
+  line-gap-override: 9.64%;
+}
+@font-face {
+  font-family: "D-DIN DejaVu Fallback";
+  src: local("DejaVu Sans");
+  font-weight: 400;
+  size-adjust: 82.23%;
+  ascent-override: 101.06%;
+  descent-override: 20.55%;
+  line-gap-override: 10.46%;
+}
+@font-face {
+  font-family: "D-DIN DejaVu Fallback";
+  src: local("DejaVu Sans");
+  font-weight: 500;
+  size-adjust: 83.16%;
+  ascent-override: 99.92%;
+  descent-override: 20.32%;
+  line-gap-override: 10.34%;
+}
+@font-face {
+  font-family: "D-DIN DejaVu Fallback";
+  src: local("DejaVu Sans Bold");
+  font-weight: 700;
+  size-adjust: 74.35%;
+  ascent-override: 111.77%;
+  descent-override: 22.73%;
+  line-gap-override: 11.57%;
+}
+
 /* ================= tokens =================
    Light: the page by day; plates keep their daylight colours, and the sun
    adds a glint where the sheeting mirrors it: a lift, a streak, sparkle and

@@ -3,7 +3,12 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Loader } from "astro/loaders";
-import type { Root } from "mdast";
+import { fromHtml } from "hast-util-from-html";
+import { toMdast } from "hast-util-to-mdast";
+import type { Root, Nodes, Paragraph } from "mdast";
+import { fromMarkdown } from "mdast-util-from-markdown";
+import { gfmFromMarkdown } from "mdast-util-gfm";
+import { gfm } from "micromark-extension-gfm";
 import { visit } from "unist-util-visit";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
@@ -55,7 +60,52 @@ function docsTitle(markdown: string, file: string): string {
   return title;
 }
 
-/** Supply the H1 before schema validation, and keep each glob's cleanup
+/** Use visible prose, rather than headings, commands or Markdown syntax. */
+export function docsDescription(markdown: string, title: string): string {
+  const visible = (node: Nodes): string => {
+    if (node.type === "text" || node.type === "inlineCode") return node.value;
+    if (
+      node.type === "break" ||
+      (node.type === "html" && /^<br\s*\/?>$/i.test(node.value))
+    )
+      return " ";
+    return "children" in node ? node.children.map(visible).join("") : "";
+  };
+  const paragraphs = (nodes: Root["children"]): Paragraph[] =>
+    nodes.flatMap((node): Paragraph[] => {
+      if (node.type === "paragraph") return [node];
+      if (node.type === "blockquote") return paragraphs(node.children);
+      if (node.type === "html")
+        return paragraphs(
+          (
+            toMdast(fromHtml(node.value, { fragment: true })) as Root
+          ).children.filter((child) => child.type !== "html"),
+        );
+      return [];
+    });
+  const tree = fromMarkdown(markdown, {
+    extensions: [gfm()],
+    mdastExtensions: [gfmFromMarkdown()],
+  });
+  const prose = paragraphs(tree.children)
+    .map((node) => visible(node).replace(/\s+/g, " ").trim())
+    .map((text) =>
+      text.replace(
+        /^(?:Status\s*:|Amends\b|Supersedes\b)[^.]*\.(?:\s+|$)/i,
+        "",
+      ),
+    )
+    .find(
+      (text) => text && !/^(?:Status\s*:|Amends\b|Supersedes\b)/i.test(text),
+    );
+  const description = prose ?? `${title} — Repo Standards documentation.`;
+  if (description.length <= 155) return description;
+  const words = description.slice(0, 155).split(" ");
+  words.pop();
+  return `${words.join(" ") || description.slice(0, 154)}…`;
+}
+
+/** Supply metadata before schema validation, and keep each glob's cleanup
  * restricted to its own entries in the combined docs collection. */
 export function titledDocs(
   loaders: { loader: Loader; base: string }[],
@@ -66,6 +116,16 @@ export function titledDocs(
       for (const { loader, base } of loaders) {
         await loader.load({
           ...context,
+          // Include derived metadata so an existing content cache refreshes
+          // when the adapter changes, even if the Markdown hasn't changed.
+          generateDigest: (contents) =>
+            context.generateDigest({
+              contents,
+              description:
+                typeof contents === "string"
+                  ? docsDescription(contents, "")
+                  : "",
+            }),
           store: {
             ...context.store,
             keys: () =>
@@ -80,7 +140,11 @@ export function titledDocs(
             return context.parseData({
               ...entry,
               filePath,
-              data: { ...data, title },
+              data: {
+                ...data,
+                title,
+                description: docsDescription(source, title),
+              },
             });
           },
         });

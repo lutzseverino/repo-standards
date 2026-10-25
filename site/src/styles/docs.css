@@ -12,7 +12,9 @@
 @import "./tokens.css";
 
 :root {
-  --sl-font: "D-DIN PRO", "Helvetica Neue", Arial, sans-serif;
+  --sl-font:
+    "D-DIN PRO", "D-DIN Arial Fallback", "D-DIN DejaVu Fallback", Arial,
+    sans-serif;
 }
 
 /* Night. Print keeps Starlight's light print palette, or this page's own
