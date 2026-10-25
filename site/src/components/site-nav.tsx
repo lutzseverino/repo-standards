@@ -1,7 +1,8 @@
 // The nav of a page other than the homepage: the way home, the
-// documentation, the repository and the theme toggle.
+// documentation, the repository, the Support control and the theme toggle.
 import { buttonVariants } from "@/components/app/button";
 import { useTheme } from "@/lib/theme";
+import { SupportMenu } from "./support";
 import { ThemeToggle } from "./theme-toggle";
 
 export const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
@@ -20,6 +21,7 @@ export function SiteNav() {
         <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
           GitHub
         </a>
+        <SupportMenu />
         <ThemeToggle theme={theme} onChange={setTheme} />
       </div>
     </nav>

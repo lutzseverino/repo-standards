@@ -1,0 +1,190 @@
+/* The Support control and the footer's support line (components/support.tsx)
+   in the sign's palette and type. The same rules serve the pages with
+   Tailwind's preflight and the docs without it, so they reset what a browser
+   or Starlight would otherwise draw, and stay unlayered to win over both.
+   They read the fonts and colours from tokens.css, which both load. Every
+   text colour meets WCAG 2.2 AA on the page, the docs' header and the
+   menu. */
+
+.support {
+  --support-ink: var(--verkehrsblau);
+  --support-fill: var(--verkehrsblau);
+  --support-menu-bg: #fff;
+  --support-menu-ink: #2b2e30;
+  --support-menu-muted: #5f6462;
+  --support-menu-hover: color-mix(in oklab, #2b2e30 9%, #fff);
+  --support-menu-edge: color-mix(in oklab, #2b2e30 18%, #f3f4f2);
+  display: inline-flex;
+}
+.dark .support {
+  /* the docs' night accent, light on the night page */
+  --support-ink: #a3c6f5;
+  --support-fill: var(--blue-lit);
+  --support-menu-bg: #16191c;
+  --support-menu-ink: #e8eae7;
+  --support-menu-muted: #9ca19d;
+  --support-menu-hover: color-mix(in oklab, #e8eae7 9%, #16191c);
+  --support-menu-edge: color-mix(in oklab, #e8eae7 16%, #0d0f11);
+}
+
+/* Focus, as on the sign: by night a traffic-yellow ring; by day a yellow
+   band edged in black, like a hazard marking. */
+.support-trigger:focus-visible,
+.support-option:focus-visible,
+.support-line a:focus-visible {
+  outline: 3px solid var(--focus-edge);
+  outline-offset: 3px;
+}
+:root:not(.dark) .support-trigger:focus-visible,
+:root:not(.dark) .support-option:focus-visible,
+:root:not(.dark) .support-line a:focus-visible {
+  box-shadow: 0 0 0 3px var(--verkehrsgelb);
+}
+
+/* the control: a small plate outlined in Verkehrsblau, filled when it is
+   pointed at or open */
+.support-trigger {
+  anchor-name: --support-trigger;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  box-sizing: border-box;
+  height: 2rem;
+  margin: 0;
+  padding: 0 0.65em;
+  border: 1.5px solid var(--support-ink);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--support-ink);
+  font-family: var(--font-sign);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.support-trigger:hover,
+.support:has(.support-menu:popover-open) .support-trigger {
+  border-color: var(--support-fill);
+  background: var(--support-fill);
+  color: #fff;
+}
+.support-trigger svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+/* On a phone the heart alone keeps the homepage's nav on one line; the word
+   stays the control's name. */
+@media (max-width: 30rem) {
+  .support--compact .support-trigger {
+    justify-content: center;
+    width: 2rem;
+    padding: 0;
+  }
+  .support--compact .support-trigger-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* the choice, under the control where anchor positioning is supported, else
+   the browser's own place for a popover, the middle of the window */
+.support-menu {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  margin: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--support-menu-edge);
+  border-radius: 10px;
+  background: var(--support-menu-bg);
+  color: var(--support-menu-ink);
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.45);
+  font-family: "D-DIN PRO", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
+}
+@supports (anchor-name: --support-trigger) {
+  .support-menu {
+    position-anchor: --support-trigger;
+    inset: auto;
+    top: anchor(bottom);
+    right: anchor(right);
+    margin: 0.5rem 0 0;
+    position-try-fallbacks: flip-inline;
+  }
+}
+.support-menu-title {
+  margin: 0 0.5rem 0.5rem;
+  font-family: var(--font-sign);
+  font-size: 18px;
+  font-weight: 700;
+}
+.support-options {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.support-option {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 1.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+.support-option:hover {
+  background: var(--support-menu-hover);
+}
+.support-option-name {
+  font-weight: 700;
+}
+.support-option-url {
+  grid-row: 2;
+  color: var(--support-menu-muted);
+  font-size: 14px;
+}
+.support-option svg {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--support-ink);
+}
+
+/* the footer's line */
+.support-footer {
+  padding: 0 1.5rem 2.5rem;
+  text-align: center;
+}
+.support-line {
+  margin: 0;
+  color: #5f6462;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.dark .support-line {
+  color: #9ca19d;
+}
+.support-line a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.support-line a:hover {
+  color: var(--verkehrsblau);
+}
+.dark .support-line a:hover {
+  color: #a3c6f5;
+}

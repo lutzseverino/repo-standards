@@ -16,6 +16,7 @@ import { SignAssembly } from "./sign/assembly";
 import { SignpostList } from "./sign/signposts";
 import { useTorch } from "./sign/torch";
 import { REPOSITORY } from "./site-nav";
+import { SupportMenu } from "./support";
 import { ThemeToggle } from "./theme-toggle";
 import {
   STARTING_POINT,
@@ -24,6 +25,7 @@ import {
   type Catalogue,
   type InstallMode,
 } from "@/lib/catalogue";
+import { SUPPORT } from "@/lib/support";
 import { useTheme } from "@/lib/theme";
 
 // page-wide light layers and their diameter in beam radii. Like the other lit
@@ -78,6 +80,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
           <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
             GitHub
           </a>
+          <SupportMenu compact />
           <ThemeToggle theme={theme} onChange={setTheme} />
         </nav>
 
@@ -131,6 +134,25 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
               `${rejected} more ${rejected === 1 ? "repository carries" : "repositories carry"} the topic but ${rejected === 1 ? "is" : "are"} left out, without a stable release this CLI can use. `}
             To list your own source, add the topic and publish a stable release.
           </p>
+          {/* for people: the Markdown version leaves asides out */}
+          <aside className="mt-4 max-w-2xl text-[15px] leading-snug text-muted-foreground">
+            If Repo Standards keeps your repositories in step, you can support
+            its work on{" "}
+            <a
+              className="text-foreground underline underline-offset-4"
+              href={SUPPORT[0].url}
+            >
+              {SUPPORT[0].name}
+            </a>{" "}
+            or{" "}
+            <a
+              className="text-foreground underline underline-offset-4"
+              href={SUPPORT[1].url}
+            >
+              {SUPPORT[1].name}
+            </a>
+            .
+          </aside>
         </section>
       </main>
       <AdoptionDialog copied={copied} onClose={() => setCopied(null)} />

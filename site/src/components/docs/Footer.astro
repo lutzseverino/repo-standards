@@ -1,0 +1,19 @@
+---
+// The supported Starlight override for the footer: Starlight's own, then the
+// ways to support Repo Standards, as under every other page.
+import Default from "@astrojs/starlight/components/Footer.astro";
+import SupportLine from "../SupportLine.astro";
+import "../../styles/support.css";
+---
+
+<Default />
+<footer class="support-footer docs-support">
+  <SupportLine />
+</footer>
+
+<style>
+  .docs-support {
+    margin-top: 2.5rem;
+    padding: 0;
+  }
+</style>

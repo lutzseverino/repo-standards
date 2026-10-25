@@ -2,6 +2,7 @@
 // "How it works" in words: the homepage story, one section per caption,
 // then who does what, when another tool fits better, and the current limits.
 // Every claim follows the usage documents and the ADRs.
+import { SupportMenu } from "@/components/support";
 import BaseLayout from "@/layouts/base.astro";
 
 const title = "How Repo Standards works | Repo Standards";
@@ -36,6 +37,7 @@ const DOCS = {
       </a>
       <a href="/docs/">Documentation</a>
       <a href={REPOSITORY}>GitHub</a>
+      <SupportMenu />
     </nav>
 
     <article>

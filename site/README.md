@@ -45,7 +45,10 @@ homepage's output. Starlight builds the Pagefind index alongside the pages.
 beacon, theme navigation, and a nested-folder fixture. Its homepage fingerprint
 records the fixture build at `e95dba8` with the Documentation link changed and
 the How it works link added, normalizing only the affected Home bundle hash
-and island UID, and omitting the new agent discovery links.
+and island UID, and omitting the new agent discovery links. It also omits the
+Support control, the homepage's support line, the footer and their inlined
+styles, and normalizes the React ids those additions renumber, so without them
+the homepage is byte for byte what it was.
 
 Agents can start at `/llms.txt`, which identifies the scoped npm package,
 product repository and domain and links to Markdown versions of the site.
@@ -70,6 +73,23 @@ stock select keeps Dark, Light and Auto; Auto clears the explicit choice and
 follows the system. Docs retain Starlight's stock layout, search, pagination
 and focus ring, and include the shared analytics beacon through Starlight's
 `head` option.
+
+Every page offers two ways to support Repo Standards, GitHub Sponsors and
+Ko-fi, listed in `src/lib/support.ts` in the order `.github/FUNDING.yml` and
+the npm package's `funding` give them. The header's one Support control,
+`src/components/support.tsx`, opens both in a native popover anchored under
+it, so it needs no script and renders statically on How it works and in
+Starlight's header, through the supported `Header` override, which keeps it
+visible below 50rem where Starlight hides its own right-hand group. In the
+homepage's nav, on a phone, it shows its heart alone. The layout's footer and
+the supported `Footer` override show `SupportLine.astro`, and the homepage
+ends with one line inviting support. `src/styles/support.css` styles them in
+the sign's palette and type without Tailwind, so the docs' overrides load it
+too. Page Markdown leaves asides and footers out, so `llms.txt` and the
+Markdown versions stay as they were: the links are for people.
+`test/docs.test.ts` checks the control, the footers, the homepage's line and
+the agent surfaces, and `test/support.test.ts` the funding metadata and the
+control's contrast in both themes.
 
 The docs wear the sign's palette and type through Starlight's own custom
 properties only. `src/styles/docs.css`, Starlight's one `customCss` entry, maps

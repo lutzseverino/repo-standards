@@ -1,0 +1,29 @@
+---
+// The supported Starlight override for the header: Starlight's own, then the
+// site's one Support control. Starlight hides its right-hand group below
+// 50rem; the control stays at every width.
+import Default from "@astrojs/starlight/components/Header.astro";
+import { SupportMenu } from "../support";
+import "../../styles/support.css";
+---
+
+<div class="docs-header">
+  <div class="docs-header__stock">
+    <Default />
+  </div>
+  <SupportMenu />
+</div>
+
+<style>
+  .docs-header {
+    display: flex;
+    align-items: center;
+    gap: var(--sl-nav-gap);
+    height: 100%;
+  }
+  .docs-header__stock {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+  }
+</style>

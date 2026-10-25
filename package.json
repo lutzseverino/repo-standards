@@ -27,6 +27,16 @@
     "type": "git",
     "url": "https://github.com/lutzseverino/repo-standards.git"
   },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/lutzseverino"
+    },
+    {
+      "type": "individual",
+      "url": "https://ko-fi.com/lutzseverino"
+    }
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",

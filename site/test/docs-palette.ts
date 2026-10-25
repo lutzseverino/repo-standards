@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 
 export type Theme = "dark" | "light";
 
-const source = (url: URL) =>
+export const source = (url: URL) =>
   readFileSync(url, "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\s+/g, " ")
@@ -14,7 +14,9 @@ const source = (url: URL) =>
 export const docsCss = source(
   new URL("../src/styles/docs.css", import.meta.url),
 );
-const tokens = source(new URL("../src/styles/tokens.css", import.meta.url));
+export const tokens = source(
+  new URL("../src/styles/tokens.css", import.meta.url),
+);
 const starlight = source(
   new URL(
     "../node_modules/@astrojs/starlight/style/props.css",
@@ -24,7 +26,7 @@ const starlight = source(
 
 /** The custom properties declared directly in the first block whose
  * selector is `selector`. */
-function block(css: string, selector: string) {
+export function block(css: string, selector: string) {
   const start = css.indexOf(`${selector} {`);
   if (start === -1) throw new Error(`no ${selector} block`);
   const body = css.slice(
