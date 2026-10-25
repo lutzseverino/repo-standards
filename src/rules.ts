@@ -81,7 +81,7 @@ function indexText(selection: RecordedSelection, declarations: WithRules[]) {
   return `# Installed rules
 
 These rules come from ${repository} ${version}, profile ${selection.profile}.
-Repository Standards installs and verifies them; adopt again to change them.
+Repo Standards installs and verifies them; adopt again to change them.
 Run \`repo-standards rules <path>\` to print the rules that cover a path.
 
 ${entries.join("")}`;

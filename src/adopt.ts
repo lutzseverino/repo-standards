@@ -1865,7 +1865,7 @@ const statements: Record<AdoptReport["outcome"], string> = {
 // answers file, and the next steps.
 export function adoptSummary(report: AdoptReport) {
   const parts = [
-    "# Repository Standards adoption",
+    "# Repo Standards adoption",
     (report.headless
       ? "This headless update asked nobody and wrote nothing to the hosting platform. "
       : "") +

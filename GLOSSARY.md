@@ -1,4 +1,4 @@
-# Repository Standards
+# Repo Standards
 
 Canonical language for a neutral product that publishes and applies versioned
 repository standards.
@@ -114,7 +114,7 @@ answer. It never decides scope.
 _Avoid_: Discovery hook, scope classifier
 
 **System skill**:
-A product-owned Agent Skill that exposes shared Repository Standards behavior
+A product-owned Agent Skill that exposes shared Repo Standards behavior
 and whose reserved name cannot be replaced by an author.
 _Avoid_: Author skill, adoption hook
 

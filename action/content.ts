@@ -71,7 +71,7 @@ export function pullRequestTitle(source: string, to: Pins, breaking: boolean) {
 }
 
 export function issueTitle(source: string, to: Pins) {
-  return `Finish the Repository Standards update to ${sourceName(source)} ${to.standards} with CLI ${to.cli}`;
+  return `Finish the Repo Standards update to ${sourceName(source)} ${to.standards} with CLI ${to.cli}`;
 }
 
 // The first line of the inspection summary's Update class section, such as
@@ -285,5 +285,5 @@ export function landedComment(to: Pins, base: string) {
 }
 
 export function supersededComment(successor: string) {
-  return `Superseded by ${successor}, which carries the newest Repository Standards update.`;
+  return `Superseded by ${successor}, which carries the newest Repo Standards update.`;
 }

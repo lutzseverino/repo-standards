@@ -116,7 +116,7 @@ function hasDirectChangeReason(content) {
   return marker !== null && isMeaningful(marker[1]);
 }
 
-// A Repository Standards adoption record is a complete update pull request
+// A Repo Standards adoption record is a complete update pull request
 // body only when its exact heading is the body's first line, after any blank
 // lines and apart from trailing spaces or tabs.
 function isAdoptionRecord(body) {
@@ -254,7 +254,7 @@ function writeSummary(errors, adoptionRecord) {
     return;
   }
   const passed = adoptionRecord
-    ? "The title has the expected structure, and the body is a Repository Standards adoption record."
+    ? "The title has the expected structure, and the body is a Repo Standards adoption record."
     : "The title and required PR sections have the expected structure.";
   const lines = errors.length
     ? [

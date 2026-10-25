@@ -148,8 +148,8 @@ test("adopt without an answers file prints a complete template and changes nothi
   const text = f.run(["adopt", source, "--profile", "work"]);
   assert.equal(text.status, 0, text.stderr);
   for (const heading of [
-    "# Repository Standards adoption",
-    "## Repository Standards adoption proposal",
+    "# Repo Standards adoption",
+    "## Repo Standards adoption proposal",
     "### Selection",
     "## Discarded edits",
     "## Answers file",

@@ -1,6 +1,6 @@
 # Release procedure
 
-This procedure packages, publishes, and verifies a Repository Standards
+This procedure packages, publishes, and verifies a Repo Standards
 release. Publishing a package does not by itself establish that its parent
 specification's release contract has passed. Record outstanding criteria
 explicitly on the parent specification, as
@@ -204,7 +204,7 @@ gh run download <run-id> --repo lutzseverino/repo-standards \
   --name release-notes --dir <fresh-notes-directory>
 gh release create v<version> <original-bundle-directory>/* \
   --repo lutzseverino/repo-standards --target <original-validated-commit> \
-  --title 'Repository Standards <version>' \
+  --title 'Repo Standards <version>' \
   --notes-file <fresh-notes-directory>/release-notes.md
 ```
 
@@ -437,7 +437,7 @@ neither invalidates a successful direct installation nor proves a listing exists
 
 After a containing public release exists, complete these README follow-ups:
 
-- Repository Standards: retain the single-sentence CLI pointer and optional
+- Repo Standards: retain the single-sentence CLI pointer and optional
   skill link from #307, updating the linked installation route and publication
   notice only after verifying the first containing tag.
 - Repo Canon (`lutzseverino/repo-canon`): **Add the adoption skill alternative to

@@ -110,7 +110,7 @@ jobs:
           RELEASE_COMMIT: ${{ github.sha }}
         run: |
           gh release create "v$RELEASE_VERSION" release/* --target "$RELEASE_COMMIT" \
-            --title "Repository Standards $RELEASE_VERSION" \
+            --title "Repo Standards $RELEASE_VERSION" \
             --notes-file release-notes/release-notes.md
       - name: Explain publication recovery
         if: failure()

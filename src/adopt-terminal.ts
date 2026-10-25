@@ -197,7 +197,7 @@ export async function adoptInTerminal(
   // The reused answers already shown: reused answers are shown, not asked.
   const shown = new Set<string>();
 
-  write("Repository Standards adoption\n");
+  write("Repo Standards adoption\n");
   write("An agent runs adopt with --json to get the answers-file template.\n");
   for (;;) {
     let report: AdoptReport;

@@ -541,7 +541,7 @@ test("a stop without an agent command opens one issue, refreshed on a newer rele
   assert.equal(issue.kind, "issue");
   assert.equal(
     issue.title,
-    "Finish the Repository Standards update to standards v1.1.0 with CLI 9.1.0",
+    "Finish the Repo Standards update to standards v1.1.0 with CLI 9.1.0",
   );
   assert.match(issue.body, /^### Problem\n/);
   assert.match(issue.body, /\n### Desired outcome\n/);
@@ -628,7 +628,7 @@ test("an agent command that leaves the update ready to commit gives a pull reque
   const [issue, pull] = f.items;
   assert.equal(issue!.state, "closed");
   assert.deepEqual(issue!.comments, [
-    "Superseded by https://github.com/alice/project/pull/2, which carries the newest Repository Standards update.",
+    "Superseded by https://github.com/alice/project/pull/2, which carries the newest Repo Standards update.",
   ]);
   assert.equal(pull!.kind, "pull");
   assert.equal(pull!.state, "open");
@@ -665,7 +665,7 @@ test("a refused push opens the issue naming the reason, and closes the supersede
   assert.doesNotMatch(issue!.body, new RegExp(token));
   assert.equal(pull!.state, "closed");
   assert.deepEqual(pull!.comments, [
-    "Superseded by https://github.com/alice/project/issues/2, which carries the newest Repository Standards update.",
+    "Superseded by https://github.com/alice/project/issues/2, which carries the newest Repo Standards update.",
   ]);
 });
 
@@ -680,7 +680,7 @@ test("an unknown pin fails with its reason and opens or changes nothing", async 
   assert.equal(result.status, 1);
   assert.match(
     result.output,
-    /::error title=Repository Standards update::The available update is unknown for the standards pin \(SOURCE_UNAVAILABLE: GitHub returned HTTP 503\.\)/,
+    /::error title=Repo Standards update::The available update is unknown for the standards pin \(SOURCE_UNAVAILABLE: GitHub returned HTTP 503\.\)/,
   );
   assert.deepEqual(f.items, []);
   assert.deepEqual(mutations(f), []);

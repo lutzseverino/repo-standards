@@ -149,7 +149,7 @@ described below.
 
 ### Adoption pull requests
 
-An adoption pull request holds one completed Repository Standards adoption or
+An adoption pull request holds one completed Repo Standards adoption or
 update run and nothing else. Open it once the project's pinned
 `.repo-standards/runtime/node_modules/.bin/repo-standards status` reports the
 run ready to commit. Otherwise finish or recover the run with
@@ -176,7 +176,7 @@ For adoption or update findings, use these target repositories:
 - For the standards source's guidance, discovery, checks, fixes, installed
   files, or drafter, use the source repository identified by the source URL in
   the adoption record's Selection.
-- For the Repository Standards CLI and its `adopt` command, use
+- For the Repo Standards CLI and its `adopt` command, use
   `lutzseverino/repo-standards`.
 
 ### Merging
