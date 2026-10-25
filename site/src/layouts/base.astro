@@ -4,14 +4,17 @@
 // canonical URL, the Open Graph and Twitter card tags that a link to it
 // unfurls with, the favicons, the web manifest and the analytics beacon. A
 // page passes its own social image or takes the default one, and adds its own
-// head elements, such as JSON-LD, in the `head` slot.
+// head elements, such as JSON-LD, in the `head` slot. After the page comes
+// the footer, with the ways to support Repo Standards.
 import AgentLinks from "@/components/AgentLinks.astro";
 import { analyticsBeacon } from "@/lib/analytics";
 import { themeScript } from "@/lib/theme-core";
 import "@/styles/global.css";
 import "@/styles/tokens.css";
-// after the stylesheets: imported before them, it moves the layout's
+import "@/styles/support.css";
+// after the stylesheets: imported before them, they move the layout's
 // stylesheet after the page's own
+import SupportLine from "@/components/SupportLine.astro";
 import { defaultSocialImage, type SocialImage } from "@/lib/social-image";
 
 type Props = { title: string; description: string; image?: SocialImage };
@@ -51,5 +54,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <slot />
+    <footer class="support-footer">
+      <SupportLine />
+    </footer>
   </body>
 </html>

@@ -1,0 +1,15 @@
+---
+// The footer's line under every page, the docs' too: both ways to support
+// Repo Standards, by name. support.css styles it.
+import { SUPPORT, SUPPORT_LABEL } from "@/lib/support";
+---
+
+<p class="support-line">
+  {SUPPORT_LABEL}:
+  {SUPPORT.map(({ name, url }, i) => (
+    <>
+      {i > 0 && " · "}
+      <a href={url}>{name}</a>
+    </>
+  ))}
+</p>

@@ -20,6 +20,7 @@ import { fromMarkdown } from "mdast-util-from-markdown";
 import { visit } from "unist-util-visit";
 import { installText, NOTICE } from "../src/lib/catalogue.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
+import { SUPPORT, SUPPORT_LABEL } from "../src/lib/support.ts";
 import { themes } from "../src/lib/theme-core.ts";
 import { CODE_BACKGROUND, contrast, palette } from "./docs-palette.ts";
 
@@ -369,7 +370,9 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // URL, the shared stylesheet holds the source pages' utilities too, and
   // they share the adoption dialog's stylesheet, which the build emits apart.
   // The layout's social tags and manifest link came later, and pages.test.ts
-  // checks them.
+  // checks them. So did the Support control, the invitation to support and
+  // the footer, which the support tests check, with their inlined styles;
+  // the nodes they add renumber React's ids.
   const html = read("index.html")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
@@ -382,11 +385,119 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
     .replace('<link rel="manifest" href="/site.webmanifest">', "")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
-    .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"');
+    .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
+    .replace(
+      /<div class="support support--compact">[\s\S]*?<\/ul><\/div><\/div>/,
+      "",
+    )
+    .replace(/<aside\b[\s\S]*?<\/aside>/, "")
+    .replace(/<footer class="support-footer">[\s\S]*?<\/footer> /, "")
+    .replace(/<style>\.support\{[^<]*<\/style>/, "")
+    .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "2fcb3efd41a483efbfe66dcb7d3bea1c993b09254b4b915de905bcf6f6265eb0",
+    "b0a9e6fdd939f7049bd2a957222a408a9d2be466629d97753853cd7d88e2dc19",
   );
+});
+
+// the header and footer of a built page: the nav on the site's own pages,
+// Starlight's header on the docs'
+function pageFrame(file: string) {
+  const nodes = elements(parse(read(file)));
+  return {
+    nodes,
+    header: nodes.find((node) =>
+      file.startsWith("docs/")
+        ? node.tagName === "header"
+        : node.tagName === "nav",
+    )!,
+    footers: nodes.filter((node) => node.tagName === "footer"),
+  };
+}
+// the homepage, How it works, a source page and every docs page
+const framedPages = () => [
+  "index.html",
+  "how-it-works/index.html",
+  "sources/lutzseverino/repo-canon/index.html",
+  ...docsPages().map(({ url }) => `${url.slice(1)}index.html`),
+];
+const links = (node: HtmlElement) =>
+  elements(node)
+    .filter((el) => el.tagName === "a")
+    .map((el) => attribute(el, "href"));
+const SUPPORT_URLS = SUPPORT.map(({ url }) => url);
+
+test("every page's header has one Support control offering both pages", () => {
+  for (const file of framedPages()) {
+    const { nodes, header } = pageFrame(file);
+    const triggers = nodes.filter(
+      (node) => node.tagName === "button" && attribute(node, "popovertarget"),
+    );
+    assert.equal(triggers.length, 1, file);
+    assert.ok(elements(header).includes(triggers[0]), file);
+    assert.equal(text(triggers[0]).trim(), "Support", file);
+    const menu = nodes.find(
+      (node) =>
+        attribute(node, "id") === attribute(triggers[0], "popovertarget"),
+    )!;
+    assert.equal(attribute(menu, "popover"), "auto", file);
+    assert.ok(text(menu).includes(SUPPORT_LABEL), file);
+    assert.deepEqual(links(menu), SUPPORT_URLS, file);
+    assert.deepEqual(
+      SUPPORT.map(({ name }) => text(menu).includes(name)),
+      [true, true],
+      file,
+    );
+  }
+});
+
+test("every page's footer links both pages", () => {
+  for (const file of framedPages()) {
+    const { footers } = pageFrame(file);
+    assert.ok(
+      footers.some(
+        (footer) =>
+          links(footer).join() === SUPPORT_URLS.join() &&
+          text(footer).includes(SUPPORT_LABEL),
+      ),
+      file,
+    );
+  }
+});
+
+test("the homepage invites support once, with both links", () => {
+  const main = elements(parse(read("index.html"))).find(
+    (node) => node.tagName === "main",
+  )!;
+  // outside the nav's Support control, the one line links each page once
+  const nav = elements(main).find((node) => node.tagName === "nav")!;
+  const outside = elements(main).filter(
+    (node) =>
+      node.tagName === "a" &&
+      SUPPORT_URLS.includes(attribute(node, "href") as never) &&
+      !elements(nav).includes(node),
+  );
+  assert.deepEqual(
+    outside.map((node) => attribute(node, "href")),
+    SUPPORT_URLS,
+  );
+  const lines = elements(main).filter((node) => node.tagName === "aside");
+  assert.equal(lines.length, 1);
+  assert.deepEqual(links(lines[0]), SUPPORT_URLS);
+  assert.equal(
+    text(lines[0]).replace(/\s+/g, " ").trim(),
+    "If Repo Standards keeps your repositories in step, you can support its work on GitHub Sponsors or Ko-fi.",
+  );
+});
+
+test("the agent surfaces leave the support links out", () => {
+  for (const file of readdirSync(output, {
+    recursive: true,
+    encoding: "utf8",
+  }).filter((file) => /\.(md|txt|json)$/.test(file))) {
+    const content = read(file);
+    for (const url of SUPPORT_URLS) assert.ok(!content.includes(url), file);
+  }
 });
 
 test("docs retain stock search and pagination and load the shared beacon once", () => {

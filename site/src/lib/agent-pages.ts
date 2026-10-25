@@ -79,7 +79,8 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
   };
 }
 
-/** Keep the page's content, without navigation, decoration or controls.
+/** Keep the page's content, without navigation, decoration, controls,
+ * asides or footers: the ways to support Repo Standards are for people.
  * Adoption prompts are readonly input values in the rendered pages. */
 function pageContent(html: string): Root {
   const tree = fromHtml(html);
@@ -87,7 +88,15 @@ function pageContent(html: string): Root {
     if (
       node.type === "comment" ||
       (node.type === "element" &&
-        (["script", "style", "svg", "nav", "button"].includes(node.tagName) ||
+        ([
+          "script",
+          "style",
+          "svg",
+          "nav",
+          "button",
+          "aside",
+          "footer",
+        ].includes(node.tagName) ||
           node.properties.ariaHidden === "true" ||
           node.properties.hidden === true))
     ) {

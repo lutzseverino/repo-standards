@@ -21,7 +21,9 @@ export default defineConfig({
     starlight({
       title: "Repo Standards",
       components: {
+        Footer: "./src/components/docs/Footer.astro",
         Head: "./src/components/docs/Head.astro",
+        Header: "./src/components/docs/Header.astro",
         SiteTitle: "./src/components/docs/SiteTitle.astro",
         ThemeProvider: "./src/components/docs/ThemeProvider.astro",
         ThemeSelect: "./src/components/docs/ThemeSelect.astro",
