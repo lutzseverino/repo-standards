@@ -126,21 +126,40 @@ test("a source's title is its name and description", () => {
 
 test("a source's description names the root files it installs, its skills and its checks", () => {
   assert.equal(
-    sourceDescription(source),
+    sourceDescription(source, "en"),
     "Standards for Alice projects. Installs AGENTS.md, CONTRIBUTING.md, README.md, 1 agent skill and 2 checks.",
+  );
+});
+
+test("source descriptions use complete singular and plural forms and omit absent counts", () => {
+  const skill = source.installs.find((d) => d.kind === "skill")!;
+  assert.equal(
+    sourceDescription({ ...source, installs: [] }, "en"),
+    "Standards for Alice projects.",
+  );
+  assert.equal(
+    sourceDescription(
+      { ...source, installs: [{ ...skill, checks: ["lint"] }] },
+      "en",
+    ),
+    "Standards for Alice projects. Installs 1 agent skill and 1 check.",
+  );
+  assert.equal(
+    sourceDescription({ ...source, installs: [skill, skill] }, "en"),
+    "Standards for Alice projects. Installs 2 agent skills.",
   );
 });
 
 test("a long description drops files until it fits a search result", () => {
   const description = `${"Standards for Alice projects, ".repeat(3)}and more`;
-  const text = sourceDescription({ ...source, description });
+  const text = sourceDescription({ ...source, description }, "en");
   assert.equal(
     text,
     `${description}. Installs AGENTS.md, 1 agent skill and 2 checks.`,
   );
   assert.ok(text.length <= 155);
   const long = "Standards ".repeat(20).trim();
-  const cut = sourceDescription({ ...source, description: long });
+  const cut = sourceDescription({ ...source, description: long }, "en");
   assert.ok(cut.length <= 155);
   assert.match(cut, /^Standards( Standards)*…$/);
 });

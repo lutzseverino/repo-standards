@@ -8,13 +8,13 @@ import { SourceAdoption } from "@/components/source-adoption";
 import BaseLayout from "@/layouts/base.astro";
 import {
   NOTICE,
-  formatDate,
   listing,
   repositoryUrl,
   sourcePath,
   type Declaration,
   type DetailedSource,
 } from "@/lib/catalogue";
+import { formatDate } from "@/lib/format";
 import { loadCatalogue } from "@/lib/load-catalogue";
 import {
   sourceDescription,
@@ -52,7 +52,10 @@ const KINDS: Record<Declaration["kind"], string> = {
 };
 ---
 
-<BaseLayout title={sourceTitle(source)} description={sourceDescription(source)}>
+<BaseLayout
+  title={sourceTitle(source)}
+  description={sourceDescription(source, "en")}
+>
   <script
     slot="head"
     type="application/ld+json"
@@ -79,10 +82,10 @@ const KINDS: Record<Declaration["kind"], string> = {
           <a class="underline underline-offset-4" href={source.release.url}>
             {source.release.version}
           </a>
-          , {formatDate(source.release.publishedAt)}
+          , {formatDate(source.release.publishedAt, "en")}
         </dd>
         <dt class="text-muted-foreground">Needs</dt>
-        <dd>Repo Standards CLI {source.requires.replace(">=", "≥ ")}</dd>
+        <dd>{`Repo Standards CLI ${source.requires.replace(">=", "≥ ")}`}</dd>
         <dt class="text-muted-foreground">Repository</dt>
         <dd>
           <a class="underline underline-offset-4" href={repository}>

@@ -404,6 +404,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/\/_astro\/base\.[\w-]+\.css/g, "/_astro/base.HASH.css")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
+    // A whole CLI-notice template changes only React's text boundaries.
+    .replace(/,<!-- --> <!-- -->needs CLI /g, ", needs CLI <!-- -->")
     .replace(
       /<div class="support support--compact">[\s\S]*?<\/ul><\/div><\/div>/,
       "",

@@ -20,11 +20,11 @@ import { SupportMenu } from "./support";
 import { ThemeToggle } from "./theme-toggle";
 import {
   STARTING_POINT,
-  formatDate,
   matches,
   type Catalogue,
   type InstallMode,
 } from "@/lib/catalogue";
+import { formatDate, formatNumber, selectPlural } from "@/lib/format";
 import { SUPPORT } from "@/lib/support";
 import { useTheme } from "@/lib/theme";
 
@@ -103,8 +103,8 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
                   <div>
                     <p className="leading-snug">{s.description}</p>
                     <div className="mt-1 text-[14px] text-muted-foreground">
-                      {s.repository}, {formatDate(s.release.publishedAt)}, needs
-                      CLI {s.requires.replace(">=", "≥ ")}
+                      {s.repository}, {formatDate(s.release.publishedAt, "en")},{" "}
+                      {`needs CLI ${s.requires.replace(">=", "≥ ")}`}
                     </div>
                   </div>
                   <div>
@@ -120,7 +120,8 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
                     No standards source matches “{query}”
                   </EmptyTitle>
                   <EmptyDescription className="text-[15px]">
-                    Clear the search to see all {sources.length}.
+                    Clear the search to see all{" "}
+                    {formatNumber(sources.length, "en")}.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -131,7 +132,10 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
             <code>repo-standards</code>, validated with CLI{" "}
             {catalogue.cliVersion}.{" "}
             {rejected > 0 &&
-              `${rejected} more ${rejected === 1 ? "repository carries" : "repositories carry"} the topic but ${rejected === 1 ? "is" : "are"} left out, without a stable release this CLI can use. `}
+              selectPlural(rejected, "en", {
+                one: `${formatNumber(rejected, "en")} more repository carries the topic but is left out, without a stable release this CLI can use. `,
+                other: `${formatNumber(rejected, "en")} more repositories carry the topic but are left out, without a stable release this CLI can use. `,
+              })}
             To list your own source, add the topic and publish a stable release.
           </p>
           {/* for people: the Markdown version leaves asides out */}
