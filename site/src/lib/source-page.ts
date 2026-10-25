@@ -6,6 +6,7 @@ import {
   type DetailedSource,
   type Source,
 } from "./catalogue.ts";
+import { formatList, formatNumber, selectPlural } from "./format.ts";
 
 export const SITE_NAME = "Repo Standards";
 
@@ -122,7 +123,10 @@ export function sourceTitle(source: Source): string {
 
 /** The source's own description and what it installs, within a search
  * result's length. Repo Canon's is the site's own. */
-export function sourceDescription(source: DetailedSource): string {
+export function sourceDescription(
+  source: DetailedSource,
+  locale: string,
+): string {
   const introduction = INTRODUCTIONS[source.repository];
   if (introduction) return introduction.description;
   const own = /[.!?]$/.test(source.description)
@@ -140,14 +144,17 @@ export function sourceDescription(source: DetailedSource): string {
   const skills = installs.filter((d) => d.kind === "skill").length;
   const checks = installs.reduce((n, d) => n + d.checks.length, 0);
   const counts = [
-    skills > 0 && plural(skills, "agent skill"),
-    checks > 0 && plural(checks, "check"),
+    skills > 0 &&
+      `${formatNumber(skills, locale)} ${selectPlural(skills, locale, { one: "agent skill", other: "agent skills" })}`,
+    checks > 0 &&
+      `${formatNumber(checks, locale)} ${selectPlural(checks, locale, { one: "check", other: "checks" })}`,
   ].filter((c) => c !== false);
   // as many of the files as fit, with the counts
   for (let n = files.length; n >= 0; n--) {
     const items = [...files.slice(0, n), ...counts];
     if (items.length === 0) break;
-    const text = `${own} Installs ${listing(items)}.`;
+    // Existing English descriptions omit the serial comma.
+    const text = `${own} Installs ${formatList(items, locale === "en" ? "en-GB" : locale)}.`;
     if (text.length <= DESCRIPTION_LIMIT) return text;
   }
   return own;
@@ -177,15 +184,4 @@ export function sourceIntroduction(
       return { heading, text, items };
     }),
   };
-}
-
-function plural(n: number, noun: string): string {
-  return `${n} ${noun}${n === 1 ? "" : "s"}`;
-}
-
-/** "a, b and c". */
-function listing(items: string[]): string {
-  return items.length < 2
-    ? items.join("")
-    : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 }
