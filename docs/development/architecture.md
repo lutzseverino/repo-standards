@@ -86,8 +86,10 @@ without asking; abandonment remains the maintainer's decision.
 Completion
 requires complete-output review, leaves changes uncommitted and unstaged, and
 hands them to the maintainer for review without committing. Its status verdict
-describes uncommitted changes and must be recorded before committing; after
-committing, those changes report not ready. The terminal's
+describes uncommitted changes and must be recorded before committing. If any
+recorded change-set path is absent from Git's uncommitted changes, status reports
+not ready. An empty change set satisfies the path condition, so a complete
+adoption without state errors can remain ready after committing. The terminal's
 completion message addresses a human who can review and commit normally.
 Neither entry point carries adoption rules of its own. Like `author-standards`,
 the skill is distributed independently through release-tag

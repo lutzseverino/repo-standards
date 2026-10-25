@@ -73,15 +73,17 @@ the edits to your own files, running Repo Canon's checks after each one.
    work needs a file the scope missed, the scope changes during the run, as
    [Recover a stopped run](../guides/adopt.md#recover-a-stopped-run)
    describes.
-4. Run the pinned CLI's verdict before committing, because afterwards it
-   reports the changes as no longer ready:
+4. Run the pinned CLI and record its verdict before committing:
 
    ```sh
    .repo-standards/runtime/node_modules/.bin/repo-standards status --summary
    ```
 
    It should say **Ready to commit**. Its output is the adoption record, which
-   can serve as the pull request body.
+   can serve as the pull request body. If any recorded change-set path is absent
+   from Git's uncommitted changes, `status` reports not ready. An empty change set
+   satisfies the path condition, so a complete adoption without state errors can
+   remain ready after committing.
 
 Commit through your usual workflow. [Adopt a standards source](../guides/adopt.md)
 covers every step in detail, including recovering a run that stopped.

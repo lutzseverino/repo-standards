@@ -979,7 +979,15 @@ test("an answers file adopts through missing answers, confirmation, contextual w
     steps,
     /ready-to-commit verdict describes the uncommitted changes/,
   );
-  assert.match(steps, /Record it before committing.*committed.*not ready/);
+  assert.match(steps, /Record it before committing/);
+  assert.match(
+    steps,
+    /any recorded change-set path is absent from Git's uncommitted changes.*not ready/,
+  );
+  assert.match(
+    steps,
+    /empty change set satisfies the path condition.*remain ready after committing/,
+  );
   assert.equal(git(f.root, "rev-parse", "HEAD"), head);
   assert.equal(git(f.root, "diff", "--cached"), "");
   assert.notEqual(git(f.root, "status", "--porcelain=v1"), "");

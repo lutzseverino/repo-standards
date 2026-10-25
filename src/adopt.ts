@@ -1805,7 +1805,7 @@ function withSteps(
       steps.push(
         "Review every output before the maintainer commits it: run `git --no-optional-locks diff --no-ext-diff --no-textconv --binary` and `git --no-optional-locks ls-files --others --exclude-standard -z`, and read each new file's complete content. A list of names or hashes is not a review.",
         "Leave the changes uncommitted and unstaged, and keep review artifacts outside the project.",
-        `Report script outcomes and your assessments separately. ${invoke("status")} says whether the run is ready to commit, and ${invoke("status --summary")} renders its adoption record. The ready-to-commit verdict describes the uncommitted changes. Record it before committing: once the changes are committed, status reports them not ready.`,
+        `Report script outcomes and your assessments separately. ${invoke("status")} says whether the run is ready to commit, and ${invoke("status --summary")} renders its adoption record. The ready-to-commit verdict describes the uncommitted changes. Record it before committing. If any recorded change-set path is absent from Git's uncommitted changes, status reports not ready. An empty change set satisfies the path condition, so a complete adoption without state errors can remain ready after committing.`,
         "Do not commit; hand the changes to the maintainer for review and their project's normal workflow. Run adopt again later to update the selection.",
       );
       break;
