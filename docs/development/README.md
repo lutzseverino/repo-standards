@@ -35,8 +35,10 @@ focused tests covering the changed behavior, such as
 Run `pnpm format:check` to check every supported authored file with Prettier's
 defaults, or `pnpm format` to format them locally. Prettier is exactly pinned in
 `package.json`, with no formatting options or configuration file. The
-`.prettierignore` file excludes vendored code, installed standards state and
-skills, the pnpm lockfile, and fixtures whose exact bytes are tested.
+[`.prettierignore`](../../.prettierignore) file excludes vendored code,
+installed standards state and skills, the pnpm lockfile and checkout-local
+store, Astro caches and generated declarations, and generated shadcn source
+and its registry manifest.
 `pnpm lint` first runs the site's `astro sync` to generate or refresh its
 ignored `.astro` collection types, then runs oxlint with type-aware rules,
 configured in `.oxlintrc.json`. Synchronization needs only the installed
