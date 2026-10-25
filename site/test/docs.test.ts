@@ -71,6 +71,22 @@ before(() => {
 
 after(() => rmSync(output, { recursive: true, force: true }));
 
+test("every published docs page has one useful, page-specific description", () => {
+  const descriptions = new Set<string>();
+  for (const { url, nodes } of docsPages()) {
+    const tags = nodes.filter(
+      (node) =>
+        node.tagName === "meta" && attribute(node, "name") === "description",
+    );
+    assert.equal(tags.length, 1, url);
+    const description = attribute(tags[0], "content")!;
+    assert.ok(description.trim().length > 0 && description.length <= 155, url);
+    assert.ok(!descriptions.has(description), `${url}: ${description}`);
+    descriptions.add(description);
+    assert.doesNotMatch(description, /\[[^\]]+\]\(|https?:\/\/|[`*]/, url);
+  }
+});
+
 test("llms.txt identifies Repo Standards and links agents to built Markdown", () => {
   const llms = read("llms.txt");
   assert.match(llms, /^# Repo Standards\n/m);
@@ -384,6 +400,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     )
     .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
     .replace('<link rel="manifest" href="/site.webmanifest">', "")
+    // Shared font aliases change the base stylesheet hash, not homepage markup.
+    .replace(/\/_astro\/base\.[\w-]+\.css/g, "/_astro/base.HASH.css")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
     .replace(
@@ -396,7 +414,7 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "b0a9e6fdd939f7049bd2a957222a408a9d2be466629d97753853cd7d88e2dc19",
+    "f3a877b212483d11a722964ad4ca5bd075d3d4d685d77d26ac32228352f35e97",
   );
 });
 
@@ -789,6 +807,33 @@ test("nested documents keep their route, title, sidebar and original-file link r
     assert.deepEqual(nodes.filter((node) => node.tagName === "h1").map(text), [
       "Nested guide",
     ]);
+    const descriptions = nodes.filter(
+      (node) =>
+        node.tagName === "meta" && attribute(node, "name") === "description",
+    );
+    assert.equal(descriptions.length, 1);
+    assert.equal(
+      attribute(descriptions[0], "content"),
+      "Adopt Design decision Development Agent guidance Repository Source",
+    );
+    const firstAdoption = elements(
+      parse(
+        readFileSync(
+          path.join(fixtureSite, "dist/docs/getting-started/hello/index.html"),
+          "utf8",
+        ),
+      ),
+    );
+    assert.deepEqual(
+      firstAdoption
+        .filter(
+          (node) =>
+            node.tagName === "meta" &&
+            attribute(node, "name") === "description",
+        )
+        .map((node) => attribute(node, "content")),
+      ["First adoption — Repo Standards documentation."],
+    );
     const links = nodes.filter((node) => node.tagName === "a");
     assert.ok(
       links.some(
