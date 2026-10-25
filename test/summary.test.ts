@@ -119,6 +119,10 @@ async function fixture(t: TestContext) {
 
 test("status --summary renders an active run with its phase, operations and next action", async (t) => {
   const f = await fixture(t);
+  const incomplete = f.run(["status", "--summary"]);
+  assert.equal(incomplete.status, 0, incomplete.stderr);
+  assert.match(incomplete.stdout, /^# Repository Standards adoption record\n/);
+  assert.ok(incomplete.stdout.includes("No complete adoption is recorded."));
   const args = f.propose(inspectionArgs);
   const inspection = f.json<Inspection>(args);
   const handoff = f.run(startArgs(inspection.identity, args));
@@ -132,6 +136,7 @@ test("status --summary renders an active run with its phase, operations and next
   const running = f.run(["status", "--summary"]);
   assert.equal(running.status, 0, running.stderr);
   const progress = running.stdout;
+  assert.match(progress, /^# Repo Standards adoption run\n/);
   assertDescriptive(progress);
   for (const heading of [
     "## Selection",
@@ -495,6 +500,7 @@ test("inspect --summary renders a deterministic update proposal with its class, 
   assert.equal(first.status, 0, first.stderr);
   assert.equal(f.run(summaryArgs).stdout, first.stdout);
   const summary = first.stdout;
+  assert.match(summary, /^# Repo Standards update proposal\n/);
   assertDescriptive(summary);
   for (const heading of [
     "## Selection",

@@ -1,6 +1,6 @@
 # Documentation
 
-This directory maps Repository Standards' documentation categories.
+This directory maps Repo Standards' documentation categories.
 
 - [Usage](usage/README.md): getting started with the product, guides for
   installing, adopting, updating, checking, and authoring with it, and the

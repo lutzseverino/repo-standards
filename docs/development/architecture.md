@@ -1,4 +1,4 @@
-# Repository Standards — architecture contracts
+# Repo Standards — architecture contracts
 
 This document describes the current contracts of CLI 10.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
@@ -9,7 +9,7 @@ record the rationale.
 Publish and apply versioned repository standards through deterministic tooling
 and agent-guided workflows.
 
-The product is Repository Standards, its GitHub repository is
+The product is Repo Standards, its GitHub repository is
 `lutzseverino/repo-standards`, and its CLI is `repo-standards`. The repository is
 public and MIT-licensed. Implementation uses TypeScript, ESM, Node.js 24 or 26, and
 pnpm. Inspection, start, resume, and check require Git 2.32 or newer, checked before

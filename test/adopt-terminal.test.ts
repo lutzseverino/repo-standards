@@ -109,7 +109,7 @@ test("adopt in a terminal asks its questions, walks contextual work until its ch
   assert.match(
     await session.expect("Defer it, or resolve it first? [defer/resolve]: "),
     new RegExp(
-      `# Repository Standards adoption proposal[\\s\\S]*agent-guidance/labels: ${reason}`,
+      `# Repo Standards adoption proposal[\\s\\S]*agent-guidance/labels: ${reason}`,
     ),
   );
   session.type("defer");

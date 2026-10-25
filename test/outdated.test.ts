@@ -607,7 +607,7 @@ test("plain outdated renders Markdown that agrees with the JSON report, identica
   assert.equal(first.requests.length, 4);
   assert.match(
     first.result.stdout,
-    /^# Repository Standards available updates\n\n## Pins\n\n/,
+    /^# Repo Standards available updates\n\n## Pins\n\n/,
   );
   assert.doesNotMatch(first.result.stdout, /^\s*[{[]/);
   assert.doesNotMatch(first.result.stdout, /## Unknown results/);

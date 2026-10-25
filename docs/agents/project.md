@@ -1,4 +1,4 @@
-# Repository Standards project guidance
+# Repo Standards project guidance
 
 Before designing or implementing product behavior, read the
 [architecture contracts](../development/architecture.md). Keep product behavior

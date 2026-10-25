@@ -1,7 +1,7 @@
 # Development
 
 This directory explains how to set up, validate, release, and maintain the
-Repository Standards CLI and website.
+Repo Standards CLI and website.
 
 ## Setup and validation
 
@@ -150,7 +150,7 @@ directly.
 The CLI pins `@lutzseverino/postern` 1.x as an exact runtime dependency.
 Postern's `ReleaseSource` reads all pages of published releases for adoption,
 discovery and update notices, and resolves exact version tags to commits,
-including annotated tags. Repository Standards keeps stable-release selection,
+including annotated tags. Repo Standards keeps stable-release selection,
 the single retry for a read that receives no response, product diagnostics,
 tag-movement detection and verified snapshot provenance. Annotation objects are
 read on each observation; only tag observations and verified snapshots are cached.

@@ -1,6 +1,6 @@
 ---
 name: author-standards
-description: Create or revise local Repository Standards from confirmed preferences, including accepted checks, fixes, or ordinary-work author skills, or resume unfinished decisions from authoring notes and the current source.
+description: Create or revise local Repo Standards from confirmed preferences, including accepted checks, fixes, or ordinary-work author skills, or resume unfinished decisions from authoring notes and the current source.
 disable-model-invocation: false
 ---
 

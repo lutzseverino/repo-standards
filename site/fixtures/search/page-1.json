@@ -31,11 +31,11 @@
     },
     {
       "repository": "https://github.com/lutzseverino/repo-standards-example",
-      "description": "Synthetic service standards example for learning and verifying Repository Standards",
+      "description": "Synthetic service standards example for learning and verifying Repo Standards",
       "commit": "e35b00436a94dccc70a94244554f22febb24a8d2",
       "release": {
         "version": "v3.0.0",
-        "name": "Repository Standards example 3.0.0",
+        "name": "Repo Standards example 3.0.0",
         "url": "https://github.com/lutzseverino/repo-standards-example/releases/tag/v3.0.0",
         "publishedAt": "2026-10-22T17:57:17Z"
       },

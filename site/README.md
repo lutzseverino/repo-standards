@@ -1,6 +1,6 @@
-# Repository Standards website
+# Repo Standards website
 
-The private `site/` workspace builds the Repository Standards website with
+The private `site/` workspace builds the Repo Standards website with
 Astro, React, Tailwind 4 and shadcn/ui. Its homepage lists the standards
 sources that source search finds, under a road sign pointing to Repo Canon,
 and each source has its own page at `/sources/<owner>/<repo>/`.

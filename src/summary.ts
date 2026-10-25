@@ -347,9 +347,7 @@ function operationsSection(
 
 export function inspectionSummary(report: InspectionReport) {
   const update = report.update !== undefined;
-  const parts = [
-    `# Repository Standards ${update ? "update" : "adoption"} proposal`,
-  ];
+  const parts = [`# Repo Standards ${update ? "update" : "adoption"} proposal`];
   const previous = report.previousSelection;
   const before = previous ? selectionRows(previous) : undefined;
   parts.push(
@@ -694,7 +692,7 @@ function impactSections(impact: Impact) {
 
 function activeSummary(run: RunRecord, execution: string | undefined) {
   return [
-    "# Repository Standards adoption run",
+    "# Repo Standards adoption run",
     section(
       "Selection",
       table(["Component", "Value"], selectionRows(run.selection)),
@@ -783,7 +781,7 @@ export function outdatedSummary(report: OutdatedReport) {
         ? code(value)
         : String(value);
   const parts = [
-    "# Repository Standards available updates",
+    "# Repo Standards available updates",
     section(
       "Pins",
       table(

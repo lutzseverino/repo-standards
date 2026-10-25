@@ -230,7 +230,7 @@ test("adoption installs each declaration's rules with an index of what they cove
     `# Installed rules
 
 These rules come from https://github.com/alice/standards v1.0.0, profile work.
-Repository Standards installs and verifies them; adopt again to change them.
+Repo Standards installs and verifies them; adopt again to change them.
 Run \`repo-standards rules <path>\` to print the rules that cover a path.
 
 - [\`docs\`](docs.md) covers:

@@ -321,7 +321,7 @@ async function inspect(runId: string) {
       "--target",
       run.head_sha,
       "--title",
-      `Repository Standards ${bundle.version}`,
+      `Repo Standards ${bundle.version}`,
       "--notes-file",
       notes,
     ]);

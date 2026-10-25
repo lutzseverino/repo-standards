@@ -99,7 +99,7 @@ try {
     version = versions.at(-1);
     if (!version) throw new Error('No stable CLI version is published. Supply an available exact --cli-version or retry after publication.');
   }
-  console.error(`Repository Standards CLI ${version} (${packageName}@${version}); selected once for this inspection.`);
+  console.error(`Repo Standards CLI ${version} (${packageName}@${version}); selected once for this inspection.`);
   npm(['install', '--prefix', temporary, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `${packageName}@${version}`]);
   const installed = join(temporary, 'node_modules', packageName);
   const manifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'));

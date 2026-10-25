@@ -25,7 +25,7 @@ try {
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.log(
-    `::error title=Repository Standards update::${message.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`,
+    `::error title=Repo Standards update::${message.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`,
   );
   process.exitCode = 1;
 }

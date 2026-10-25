@@ -8,7 +8,7 @@ import {
 } from "../src/lib/structured-data.ts";
 
 const website = {
-  name: "Repository Standards",
+  name: "Repo Standards",
   url: "https://repo-standards.com/",
   description: "Standards sources you can adopt in one command.",
 };

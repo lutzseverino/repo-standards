@@ -118,7 +118,7 @@ function headless(version) {
     inspection: {
       identity: "sha256:inspection",
       summary: [
-        "# Repository Standards update proposal",
+        "# Repo Standards update proposal",
         "",
         "## Selection",
         "",

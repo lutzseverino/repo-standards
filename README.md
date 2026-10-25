@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Repository Standards</h1>
+  <h1>Repo Standards</h1>
   <p>A CLI and agent skills for maintainers who publish and apply versioned repository standards.</p>
   <p>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
@@ -7,7 +7,7 @@
   </p>
 </div>
 
-Repository Standards gives a repository a maintainer's shared conventions in
+Repo Standards gives a repository a maintainer's shared conventions in
 one command: contribution and agent instructions, skills, templates, and checks
 that keep files in line, taken from a published, versioned set.
 [Repo Canon](https://github.com/lutzseverino/repo-canon) is a ready-made set of
