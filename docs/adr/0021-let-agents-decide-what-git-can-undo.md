@@ -40,8 +40,10 @@ Before a new run, project files stay unedited, including optional files implied
 by answers; contextual work writes them after start. Git blockers still stop the
 agent and notify the maintainer. Completion leaves reviewed changes uncommitted
 and unstaged. Its ready-to-commit verdict describes those uncommitted changes
-and is recorded before committing, because afterwards status reports them not
-ready.
+and is recorded before committing. If any recorded change-set path is absent
+from Git's uncommitted changes, status reports not ready. An empty change set
+satisfies the path condition, so a complete adoption without state errors can
+remain ready after committing.
 
 The README and skill remain single-sentence pointers. Their commands use
 `npx --yes` and `adopt --json`, avoiding npm confirmation and explicitly selecting
