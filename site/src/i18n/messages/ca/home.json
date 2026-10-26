@@ -23,6 +23,14 @@
     "message": "{$repository}, {$date}, requereix la CLI {$requirement}",
     "source": "f4a53e7e"
   },
+  "listing.adopters": {
+    "message": ".input {$count :integer} .match $count one {{{$number} adoptant públic}} * {{{$number} adoptants públics}}",
+    "source": "59b357b8"
+  },
+  "sources.adopters-explanation": {
+    "message": "Els recomptes són un límit inferior dels repositoris públics observats la branca predeterminada actual dels quals selecciona la font, excloent-ne les bifurcacions, els repositoris arxivats i la mateixa font; no representen les adopcions privades.",
+    "source": "72d235c6"
+  },
   "sources.origin": {
     "message": "Les fonts provenen del tema públic de GitHub {$topic}, validades amb la CLI {$version}.",
     "source": "a543e275"

@@ -12,12 +12,15 @@ permissions:
   contents: read
 
 concurrency:
+  # Serialize counting as well as publishing so nearby main pushes and the
+  # scheduled build do not compete for GitHub API quota.
   group: github-pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       pages: read
@@ -32,7 +35,14 @@ jobs:
       - run: pnpm build
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - run: pnpm --dir site check
-      - run: pnpm --dir site build
+      - name: Count this run's public adopters and build the site
+        working-directory: site
+        run: |
+          count_dir=$(mktemp -d "$RUNNER_TEMP/public-adopters.XXXXXX")
+          trap 'rm -r "$count_dir"' EXIT
+          export SITE_ADOPTER_COUNTS="$count_dir/counts.json"
+          node scripts/count-adopters.ts "$SITE_ADOPTER_COUNTS"
+          pnpm build
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4

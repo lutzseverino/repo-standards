@@ -19,7 +19,7 @@ import { parse, type DefaultTreeAdapterMap } from "parse5";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { visit } from "unist-util-visit";
 import { format } from "../src/i18n/format.ts";
-import { installText } from "../src/lib/catalogue.ts";
+import { byName, installText } from "../src/lib/catalogue.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 import { SUPPORT } from "../src/lib/support.ts";
 import { themes } from "../src/lib/theme-core.ts";
@@ -176,7 +176,7 @@ test("sources.json and stable prompts describe exactly the accepted catalogue", 
   assert.equal(manifest.notice, format("en", "common.notice"));
   assert.deepEqual(
     manifest.sources,
-    catalogue.sources.map((source) => ({
+    [...catalogue.sources].sort(byName).map((source) => ({
       repository: `https://github.com/${source.repository}`,
       name: source.name,
       description: source.description,
@@ -385,7 +385,9 @@ test("one sitemap lists the homepage, How it works and every source page in each
   );
 });
 
-test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
+test("the homepage keeps its fixture HTML with acquired counts and ranking", () => {
+  // #345 refreshes the baseline for count tabs and descending adopter order;
+  // the Markdown and JSON agent surfaces retain their previous bytes.
   // Fixture build at e95dba8, with the Documentation link changed to /docs/
   // and the How it works link beside the tab added. That page's styles also
   // split the shared layout's stylesheet out of the homepage's. Astro's Home
@@ -461,8 +463,52 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "9eb0f51f1c8ee4b1d9f369c23583ab0a41a3ca96ddcd7dc4ff9c73b5ae91d296",
+    "6bc98aa9a6e9cdcff401491772002ade569fbf305f6448f244c6cbd449c0db71",
   );
+});
+
+test("the homepage exposes real acquired counts in descending order with a lower-bound explanation", () => {
+  const nodes = elements(parse(read("index.html")));
+  const entries = nodes.filter(
+    (node) => attribute(node, "class") === "signpost-entry",
+  );
+  assert.deepEqual(
+    entries.map((node) => attribute(node, "data-source-name")),
+    ["repository-standards-examples", "repo-canon"],
+  );
+  const tabs = entries.map((entry) =>
+    elements(entry).find((node) =>
+      attribute(node, "class")?.includes("signpost-adopters-tab"),
+    )!,
+  );
+  assert.deepEqual(
+    tabs.map((node) => text(node).trim()),
+    ["2 public adopters", "1 public adopter"],
+  );
+  assert.ok(
+    nodes.some(
+      (node) =>
+        node.tagName === "aside" &&
+        text(node) === format("en", "home.sources.adopters-explanation"),
+    ),
+  );
+});
+
+test("ranking and count tabs preserve the established homepage agent surfaces byte for byte", () => {
+  const hashes = {
+    "llms.txt":
+      "5391662c577df9bb5ab78d09d21816c403e13ee37d5689c4fb24b6d764229a32",
+    "sources.json":
+      "4f134a9e64640642fb744cdeefbb0983bb3f3260d3f44d5e8afeafb739bf8318",
+    "index.md":
+      "a7d9b8e0ddd2c9a526443a988e960106752b5bf165bae801a26b3676d009f08b",
+  };
+  for (const [file, hash] of Object.entries(hashes))
+    assert.equal(
+      createHash("sha256").update(read(file)).digest("hex"),
+      hash,
+      file,
+    );
 });
 
 // the header and footer of a built page: the nav on the site's own pages,
@@ -589,7 +635,11 @@ test("the homepage invites support once, with both links", () => {
     outside.map((node) => attribute(node, "href")),
     SUPPORT_URLS,
   );
-  const lines = elements(main).filter((node) => node.tagName === "aside");
+  const lines = elements(main).filter(
+    (node) =>
+      node.tagName === "aside" &&
+      links(node).some((link) => SUPPORT_URLS.includes(link as never)),
+  );
   assert.equal(lines.length, 1);
   assert.deepEqual(links(lines[0]), SUPPORT_URLS);
   assert.equal(

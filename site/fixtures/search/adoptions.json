@@ -1,0 +1,19 @@
+{
+  "candidates": {
+    "lutzseverino/repo-canon": ["example/current", "EXAMPLE/CURRENT", "example/private", "example/fork", "example/archived", "lutzseverino/repo-canon", "example/other-branch", "example/historical", "example/changed", "example/mention"],
+    "lutzseverino/repo-standards-example": ["example/one", "example/two"]
+  },
+  "repositories": {
+    "example/current": {"private":false,"fork":false,"archived":false,"default_branch":"trunk","selections":{"trunk":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/private": {"private":true,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/fork": {"private":false,"fork":true,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/archived": {"private":false,"fork":false,"archived":true,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "lutzseverino/repo-canon": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/other-branch": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":null,"feature":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/historical": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":null,"old-commit":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/changed": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/example/different\n","old-commit":"standards:\n  repository: https://github.com/lutzseverino/repo-canon\n"}},
+    "example/mention": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"comment: https://github.com/lutzseverino/repo-canon\nstandards:\n  repository: https://github.com/example/elsewhere\n"}},
+    "example/one": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/lutzseverino/repo-standards-example\n"}},
+    "example/two": {"private":false,"fork":false,"archived":false,"default_branch":"main","selections":{"main":"standards:\n  repository: https://github.com/LutzSeverino/repo-standards-example.git/\n"}}
+  }
+}

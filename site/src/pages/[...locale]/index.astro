@@ -55,6 +55,15 @@ const text: HomeText = {
       }),
     ]),
   ),
+  adopters: Object.fromEntries(
+    catalogue.sources.map((s) => [
+      s.repository,
+      format(locale, "home.listing.adopters", {
+        count: s.publicAdopters,
+        number: formatNumber(s.publicAdopters, locale),
+      }),
+    ]),
+  ),
   clear: format(locale, "home.search.clear", {
     number: formatNumber(catalogue.sources.length, locale),
   }),

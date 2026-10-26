@@ -22,6 +22,11 @@ async function repoCanon(
   }) => void = () => {},
 ) {
   const input: SearchInput = {
+    counts: () =>
+      Promise.resolve({
+        "lutzseverino/repo-canon": 1,
+        "lutzseverino/repo-standards-example": 2,
+      }),
     page: () => Promise.resolve(JSON.parse(recorded("page-1.json"))),
     standards: (repository) => {
       const yaml = recorded(`standards/${repository}.yaml`);
@@ -75,6 +80,11 @@ test("a Repo Canon release without something its page names fails the build", as
 
 test("only Repo Canon has an introduction", async () => {
   const { sources } = await buildCatalogue({
+    counts: () =>
+      Promise.resolve({
+        "lutzseverino/repo-canon": 1,
+        "lutzseverino/repo-standards-example": 2,
+      }),
     page: () => Promise.resolve(JSON.parse(recorded("page-1.json"))),
     standards: (repository) =>
       Promise.resolve(recorded(`standards/${repository}.yaml`)),
@@ -86,6 +96,7 @@ test("only Repo Canon has an introduction", async () => {
 });
 
 const source: DetailedSource = {
+  publicAdopters: 0,
   repository: "example/alice",
   name: "alice",
   description: "Standards for Alice projects",

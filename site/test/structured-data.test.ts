@@ -20,6 +20,7 @@ const catalogue: Catalogue = {
   sources: [
     {
       repository: "example/zebra",
+      publicAdopters: 2,
       name: "Zebra standards",
       description: "Standards for Zebra projects",
       commit: "1111111111111111111111111111111111111111",
@@ -33,6 +34,7 @@ const catalogue: Catalogue = {
     },
     {
       repository: "example/alice",
+      publicAdopters: 1,
       name: "Alice standards",
       description: "Standards for Alice projects",
       commit: "2222222222222222222222222222222222222222",

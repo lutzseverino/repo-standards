@@ -12,6 +12,7 @@ import {
 
 /** Where the search pages and standards files come from. */
 export type SearchInput = {
+  counts(): Promise<Record<string, number>>;
   /** One page of `source search --json`, as parsed JSON. */
   page(page: number): Promise<unknown>;
   /** A candidate's `standards.yaml` at its released commit. */
@@ -41,21 +42,22 @@ const GITHUB = "https://github.com/";
 export async function buildCatalogue(
   input: SearchInput,
 ): Promise<Catalogue<DetailedSource>> {
-  const reports = [parseSearchReport(await input.page(1))];
-  for (let next = reports[0].nextPage; next !== null;) {
-    const report = parseSearchReport(await input.page(next));
-    reports.push(report);
-    next = report.nextPage;
-  }
-  checkSearch(reports);
+  const reports = await searchReports(input);
+  const counts = await input.counts();
 
   const sources: DetailedSource[] = await Promise.all(
     reports
       .flatMap((r) => r.candidates)
       .map(async (c) => {
         const repository = c.repository.slice(GITHUB.length);
+        const publicAdopters = counts[repository.toLowerCase()];
+        if (!Number.isSafeInteger(publicAdopters) || publicAdopters < 0)
+          throw new Error(
+            `Missing or invalid public-adopter count for ${repository}.`,
+          );
         return {
           repository,
+          publicAdopters,
           name: c.source.name,
           description: c.source.description,
           commit: c.commit,
@@ -78,11 +80,33 @@ export async function buildCatalogue(
   };
 }
 
-/** The list's order. Its key is the adopter count, which does not exist
- * yet (#345); until then the list is alphabetical by display name, neutral
- * and stable. Repo Canon is not pinned: the sign above already features it. */
+/** The producer discovers the same eligible sources as the build. If search
+ * changes between the two reads, an uncounted source stops the build. */
+export async function searchRepositories(
+  input: SearchInput,
+): Promise<string[]> {
+  return (await searchReports(input)).flatMap((r) =>
+    r.candidates.map((c) => c.repository.slice(GITHUB.length)),
+  );
+}
+
+async function searchReports(input: SearchInput): Promise<SearchReport[]> {
+  const reports = [parseSearchReport(await input.page(1))];
+  for (let next = reports[0].nextPage; next !== null;) {
+    const report = parseSearchReport(await input.page(next));
+    reports.push(report);
+    next = report.nextPage;
+  }
+  checkSearch(reports);
+
+  return reports;
+}
+
+/** Most observed public adopters first; names break ties. */
 function byListOrder(a: DetailedSource, b: DetailedSource): number {
-  return a.name.localeCompare(b.name, "en");
+  return (
+    b.publicAdopters - a.publicAdopters || a.name.localeCompare(b.name, "en")
+  );
 }
 
 /** Until #347 is fixed, search can come back empty, marked incomplete, or
