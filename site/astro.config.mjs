@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { existsSync } from "node:fs";
 import { agentPages } from "./src/lib/agent-pages.ts";
 import { analyticsBeacon } from "./src/lib/analytics.ts";
+import { settledHydration } from "./src/lib/hydration.ts";
 import { remarkDocs } from "./src/lib/docs-content.ts";
 
 const agentUrls = [];
@@ -16,6 +17,7 @@ export default defineConfig({
   prefetch: false,
   integrations: [
     react(),
+    settledHydration(),
     agentPages(agentUrls),
     sitemap({ customPages: agentUrls }),
     starlight({

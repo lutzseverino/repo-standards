@@ -388,7 +388,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // The layout's social tags and manifest link came later, and pages.test.ts
   // checks them. So did the Support control, the invitation to support and
   // the footer, which the support tests check, with their inlined styles;
-  // the nodes they add renumber React's ids.
+  // the nodes they add renumber React's ids. The control's Dropdown Menu
+  // moves the React renderer to a chunk of its own, which changes its hash.
   const html = read("index.html")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
@@ -403,20 +404,21 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     // Shared font aliases change the base stylesheet hash, not homepage markup.
     .replace(/\/_astro\/base\.[\w-]+\.css/g, "/_astro/base.HASH.css")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
+    .replace(/\/_astro\/client\.[\w-]+\.js/g, "/_astro/client.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
     // A whole CLI-notice template changes only React's text boundaries.
     .replace(/,<!-- --> <!-- -->needs CLI /g, ", needs CLI <!-- -->")
     .replace(
-      /<div class="support support--compact">[\s\S]*?<\/ul><\/div><\/div>/,
+      /<button type="button"[^>]*data-slot="dropdown-menu-trigger"[\s\S]*?<\/button>/,
       "",
     )
     .replace(/<aside\b[\s\S]*?<\/aside>/, "")
     .replace(/<footer class="support-footer">[\s\S]*?<\/footer> /, "")
-    .replace(/<style>\.support\{[^<]*<\/style>/, "")
+    .replace(/<style>\.support-line[^<]*<\/style>/, "")
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "f3a877b212483d11a722964ad4ca5bd075d3d4d685d77d26ac32228352f35e97",
+    "49177e1b2ca8f5aa51006e689cc67c36c9dacac8fb718e84a1b14603b059352e",
   );
 });
 
@@ -447,25 +449,47 @@ const links = (node: HtmlElement) =>
     .map((el) => attribute(el, "href"));
 const SUPPORT_URLS = SUPPORT.map(({ url }) => url);
 
-test("every page's header has one Support control offering both pages", () => {
+// the island an element renders in, if any
+const islandOf = (nodes: HtmlElement[], node: HtmlElement) =>
+  nodes.find(
+    (island) =>
+      island.tagName === "astro-island" && elements(island).includes(node),
+  );
+
+test("every page's header has one Support control, which opens a menu", () => {
   for (const file of framedPages()) {
     const { nodes, header } = pageFrame(file);
     const triggers = nodes.filter(
-      (node) => node.tagName === "button" && attribute(node, "popovertarget"),
+      (node) =>
+        node.tagName === "button" &&
+        attribute(node, "aria-haspopup") === "menu",
     );
     assert.equal(triggers.length, 1, file);
-    assert.ok(elements(header).includes(triggers[0]), file);
-    assert.equal(text(triggers[0]).trim(), "Support", file);
-    const menu = nodes.find(
-      (node) =>
-        attribute(node, "id") === attribute(triggers[0], "popovertarget"),
-    )!;
-    assert.equal(attribute(menu, "popover"), "auto", file);
-    assert.ok(text(menu).includes(SUPPORT_LABEL), file);
-    assert.deepEqual(links(menu), SUPPORT_URLS, file);
-    assert.deepEqual(
-      SUPPORT.map(({ name }) => text(menu).includes(name)),
-      [true, true],
+    const [trigger] = triggers;
+    assert.ok(elements(header).includes(trigger), file);
+    assert.equal(text(trigger).trim(), "Support", file);
+    assert.equal(attribute(trigger, "aria-expanded"), "false", file);
+    assert.equal(
+      attribute(trigger, "data-slot"),
+      "dropdown-menu-trigger",
+      file,
+    );
+    // its own island where the page has no React nav, else the nav's
+    const island = islandOf(nodes, trigger)!;
+    assert.equal(
+      attribute(island, "component-export"),
+      file === "index.html"
+        ? "Home"
+        : file.startsWith("sources/")
+          ? "SiteNav"
+          : "SupportMenu",
+      file,
+    );
+    assert.equal(
+      attribute(island, "client"),
+      attribute(island, "component-export") === "SupportMenu"
+        ? "settled"
+        : "load",
       file,
     );
   }
