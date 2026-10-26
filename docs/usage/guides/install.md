@@ -123,12 +123,11 @@ from a published release.
 Direct installation is independent of the
 [adoption skill directory page](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards).
 As with the authoring listing below, the [directory FAQ](https://skills.sh/docs/faq)
-describes discovery through skills CLI installation telemetry. Observed on
-2026-10-26: the page exists, shows the skill as first seen that day, and lists
-no install count yet. It appeared after one telemetry-enabled installation from
-the release tag above. Record direct release-tag installation separately from a
-dated directory observation; listing, indexing time, and ranking are not
-release guarantees.
+describes discovery through skills CLI installation telemetry. The page appeared
+after a telemetry-enabled installation from a release tag, as
+[the listing record](https://github.com/lutzseverino/repo-standards/issues/383#issuecomment-6417521796) describes. Record direct release-tag installation
+separately from a directory observation; listing, indexing time, and ranking
+are not release guarantees.
 
 ## Install the authoring skill
 
@@ -162,12 +161,10 @@ into adopting projects. Adoption continues to manage its matching local
 
 Direct installation is independent of the
 [skills.sh directory](https://skills.sh/lutzseverino/repo-standards/author-standards).
-The [directory FAQ](https://skills.sh/docs/faq) describes its discovery process.
-Observed on 2026-10-26: the page exists, shows the skill as first seen that day,
-and lists no install count yet. It appeared after one telemetry-enabled
-installation from the release tag above. Listing, indexing time, and ranking are
-third-party observations, not release guarantees. Record dated observations
-separately from installation results.
+The [directory FAQ](https://skills.sh/docs/faq) describes its discovery process;
+[the listing record](https://github.com/lutzseverino/repo-standards/issues/383#issuecomment-6417521796) covers how this page appeared. Listing, indexing
+time, and ranking are third-party observations, not release guarantees. Record
+directory observations separately from installation results.
 
 For unreleased development only, replace the public URL with a local directory
 containing the skill. That is candidate installation, even if its CLI comes
