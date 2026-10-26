@@ -48,8 +48,8 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
         /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
       ),
     ];
-    assert.equal(scripts.length, 1);
-    const data = JSON.parse(scripts[0][1]) as {
+    assert.equal(scripts.length, 2);
+    const data = JSON.parse(scripts[1][1]) as {
       "@context": string;
       "@graph": [
         { "@type": string; name: string; url: string; description: string },

@@ -26,6 +26,32 @@ test("the default social image is a 1200x630 PNG", () => {
   assert.equal(image.height, 630);
 });
 
+test("each locale has its own social card and translated description", () => {
+  const cards = [
+    ["en", "/social.png", "A blue road sign reading Repo Standards:"],
+    [
+      "es",
+      "/social-es.png",
+      "Una señal de tráfico azul que dice Repo Standards:",
+    ],
+    [
+      "ca",
+      "/social-ca.png",
+      "Un senyal de trànsit blau que diu Repo Standards:",
+    ],
+  ] as const;
+  const images = [];
+  for (const [locale, src, alt] of cards) {
+    const image = defaultSocialImage(locale);
+    assert.equal(image.src, src);
+    assert.ok(image.alt.startsWith(alt));
+    const bytes = read(src);
+    assert.deepEqual(pngSize(bytes), { width: 1200, height: 630 });
+    images.push(bytes.toString("base64"));
+  }
+  assert.equal(new Set(images).size, 3, "each card has different text");
+});
+
 test("the web manifest names the site and lists its icons at their sizes", () => {
   const manifest = JSON.parse(read("/site.webmanifest").toString("utf8")) as {
     name: string;

@@ -1,4 +1,4 @@
-// Draws the social preview, `public/social.png`: the homepage's title plate
+// Draws each locale's social preview: the homepage's title plate
 // by day, a Verkehrsblau sign on its two posts, set in D-DIN PRO. The text
 // is outlined from the site's own WOFF2 fonts and kerned with their GPOS
 // pairs, so the image renders the same on any machine, with no system fonts.
@@ -10,12 +10,14 @@ import { fileURLToPath } from "node:url";
 import { brotliDecompressSync } from "node:zlib";
 import { create } from "fontkitten";
 import sharp from "sharp";
+import { format } from "../src/i18n/format.ts";
+import { LOCALES } from "../src/i18n/locales.ts";
+import { defaultSocialImage } from "../src/lib/social-image.ts";
 
 const siteRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const output = path.join(siteRoot, "public/social.png");
 
 // Open Graph's recommended size, and the day palette (src/styles/tokens.css,
 // src/styles/global.css), at twice the homepage's scale.
@@ -25,8 +27,6 @@ const page = "#f3f4f2";
 const blue = "#0b4c96";
 const ink = "#fff";
 const title = "Repo Standards";
-const line =
-  "Write your setup down once. Your coding agent applies it to every repository.";
 
 function fontFile(name) {
   const data = readFileSync(
@@ -198,45 +198,48 @@ function wrap(face, fontSize, text, maxWidth) {
 const bold = fontFile("D-DIN-PRO-Condensed-700-Bold");
 const medium = fontFile("D-DIN-PRO-Condensed-500-Medium");
 
-// The plate: the homepage's title plate (components/sign/), its padding,
-// border line and slat joints doubled.
-const plate = { x: 80, y: 78, width: 1040, radius: 22 };
-const padding = { x: 80, top: 66, bottom: 62 };
-const titleSize = 136;
-const lineSize = 54;
-const lineHeight = 64;
-const lines = wrap(medium, lineSize, line, plate.width - 2 * padding.x);
-const titleCap = bold.font.capHeight * (titleSize / bold.font.unitsPerEm);
-const titleBaseline = plate.y + padding.top + titleCap;
-const firstLineBaseline = titleBaseline + 26 + lineHeight;
-plate.height =
-  firstLineBaseline +
-  (lines.length - 1) * lineHeight +
-  padding.bottom -
-  plate.y;
+for (const locale of LOCALES) {
+  const output = path.join(siteRoot, "public", defaultSocialImage(locale).src);
+  const line = format(locale, "sign.tagline");
+  // The plate: the homepage's title plate (components/sign/), its padding,
+  // border line and slat joints doubled.
+  const plate = { x: 80, y: 78, width: 1040, radius: 22 };
+  const padding = { x: 80, top: 66, bottom: 62 };
+  const titleSize = 136;
+  const lineSize = 54;
+  const lineHeight = 64;
+  const lines = wrap(medium, lineSize, line, plate.width - 2 * padding.x);
+  const titleCap = bold.font.capHeight * (titleSize / bold.font.unitsPerEm);
+  const titleBaseline = plate.y + padding.top + titleCap;
+  const firstLineBaseline = titleBaseline + 26 + lineHeight;
+  plate.height =
+    firstLineBaseline +
+    (lines.length - 1) * lineHeight +
+    padding.bottom -
+    plate.y;
 
-const text = [
-  `<g transform="translate(${plate.x + padding.x} ${titleBaseline})">${setText(bold, titleSize, title).svg}</g>`,
-  ...lines.map(
-    (text, i) =>
-      `<g transform="translate(${plate.x + padding.x} ${firstLineBaseline + i * lineHeight})">${setText(medium, lineSize, text).svg}</g>`,
-  ),
-].join("");
+  const text = [
+    `<g transform="translate(${plate.x + padding.x} ${titleBaseline})">${setText(bold, titleSize, title).svg}</g>`,
+    ...lines.map(
+      (text, i) =>
+        `<g transform="translate(${plate.x + padding.x} ${firstLineBaseline + i * lineHeight})">${setText(medium, lineSize, text).svg}</g>`,
+    ),
+  ].join("");
 
-// one joint every 100 px, the slats between alternately lighter and darker
-const joints = [];
-for (let y = 100; y < plate.height; y += 100)
-  joints.push(
-    `<rect x="${plate.x}" y="${plate.y + y - 2}" width="${plate.width}" height="2" fill="#000" fill-opacity="0.2"/>`,
-    `<rect x="${plate.x}" y="${plate.y + y}" width="${plate.width}" height="98" fill="${(y / 100) % 2 ? "#000" : "#fff"}" fill-opacity="${(y / 100) % 2 ? 0.035 : 0.025}"/>`,
+  // one joint every 100 px, the slats between alternately lighter and darker
+  const joints = [];
+  for (let y = 100; y < plate.height; y += 100)
+    joints.push(
+      `<rect x="${plate.x}" y="${plate.y + y - 2}" width="${plate.width}" height="2" fill="#000" fill-opacity="0.2"/>`,
+      `<rect x="${plate.x}" y="${plate.y + y}" width="${plate.width}" height="98" fill="${(y / 100) % 2 ? "#000" : "#fff"}" fill-opacity="${(y / 100) % 2 ? 0.035 : 0.025}"/>`,
+    );
+
+  const posts = [0.21, 0.79].map(
+    (at) =>
+      `<rect x="${plate.x + plate.width * at - 20}" y="${plate.y + 40}" width="40" height="${height}" fill="url(#post)"/>`,
   );
 
-const posts = [0.21, 0.79].map(
-  (at) =>
-    `<rect x="${plate.x + plate.width * at - 20}" y="${plate.y + 40}" width="40" height="${height}" fill="url(#post)"/>`,
-);
-
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
 <defs>
 <linearGradient id="post">
 <stop offset="0" stop-color="#5d615e"/><stop offset="0.16" stop-color="#8e928e"/><stop offset="0.3" stop-color="#c9ccc7"/><stop offset="0.38" stop-color="#e9ebe6"/><stop offset="0.48" stop-color="#b9bcb7"/><stop offset="0.74" stop-color="#8a8e8a"/><stop offset="1" stop-color="#5a5e5b"/>
@@ -253,5 +256,6 @@ ${posts.join("")}
 <g fill="${ink}">${text}</g>
 </svg>`;
 
-await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(output);
-console.log(`wrote ${path.relative(siteRoot, output)}: ${lines.join(" / ")}`);
+  await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(output);
+  console.log(`wrote ${path.relative(siteRoot, output)}: ${lines.join(" / ")}`);
+}
