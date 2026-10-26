@@ -252,6 +252,16 @@ retained source. The script reads one JSON object on stdin:
 }
 ```
 
+A discovery script must ignore request fields it does not read, including
+unfamiliar additive request fields, matching the
+[operation-input rule](#json-input-on-stdin). This requirement applies from the
+[owner's 2026-10-26 decision](https://github.com/lutzseverino/repo-standards/issues/354#issuecomment-6407013223)
+onward; it does not establish that previously authored strict readers violated
+the earlier contract. The CLI may add compatible optional fields to
+`repo-standards/discovery/v1` without a new format version, under the
+[input format-version policy](../../development/architecture.md#format-versions).
+This input-field tolerance does not change discovery output validation below.
+
 It prints a `repo-standards/scope/v2` proposal holding exactly one entry, for
 its declaration, and exits with status `0`. Its evidence paths are
 project-relative paths of eligible files and directories, and the membership

@@ -883,7 +883,15 @@ which the CLI reads from discovery scripts or agents. The optional `invocation`
 key in `repo-standards/operation/v2` and `noScope` in
 `repo-standards/scope/v2` follow this rule
 ([ADR 0023](../adr/0023-let-an-optional-discovery-declaration-have-no-scope.md)).
-For operation input, scripts [ignore request fields they do not read](../usage/reference/script-protocol.md#json-input-on-stdin).
+For [operation input](../usage/reference/script-protocol.md#json-input-on-stdin)
+and [discovery input](../usage/reference/script-protocol.md#discovery-scripts),
+scripts must ignore request fields they do not read, including unfamiliar
+additive request fields. For `repo-standards/discovery/v1`, this requirement
+applies from the [owner's 2026-10-26 decision](https://github.com/lutzseverino/repo-standards/issues/354#issuecomment-6407013223)
+onward; it does not establish that previously authored strict readers violated
+the earlier contract. Compatible optional discovery-input additions therefore
+retain `repo-standards/discovery/v1`, as with operation-input additions retaining
+`repo-standards/operation/v2`.
 For scope proposals, an older CLI need not accept the new key: it rejects
 `noScope` as unknown rather than misreading the proposal. A source that marks a
 declaration `optional` raises its `requires.repo-standards` range to a CLI that
