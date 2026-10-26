@@ -122,9 +122,11 @@ const installed = rich(
             i % 2 === 0 ? (
               part
             ) : (
-              <a class="underline underline-offset-4" href={source.release.url}>
-                {source.release.version}
-              </a>
+              <a
+                class="underline underline-offset-4"
+                href={source.release.url}
+                set:text={source.release.version}
+              />
             ),
           )}
         </dd>
