@@ -4,9 +4,9 @@ source: e4ac6f7a
 
 # Cómo funciona Repo Standards
 
-Escribe tu configuración una vez. Tu agente de programación la aplica en cada
+Escribe tu configuración una vez. Tu agente la aplica en cada
 repositorio. Esta página cuenta con palabras la breve historia de la página de
-inicio, explica qué hacen la CLI y tu agente de programación, nombra las
+inicio, explica qué hacen la CLI y tu agente, nombra las
 herramientas que encajan mejor en algunos casos y expone los límites actuales.
 
 ## Cada repositorio, configurado a su manera
@@ -28,9 +28,9 @@ configuración lista para empezar, con convenciones de documentación,
 contribución, flujo de trabajo con agentes y GitHub. También puedes escribir y
 [publicar la tuya](/docs/guides/author-a-source/).
 
-## Tu agente de programación la aplica
+## Tu agente la aplica
 
-La adopción aplica una versión fijada. Pide a tu agente de programación que
+La adopción aplica una versión fijada. Pide a tu agente que
 ejecute un comando con la URL de la fuente, o ejecútalo tú en una terminal:
 
 ```
@@ -68,9 +68,9 @@ sobrescritura que descarta ediciones necesita confirmación previa, y el
 contenido sin seguimiento en una de esas rutas, que Git no puede recuperar,
 detiene la ejecución. La CLI nunca hace commit.
 
-### Tu agente de programación
+### Tu agente
 
-Tu agente de programación hace el trabajo contextual. Lee las pautas de la
+Tu agente hace el trabajo contextual. Lee las pautas de la
 fuente, averigua cuáles de tus archivos cubren y adapta solo el contenido que
 pertenece a tu proyecto, como su documentación, según las reglas que la fuente
 dejó por escrito. Deja los archivos exactos a la CLI, y el proyecto sigue
@@ -130,7 +130,7 @@ mejor opción.
   a todos los repositorios que no tienen uno propio.
 - **Solo skills para agentes.** Usa la
   [CLI de skills](https://github.com/vercel-labs/skills), `npx skills`, que
-  instala skills para muchos agentes de programación y comprueba si tienen
+  instala skills para muchos agentes y comprueba si tienen
   actualizaciones.
 
 Repo Standards encaja con una configuración compartida que es sobre todo prosa
@@ -144,7 +144,7 @@ que se mantiene al día con actualizaciones que tú revisas.
   GitHub, y la acción de actualización es una acción de GitHub.
 - No hay fuentes de estándares privadas.
 - Node.js 24 o 26, en macOS o Linux.
-- La parte contextual necesita un agente de programación. Sin él, la terminal
+- La parte contextual necesita un agente. Sin él, la terminal
   te guía y tú haces las ediciones.
 - Hoy hay una sola fuente pública real:
   [Repo Canon](https://github.com/lutzseverino/repo-canon).

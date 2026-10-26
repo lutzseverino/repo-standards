@@ -1,6 +1,6 @@
 {
   "tagline": {
-    "message": "Escriu la teva configuració un cop. El teu agent de programació l'aplica a cada repositori.",
+    "message": "Escriu la teva configuració un cop. El teu agent l'aplica a cada repositori.",
     "source": "a767af98"
   },
   "start.label": {
@@ -32,7 +32,7 @@
     "source": "acd5810b"
   },
   "story.caption.agent-applies": {
-    "message": "El teu agent de programació l'aplica",
+    "message": "El teu agent l'aplica",
     "source": "6be92abf"
   },
   "story.caption.kept-alike": {

@@ -52,7 +52,7 @@
     "source": "435a7bd4"
   },
   "adopt.text": {
-    "message": "Dale el prompt a tu agente de programación en el repositorio que quieres configurar, o ejecuta tú el comando allí. En los dos casos eliges una versión y un perfil, y no se hace ningún commit hasta que revisas los cambios.",
+    "message": "Dale el prompt a tu agente en el repositorio que quieres configurar, o ejecuta tú el comando allí. En los dos casos eliges una versión y un perfil, y no se hace ningún commit hasta que revisas los cambios.",
     "source": "dacaf6d7"
   },
   "profiles.heading": {

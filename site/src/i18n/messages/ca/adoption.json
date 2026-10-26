@@ -56,7 +56,7 @@
     "source": "7d9eb7ac"
   },
   "prompt.start.title": {
-    "message": "Enganxa'l al teu agent de programació",
+    "message": "Enganxa'l al teu agent",
     "source": "d20119e2"
   },
   "prompt.start.body": {
@@ -108,7 +108,7 @@
     "source": "c6c5d504"
   },
   "art.agent": {
-    "message": "Agent de programació · el-teu-repositori",
+    "message": "Agent · el-teu-repositori",
     "source": "94a0b4f2"
   },
   "art.source": {

@@ -4,9 +4,9 @@ source: e4ac6f7a
 
 # Com funciona Repo Standards
 
-Escriu la teva configuració un cop. El teu agent de programació l'aplica a cada
+Escriu la teva configuració un cop. El teu agent l'aplica a cada
 repositori. Aquesta pàgina explica amb paraules la breu història de la pàgina
-d'inici, diu què fan la CLI i el teu agent de programació, anomena les eines
+d'inici, diu què fan la CLI i el teu agent, anomena les eines
 que encaixen millor en alguns casos i exposa els límits actuals.
 
 ## Cada repositori, configurat a la seva manera
@@ -28,9 +28,9 @@ punt per començar, amb convencions de documentació, contribució, flux de
 treball amb agents i GitHub. També pots escriure i
 [publicar la teva](/docs/guides/author-a-source/).
 
-## El teu agent de programació l'aplica
+## El teu agent l'aplica
 
-L'adopció aplica una versió fixada. Demana al teu agent de programació que
+L'adopció aplica una versió fixada. Demana al teu agent que
 executi una ordre amb l'URL de la font, o executa-la tu mateix en un terminal:
 
 ```
@@ -66,9 +66,9 @@ edicions necessita confirmació prèvia, i el contingut no seguit en un d'aquest
 camins, que Git no pot recuperar, atura l'execució. La CLI no fa mai cap
 commit.
 
-### El teu agent de programació
+### El teu agent
 
-El teu agent de programació fa la feina contextual. Llegeix les pautes de la
+El teu agent fa la feina contextual. Llegeix les pautes de la
 font, troba quins dels teus fitxers cobreixen i adapta només el contingut que
 pertany al teu projecte, com ara la seva documentació, segons les regles que la
 font ha deixat per escrit. Deixa els fitxers exactes a la CLI, i el projecte
@@ -128,7 +128,7 @@ opció millor.
   a tots els repositoris que no en tenen un de propi.
 - **Només skills per a agents.** Fes servir la
   [CLI de skills](https://github.com/vercel-labs/skills), `npx skills`, que
-  instal·la skills per a molts agents de programació i comprova si tenen
+  instal·la skills per a molts agents i comprova si tenen
   actualitzacions.
 
 Repo Standards encaixa amb una configuració compartida que és sobretot prosa i
@@ -142,7 +142,7 @@ manté al dia amb actualitzacions que tu revises.
   GitHub, i l'acció d'actualització és una acció de GitHub.
 - No hi ha fonts d'estàndards privades.
 - Node.js 24 o 26, a macOS o Linux.
-- La part contextual necessita un agent de programació. Sense agent, el
+- La part contextual necessita un agent. Sense agent, el
   terminal et guia i tu mateix fas les edicions.
 - Avui hi ha una sola font pública real:
   [Repo Canon](https://github.com/lutzseverino/repo-canon).

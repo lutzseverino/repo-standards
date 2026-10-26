@@ -2,11 +2,11 @@
 source: bc88342d
 ---
 
-Repo Canon és una configuració a punt per començar. El teu agent de programació la instal·la al teu repositori i l'adapta al teu projecte, i més endavant el mateix prompt l'actualitza a una versió més nova.
+Repo Canon és una configuració a punt per començar. El teu agent la instal·la al teu repositori i l'adapta al teu projecte, i més endavant el mateix prompt l'actualitza a una versió més nova.
 
 ## AGENTS.md
 
-Un AGENTS.md que els agents de programació llegeixen primer, amb la documentació del projecte per a agents al costat, a docs/agents/.
+Un AGENTS.md que els agents llegeixen primer, amb la documentació del projecte per a agents al costat, a docs/agents/.
 
 ## Skills per a agents
 

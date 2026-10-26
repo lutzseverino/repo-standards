@@ -52,7 +52,7 @@
     "source": "435a7bd4"
   },
   "adopt.text": {
-    "message": "Dona el prompt al teu agent de programació al repositori que vols configurar, o executa-hi tu mateix l'ordre. En tots dos casos tries una versió i un perfil, i no es fa cap commit fins que revises els canvis.",
+    "message": "Dona el prompt al teu agent al repositori que vols configurar, o executa-hi tu mateix l'ordre. En tots dos casos tries una versió i un perfil, i no es fa cap commit fins que revises els canvis.",
     "source": "dacaf6d7"
   },
   "profiles.heading": {

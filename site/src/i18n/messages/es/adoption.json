@@ -56,7 +56,7 @@
     "source": "7d9eb7ac"
   },
   "prompt.start.title": {
-    "message": "Pégalo en tu agente de programación",
+    "message": "Pégalo en tu agente",
     "source": "d20119e2"
   },
   "prompt.start.body": {
@@ -108,7 +108,7 @@
     "source": "c6c5d504"
   },
   "art.agent": {
-    "message": "Agente de programación en tu-repositorio",
+    "message": "Agente en tu-repositorio",
     "source": "94a0b4f2"
   },
   "art.source": {

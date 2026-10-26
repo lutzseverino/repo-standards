@@ -2,11 +2,11 @@
 source: bc88342d
 ---
 
-Repo Canon es una configuración lista para empezar. Tu agente de programación la instala en tu repositorio y la adapta a tu proyecto, y más adelante el mismo prompt la actualiza a una versión más reciente.
+Repo Canon es una configuración lista para empezar. Tu agente la instala en tu repositorio y la adapta a tu proyecto, y más adelante el mismo prompt la actualiza a una versión más reciente.
 
 ## AGENTS.md
 
-Un AGENTS.md que los agentes de programación leen primero, con la documentación del proyecto para agentes al lado, en docs/agents/.
+Un AGENTS.md que los agentes leen primero, con la documentación del proyecto para agentes al lado, en docs/agents/.
 
 ## Skills para agentes
 

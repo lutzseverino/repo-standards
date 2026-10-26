@@ -1,6 +1,6 @@
 {
   "tagline": {
-    "message": "Escribe tu configuración una vez. Tu agente de programación la aplica en cada repositorio.",
+    "message": "Escribe tu configuración una vez. Tu agente la aplica en cada repositorio.",
     "source": "a767af98"
   },
   "start.label": {
@@ -32,7 +32,7 @@
     "source": "acd5810b"
   },
   "story.caption.agent-applies": {
-    "message": "Tu agente de programación la aplica",
+    "message": "Tu agente la aplica",
     "source": "6be92abf"
   },
   "story.caption.kept-alike": {
