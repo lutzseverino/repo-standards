@@ -272,6 +272,25 @@ test("each source page offers the source's own prompt and command", async () => 
   }
 });
 
+test("each source page names its whole repository, which a phone can break after each slash", async () => {
+  const { sources } = await loadCatalogue();
+  for (const source of sources) {
+    const html = read(`sources/${source.repository}/index.html`);
+    const link = html.match(
+      new RegExp(
+        `<a [^>]*href="https://github\\.com/${source.repository}">([^]*?)</a>`,
+      ),
+    );
+    assert.ok(link, source.repository);
+    const [owner, name] = source.repository.split("/");
+    assert.equal(
+      link[1].trim(),
+      `github.com/<wbr>${owner}/<wbr>${name}`,
+      source.repository,
+    );
+  }
+});
+
 test("Repo Canon's page names what it provides in searchers' words", () => {
   const html = read("sources/lutzseverino/repo-canon/index.html");
   const names = [...headings(html, 2), ...headings(html, 3)];

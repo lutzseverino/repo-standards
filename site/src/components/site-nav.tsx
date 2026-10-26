@@ -32,19 +32,22 @@ export function SiteNav({
       >
         {strings["common.nav.sources"]}
       </a>
-      <div className="flex items-center gap-1">
+      {/* on a phone the controls wrap onto a line of their own */}
+      <div className="flex flex-wrap items-center justify-end gap-1">
         <a className={buttonVariants({ variant: "ghost" })} href="/docs/">
           {strings["common.nav.documentation"]}
         </a>
         <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
           GitHub
         </a>
-        <SupportMenu strings={strings} />
-        <ThemeToggle
-          theme={theme}
-          onChange={setTheme}
-          label={strings["common.theme.toggle"]}
-        />
+        <div className="flex items-center gap-1">
+          <SupportMenu strings={strings} />
+          <ThemeToggle
+            theme={theme}
+            onChange={setTheme}
+            label={strings["common.theme.toggle"]}
+          />
+        </div>
       </div>
     </nav>
   );

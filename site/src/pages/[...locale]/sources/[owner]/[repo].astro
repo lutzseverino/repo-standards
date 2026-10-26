@@ -52,6 +52,8 @@ const { locale, source } = Astro.props;
 const url = new URL(sourcePath(source), Astro.site).href;
 const introduction = sourceIntroduction(source, locale);
 const repository = repositoryUrl(source);
+// ends each part but the last with its slash
+const repositoryText = `github.com/${source.repository}`.split(/(?<=\/)/);
 const everyProfile = (d: Declaration) =>
   d.profiles.length === source.profiles.length;
 const t = (id: MessageId) => format(locale, id);
@@ -125,8 +127,12 @@ const installed = rich(
         </dd>
         <dt class="text-muted-foreground">{t("sources.repository.label")}</dt>
         <dd>
-          <a class="underline underline-offset-4" href={repository}>
-            github.com/{source.repository}
+          <!-- on a phone it breaks after a slash, or anywhere in a long name -->
+          <a
+            class="underline underline-offset-4 [overflow-wrap:anywhere]"
+            href={repository}
+          >
+            {repositoryText.map((part, i) => (i > 0 ? [<wbr />, part] : part))}
           </a>
         </dd>
       </dl>
