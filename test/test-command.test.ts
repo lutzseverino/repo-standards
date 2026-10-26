@@ -85,12 +85,24 @@ for (const command of ["test", "validate"]) {
   test(`${command} limits simultaneous test files with the configured bound`, (t) => {
     const { root, run } = fixture(t);
     // Each process creates a unique live marker, observes its peers, and leaves.
-    // The event log observes actual file execution rather than runner arguments.
+    // Each batch waits for its peers within a finite budget, so a slow worker
+    // cannot make correct scheduling look serialized. The event log observes
+    // actual file execution rather than runner arguments.
     const source = `
-      import { appendFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+      import { appendFileSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
       import { setTimeout } from 'node:timers/promises';
       const marker = 'live-' + process.pid;
       writeFileSync(marker, '');
+      const expected = Number(readFileSync('expected', 'utf8'));
+      const index = Number(new URL(import.meta.url).pathname.split('/').pop().split('.')[0]);
+      const batch = Math.floor(index / expected);
+      const batchSize = Math.min(expected, 4 - batch * expected);
+      writeFileSync('ready/' + batch + '-' + index, '');
+      const deadline = Date.now() + 10_000;
+      while (readdirSync('ready').filter(n => n.startsWith(batch + '-')).length < batchSize) {
+        if (Date.now() > deadline) throw Error('test workers did not reach their bounded barrier');
+        await setTimeout(20);
+      }
       appendFileSync('events', JSON.stringify({ file: import.meta.url, active: readdirSync('.').filter(n => n.startsWith('live-')).length }) + '\\n');
       await setTimeout(400);
       unlinkSync(marker);
@@ -111,6 +123,9 @@ for (const command of ["test", "validate"]) {
         bound === undefined
           ? Math.min(4, Math.max(1, availableParallelism() - 1))
           : Number(bound);
+      rmSync(join(root, "ready"), { recursive: true, force: true });
+      mkdirSync(join(root, "ready"));
+      writeFileSync(join(root, "expected"), String(expected));
       writeFileSync(join(root, "events"), "");
       const result = run(command, bound);
       assert.equal(result.error, undefined);
