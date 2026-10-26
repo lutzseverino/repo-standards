@@ -120,16 +120,44 @@ test("a redirect lands on a page that stays: it can't loop", () => {
         }
 });
 
-/** Runs the head's script on `href`, with `stored` as the saved value, or
- * storage that throws, and the browser's `languages`. */
+/** A browser storage holding `entries`, or one that throws on every call
+ * when `entries` is `"blocked"`, or only on writing when `"read-only"`. */
+function storage(entries: Record<string, string> | "blocked" | "read-only") {
+  const map = new Map(
+    typeof entries === "object" ? Object.entries(entries) : [],
+  );
+  const fail = () => {
+    throw new Error("The storage is unavailable.");
+  };
+  return {
+    map,
+    getItem: (key: string) =>
+      entries === "blocked" ? fail() : (map.get(key) ?? null),
+    setItem: (key: string, value: string) =>
+      typeof entries === "object" ? void map.set(key, value) : fail(),
+  };
+}
+
+/** Runs the head's script on `href` with the browser's `languages` and its
+ * two storages, as the page runs it. */
 function runScript(
   href: string,
-  stored: string | null | Error,
-  languages: string[] | undefined,
-  language = "en-GB",
+  {
+    languages,
+    language = "en-GB",
+    local = {},
+    session = {},
+  }: {
+    languages?: string[];
+    language?: string;
+    local?: Parameters<typeof storage>[0];
+    session?: Parameters<typeof storage>[0];
+  },
 ) {
   const url = new URL(href, "https://repo-standards.com");
   const replaced: string[] = [];
+  const addressed: string[] = [];
+  const stores = { local: storage(local), session: storage(session) };
   const window: Record<string, unknown> = {
     location: {
       pathname: url.pathname,
@@ -137,53 +165,126 @@ function runScript(
       hash: url.hash,
       replace: (to: string) => replaced.push(to),
     },
-    navigator: { languages, language },
-    localStorage: {
-      getItem: (key: string) => {
-        if (stored instanceof Error) throw stored;
-        return key === "locale" ? stored : null;
-      },
+    history: {
+      state: null,
+      replaceState: (_state: unknown, _title: string, to: string) =>
+        addressed.push(to),
     },
+    navigator: { languages, language },
+    localStorage: stores.local,
+    sessionStorage: stores.session,
+    URLSearchParams,
   };
   window.window = window;
   vm.runInNewContext(localeScript(), window);
-  return replaced;
+  return {
+    replaced,
+    addressed,
+    local: stores.local.map,
+    session: stores.session.map,
+  };
 }
 
 test("the head's script replaces the location, keeping the query and fragment", () => {
-  assert.deepEqual(runScript("/how-it-works/?a=1#who-does-what", "es", []), [
-    "/es/how-it-works/?a=1#who-does-what",
-  ]);
-  assert.deepEqual(runScript("/ca/", null, ["es"]), []);
-  assert.deepEqual(runScript("/", null, ["ca-ES"]), ["/ca/"]);
-  assert.deepEqual(runScript("/docs/", "es", ["es"]), []);
+  const go = (
+    href: string,
+    local: Record<string, string>,
+    languages: string[],
+  ) => runScript(href, { local, languages }).replaced;
+  assert.deepEqual(
+    go("/how-it-works/?a=1#who-does-what", { locale: "es" }, []),
+    ["/es/how-it-works/?a=1#who-does-what"],
+  );
+  assert.deepEqual(go("/ca/", {}, ["es"]), []);
+  assert.deepEqual(go("/", {}, ["ca-ES"]), ["/ca/"]);
+  assert.deepEqual(go("/docs/", { locale: "es" }, ["es"]), []);
 });
 
 test("the head's script treats unavailable storage as nothing saved, and falls back to the browser's one language", () => {
-  assert.deepEqual(runScript("/", new Error("no storage"), ["es"]), ["/es/"]);
-  assert.deepEqual(runScript("/", null, undefined, "ca"), ["/ca/"]);
-  assert.deepEqual(runScript("/", null, undefined, "en-US"), []);
+  assert.deepEqual(
+    runScript("/", { local: "blocked", session: "blocked", languages: ["es"] })
+      .replaced,
+    ["/es/"],
+  );
+  assert.deepEqual(runScript("/", { language: "ca" }).replaced, ["/ca/"]);
+  assert.deepEqual(runScript("/", { language: "en-US" }).replaced, []);
+});
+
+test("a choice named in the address wins, is saved, and leaves the address", () => {
+  // the menu's English, for a Spanish browser with nothing saved
+  const english = runScript("/how-it-works/?locale=en#who-does-what", {
+    languages: ["es"],
+  });
+  assert.deepEqual(english.replaced, []);
+  assert.deepEqual(english.addressed, ["/how-it-works/#who-does-what"]);
+  assert.deepEqual([...english.local], [["locale", "en"]]);
+  // it outranks a saved choice, and other query parameters stay
+  const catalan = runScript("/es/?a=1&locale=ca#x", {
+    local: { locale: "es" },
+    languages: ["es"],
+  });
+  assert.deepEqual(catalan.replaced, ["/ca/?a=1#x"]);
+  assert.deepEqual([...catalan.local], [["locale", "ca"]]);
+  // a value that is not a site locale is ignored, and still removed
+  const unknown = runScript("/?locale=fr", { languages: ["ca"] });
+  assert.deepEqual(unknown.replaced, ["/ca/"]);
+  assert.deepEqual(unknown.addressed, []);
+});
+
+test("with storage blocked, choosing English from the menu opens English and stays", () => {
+  const choice = localeChoice(LOCALES);
+  const address = choice.choosing("/how-it-works/", "en");
+  assert.equal(address, "/how-it-works/?locale=en");
+  // both storages throwing, a Spanish browser: before, the head sent the
+  // visit straight back to /es/
+  const visit = runScript(`${address}#who-does-what`, {
+    local: "blocked",
+    session: "blocked",
+    languages: ["es-ES", "en"],
+  });
+  assert.deepEqual(visit.replaced, []);
+  assert.deepEqual(visit.addressed, ["/how-it-works/#who-does-what"]);
+  // the same when storage reads but refuses to write
+  const readOnly = runScript(address, {
+    local: "read-only",
+    session: "read-only",
+    languages: ["ca"],
+  });
+  assert.deepEqual(readOnly.replaced, []);
+});
+
+test("a choice falls back to the session's storage when the lasting one fails", () => {
+  // saved where only the session's storage works, then found there
+  const saved = runScript("/?locale=ca", {
+    local: "blocked",
+    languages: ["en"],
+  });
+  assert.deepEqual([...saved.session], [["locale", "ca"]]);
+  assert.deepEqual(
+    runScript("/how-it-works/", {
+      local: "blocked",
+      session: { locale: "ca" },
+      languages: ["en"],
+    }).replaced,
+    ["/ca/how-it-works/"],
+  );
+  // the lasting storage is preferred when it works
+  const lasting = runScript("/es/?locale=es", { languages: ["en"] });
+  assert.deepEqual([...lasting.local], [["locale", "es"]]);
+  assert.deepEqual([...lasting.session], []);
 });
 
 test("the language menu saves one key, and storage that throws loses only the choice", () => {
-  const stored = new Map<string, string>();
-  const run = (body: string, storage: unknown): void => {
+  const run = (body: string, local: unknown, session: unknown): void => {
     vm.runInNewContext(
       `(${localeChoice.toString()})(${JSON.stringify(LOCALES)}).${body}`,
-      {
-        window: { localStorage: storage },
-      },
+      { window: { localStorage: local, sessionStorage: session } },
     );
   };
-  run(`save("ca")`, {
-    setItem: (key: string, value: string) => stored.set(key, value),
-  });
-  assert.deepEqual([...stored], [["locale", "ca"]]);
+  const local = storage({});
+  run(`save("ca")`, local, storage({}));
+  assert.deepEqual([...local.map], [["locale", "ca"]]);
   assert.doesNotThrow(() =>
-    run(`save("es")`, {
-      setItem: () => {
-        throw new Error("no storage");
-      },
-    }),
+    run(`save("es")`, storage("blocked"), storage("blocked")),
   );
 });

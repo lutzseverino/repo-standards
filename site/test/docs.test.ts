@@ -720,6 +720,7 @@ test("theme choices survive navigation between the homepage and docs in both dir
     const context: Record<string, unknown> = {
       // an English browser on an English page: the language script stays
       location: { pathname: "/", search: "", hash: "" },
+      URLSearchParams,
       navigator: { languages: ["en-GB"] },
       document: {
         documentElement: root,

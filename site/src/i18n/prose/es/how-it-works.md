@@ -40,7 +40,7 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 La ejecución elige una versión y un perfil, los registra en `.repo-standards/`,
 donde fija esa versión y la CLI que la ejecutó, y aplica la versión al
 repositorio. Una parte del trabajo es exacta y otra requiere criterio sobre tu
-repositorio; [quién hace qué](#quién-hace-qué) las separa. Todos los cambios
+repositorio; [quién hace qué](#who-does-what) las separa. Todos los cambios
 quedan sin commit para que los revises. La guía para
 [adoptar una fuente de estándares](/docs/guides/adopt/) recorre los dos
 caminos.

@@ -9,6 +9,7 @@ import { LANGUAGE_STRINGS, LanguageMenu } from "@/components/language-menu";
 import { SUPPORT_STRINGS, SupportMenu } from "@/components/support";
 import { format, prose, strings } from "@/i18n/format";
 import {
+  DEFAULT_LOCALE,
   localeAlternates,
   localeName,
   localePath,
@@ -16,6 +17,7 @@ import {
   type Locale,
 } from "@/i18n/locales";
 import BaseLayout from "@/layouts/base.astro";
+import { sharedSectionIds } from "@/lib/section-ids";
 
 export function getStaticPaths() {
   return localeRoutes();
@@ -31,7 +33,17 @@ const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
 const markdown = await unified({ smartypants: false }).createRenderer({
   syntaxHighlight: false,
 });
-const { code: article } = await markdown.render(prose(locale, "how-it-works"));
+const render = async (from: Locale) =>
+  (await markdown.render(prose(from, "how-it-works"))).code;
+// a section has the same ID in every locale (lib/section-ids.ts)
+const article =
+  locale === DEFAULT_LOCALE
+    ? await render(locale)
+    : sharedSectionIds(
+        await render(locale),
+        await render(DEFAULT_LOCALE),
+        `how-it-works in ${locale}`,
+      );
 ---
 
 <BaseLayout

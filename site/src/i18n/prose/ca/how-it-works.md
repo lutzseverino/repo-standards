@@ -40,7 +40,7 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 L'execució tria una versió i un perfil, els registra a `.repo-standards/`, on
 fixa aquesta versió i la CLI que l'ha executat, i aplica la versió al
 repositori. Una part de la feina és exacta i una altra requereix criteri sobre
-el teu repositori; [qui fa què](#qui-fa-què) les separa. Tots els canvis queden
+el teu repositori; [qui fa què](#who-does-what) les separa. Tots els canvis queden
 sense commit perquè els revisis. La guia per
 [adoptar una font d'estàndards](/docs/guides/adopt/) recorre tots dos camins.
 

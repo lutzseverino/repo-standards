@@ -5,6 +5,11 @@
 // the choice through the same function. A saved choice always wins, the
 // browser's language never leads away from `/es/` or `/ca/`, and `/docs/`
 // never moves, so a redirect always lands on a page that stays put.
+//
+// The menu also names its choice in the address it opens, `?locale=<tag>`,
+// which the script honours, saves and strips: where storage is blocked, the
+// chosen page still opens instead of following the browser's language. A
+// saved choice falls back to `sessionStorage` when `localStorage` fails.
 import { LOCALES } from "./locales.ts";
 
 /** Reads, saves and applies the choice over `locales`, the default first.
@@ -45,33 +50,72 @@ export function localeChoice(locales: readonly string[]) {
     return target === fallback ? path : `/${target}${path}`;
   };
 
+  /** The locale an address's query chose, if it names a site locale, and
+   * the query without its choice. */
+  const query = (search: string) => {
+    const params = new URLSearchParams(search);
+    const value = params.get(KEY);
+    params.delete(KEY);
+    const rest = params.toString();
+    return {
+      chosen: value !== null && locales.includes(value) ? value : null,
+      search: rest ? `?${rest}` : "",
+    };
+  };
+
+  /** `path` with the query that names `locale` as the visitor's choice. */
+  const choosing = (path: string, locale: string) =>
+    `${path}?${KEY}=${encodeURIComponent(locale)}`;
+
+  // storage can be unavailable, as in some private windows, or throw on
+  // writing only: the session's storage stands in for the lasting one
+  const stores = (): (() => Storage)[] => [
+    () => window.localStorage,
+    () => window.sessionStorage,
+  ];
+
   /** The saved choice, or `null`. */
   const saved = (): string | null => {
-    try {
-      return window.localStorage.getItem(KEY);
-    } catch {
-      // storage can be unavailable, as in some private windows
-      return null;
+    for (const store of stores()) {
+      try {
+        const value = store().getItem(KEY);
+        if (value !== null) return value;
+      } catch {
+        // try the next store
+      }
     }
+    return null;
   };
   const save = (locale: string) => {
-    try {
-      window.localStorage.setItem(KEY, locale);
-    } catch {
-      // the choice then lasts only for this page
+    for (const store of stores()) {
+      try {
+        store().setItem(KEY, locale);
+        return;
+      } catch {
+        // try the next store; with none, the address carries the choice
+      }
     }
   };
-  return { KEY, page, redirect, saved, save };
+  return { KEY, page, redirect, query, choosing, saved, save };
 }
 
 /** The inline script that sends a visit to the visitor's language before
  * the first paint. */
 export const localeScript = () => `(() => {
   const choice = (${localeChoice.toString()})(${JSON.stringify(LOCALES)});
+  const { chosen, search } = choice.query(location.search);
+  if (chosen !== null) {
+    choice.save(chosen);
+    history.replaceState(
+      history.state,
+      "",
+      location.pathname + search + location.hash,
+    );
+  }
   const to = choice.redirect(
     location.pathname,
-    choice.saved(),
+    chosen ?? choice.saved(),
     navigator.languages || [navigator.language],
   );
-  if (to !== null) location.replace(to + location.search + location.hash);
+  if (to !== null) location.replace(to + search + location.hash);
 })();`;

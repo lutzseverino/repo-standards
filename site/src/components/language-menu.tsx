@@ -1,6 +1,6 @@
 // The nav's language menu: a shadcn Dropdown Menu of the site's languages,
 // each named in its own language. Picking one saves it (i18n/choice.ts) and
-// opens the same page in that language.
+// opens the same page, and section, in that language.
 import { LanguagesIcon } from "lucide-react";
 import { Button } from "@/components/app/button";
 import {
@@ -40,9 +40,15 @@ export function LanguageMenu({
   strings: Strings<(typeof LANGUAGE_STRINGS)[number]>;
   compact?: boolean;
 }) {
+  // the address names the choice too, for a browser that can't store it;
+  // section IDs are the same in every locale, so the section stays open
   const choose = (next: SiteLocale) => {
-    localeChoice(LOCALES).save(next);
-    if (next !== locale) window.location.assign(alternates[next]);
+    const choice = localeChoice(LOCALES);
+    choice.save(next);
+    if (next !== locale)
+      window.location.assign(
+        choice.choosing(alternates[next], next) + window.location.hash,
+      );
   };
   return (
     <DropdownMenu>

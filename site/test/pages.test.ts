@@ -667,6 +667,7 @@ test("a built page's language script opens the same page in the saved language",
     const replaced: string[] = [];
     vm.runInNewContext(script, {
       window: { localStorage: { getItem: () => stored } },
+      URLSearchParams,
       location: {
         pathname,
         search: "",
@@ -780,4 +781,33 @@ test("each How it works page's links within itself reach one of its headings", (
     for (const fragment of fragments)
       assert.ok(ids.has(fragment), `${prefix}how-it-works/ → #${fragment}`);
   }
+});
+
+test("each How it works page gives its sections the English IDs, so a link or redirect to a section opens it in every locale", () => {
+  const ids = (file: string) =>
+    [...read(file).matchAll(/<h[1-6] id="([^"]+)"/g)].map((m) => m[1]);
+  const english = ids("how-it-works/index.html");
+  assert.ok(english.includes("who-does-what"));
+  for (const prefix of ["es/", "ca/"])
+    assert.deepEqual(ids(`${prefix}how-it-works/index.html`), english, prefix);
+  // the redirect keeps the fragment: a Spanish browser's first visit to
+  // English's section lands on the same section in Spanish
+  const script = inlineScripts(read("how-it-works/index.html")).find((s) =>
+    s.includes("function localeChoice"),
+  )!;
+  const replaced: string[] = [];
+  vm.runInNewContext(script, {
+    window: { localStorage: { getItem: () => null } },
+    URLSearchParams,
+    location: {
+      pathname: "/how-it-works/",
+      search: "",
+      hash: "#who-does-what",
+      replace: (to: string) => replaced.push(to),
+    },
+    navigator: { languages: ["es-ES"] },
+  });
+  assert.deepEqual(replaced, ["/es/how-it-works/#who-does-what"]);
+  const [, fragment] = replaced[0].split("#");
+  assert.ok(ids("es/how-it-works/index.html").includes(fragment));
 });
