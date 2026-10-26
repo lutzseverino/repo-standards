@@ -34,7 +34,14 @@ them build the site or start its development server from this directory, with
 the same Astro and Vite caches, and run together their builds can outlast the
 120-second limit on each build command. `pages.test.ts` builds the fixture
 site with a page only it builds, and runs the pages' inline scripts in
-`node:vm`.
+`node:vm`, which measures no layout. `phone-layout.test.ts` measures every
+page family in a real browser at 320, 360 and 390 px, in both themes and
+every locale, the pseudo-locale's from the development server, as the
+development guide's [Site on a phone](../docs/development/README.md#site-on-a-phone)
+describes. `browser.ts` drives the installed Chrome, Chromium or Edge through
+the DevTools protocol over Node's own WebSocket, with no browser package, and
+`layout-probe.ts` is what runs in the page to find content a phone does not
+show whole.
 
 `src/content.config.ts` loads `../docs/usage/**/*.md` and `../docs/adr/**/*.md`
 in place. `src/lib/docs-content.ts` supplies each file's H1 as its title before
@@ -91,8 +98,8 @@ own island, hydrated with the site's `client:settled` directive
 the page's `load`, its fonts and two animation frames, then for the browser
 to be idle, so the island's script stays off the path to the largest paint.
 The override keeps it visible below 50rem, where Starlight hides its own
-right-hand group. In the homepage's nav, on a phone, it shows its heart
-alone. Until it hydrates, the control does nothing, and the footer carries both links: the layout's footer and the
+right-hand group. In the homepage's nav and the docs' header, on a phone, it
+shows its heart alone, so the docs' title plate keeps its whole name. Until it hydrates, the control does nothing, and the footer carries both links: the layout's footer and the
 supported `Footer` override show `SupportLine.astro`, and the homepage ends
 with one line inviting support. `src/styles/support.css` styles the footer's
 line in the sign's palette and type without Tailwind, so the docs' footer
@@ -255,9 +262,11 @@ along the rail shows how long each caption stays, and the sign comes back
 at the end. The story plays on its own once per visitor, remembered in
 `localStorage`, after they have been still for 8 seconds with the sign in
 view, and never with reduced motion. Copying a prompt or command opens a
-dialog, `adoption-dialog.tsx`, that says what happens next. Beside the tab,
-a plain link leads to the same story in words at `/how-it-works/`, with no
-script needed.
+dialog, `adoption-dialog.tsx`, that says what happens next; on a phone, a
+note in its picture of the repository that has no room beside its file goes
+on its own line. Beside the tab, a plain link leads to the same story in
+words at `/how-it-works/`, with no script needed; words too long for the room
+beside the tab wrap, so they stay on the screen.
 
 `src/components/ui/` is generated shadcn source and read-only. Add components
 and refresh the installed ones only through the exactly pinned shadcn CLI:

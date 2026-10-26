@@ -182,12 +182,19 @@
     outline-offset: 4px;
   }
   /* The story in words, on the page beside the tab: outside the tab's box,
-   so the tab's button does not cover it, and above the posts' tops. */
+   so the tab's button does not cover it, and above the posts' tops. Words
+   too long for the room beside the tab wrap, upwards, ending where the
+   page's content does: on a phone the assembly spans that content, the
+   screen less main's 1.5rem padding on each side, and the tab keeps 5% of
+   the assembly on its right. A wider screen leaves more room than this. */
   .story-read {
     position: absolute;
     right: calc(100% + 16px);
     bottom: 6px;
-    white-space: nowrap;
+    width: max-content;
+    max-width: calc(0.95 * (100vw - 3rem) - 100% - 16px);
+    text-align: right;
+    text-wrap: balance;
     font-size: 15px;
     line-height: 1;
     text-decoration: underline;

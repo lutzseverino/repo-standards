@@ -14,8 +14,10 @@ example test runs the example's `python3` check and needs that Python. Run
 are required. The root package remains the published CLI;
 `site/` is a private pnpm workspace. Installation from the root installs both
 projects. `.factory/Dockerfile` supplies Node.js, pnpm, npm and `python3`; the host-installed
-factory adds Git and agent tools in its own layer. The site needs no additional
-system tools.
+factory adds Git and agent tools in its own layer. The site's phone-layout
+check also drives an installed Chrome, Chromium or Edge, as
+[Site on a phone](#site-on-a-phone) describes; the site needs no other system
+tools.
 
 Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
 `pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes
@@ -23,8 +25,9 @@ the static site to `site/dist/`. The build reads its list of standards sources
 from GitHub with the CLI built at the root, so run `pnpm build` first; `pnpm
 --dir site build:fixture` builds from the recorded search in
 `site/fixtures/search/` without the network. `pnpm --dir site test` runs the
-site's data tests with Node's test runner, one file at a time, as the
-[site README](../../site/README.md) explains. `pnpm --dir site preview` serves
+site's tests with Node's test runner, one file at a time, as the
+[site README](../../site/README.md) explains, including the browser check of
+every page on a phone. `pnpm --dir site preview` serves
 that build.
 Run `pnpm validate` to validate the entire repository, including the site
 check, tests and fixture build. The site uses a compatible TypeScript compiler for Astro checking;
@@ -76,7 +79,9 @@ the generated shadcn source check, `astro check`, the site tests and the fixture
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. The site's
-tests use Node's built-in test runner; no site test framework is installed. The CLI's tests pack and
+tests use Node's built-in test runner; no site test framework is installed.
+Their phone-layout check uses the Google Chrome that GitHub's Linux and macOS
+runners carry. The CLI's tests pack and
 install the npm package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.
@@ -208,6 +213,82 @@ also serves the pseudo-locale at `/en-xa/`, generated from English: any text
 outside `⟦ ⟧` there bypasses the catalogs. Its padding can wrap every five
 dots, like the words of a longer translation, so text that still overflows its
 box there overflows for real.
+
+## Site on a phone
+
+Check every site change on a phone before review: at 320, 360 and 390 CSS px
+wide, in the light and the dark theme, on every page it affects, with the
+menus and dialogs those pages open. Check each page in English, Spanish and
+Catalan, and the same page in the pseudo-locale at `/en-xa/`, whatever the
+change touches: the pseudo-locale's longer text shows the overflow a longer
+translation would cause. A change to the shared layout, navigation, styles or
+components affects the homepage with its source cards, a source page, How it
+works and the documentation shell. The docs are in English only and have no
+translated or pseudo-locale pages.
+
+A page fails when it scrolls sideways, and also when it fits but text or a
+control is cut off, lies past the edge of the screen or sticks out of its box:
+a clipping ancestor, such as the homepage's `.sign-page`, hides content
+without widening the page. A code block or a table may scroll inside its own
+box, which must itself fit. The plates' lit copies are inert decoration. Look
+at long repository names and URLs, the source cards and their version
+shields, the nav's links, language menu, theme toggle and Support control, the
+adoption controls and dialog, prose, and wide tables and code. Fix a failure
+where it arises, never by clipping the page, removing the pseudo-locale's
+padding or letting all text break anywhere.
+
+`site/test/phone-layout.test.ts`, part of `pnpm --dir site test` and so of
+`pnpm validate` and the CI `site` jobs, measures this in a headless browser.
+It builds the site from the recorded catalogue in `site/fixtures/search/`,
+needing neither the network nor `pnpm build`, and serves it with Astro's
+preview for English, Spanish and Catalan, and starts the development server
+for the pseudo-locale, which the build never includes. It measures each page
+family, every source in the recording and two docs pages, at each width and in
+each theme: once loaded, after narrowing from 390 px, and with each nav menu,
+the adoption dialog and the docs' menu and table of contents open, after the
+fonts, hydration and animations settle. A failure names the page, its locale,
+width, theme and state, and the element with its text and position. The file
+also puts the failures #421, #422 and #425 fixed back into today's pages and
+shows that the check finds each one, #425's in a page exactly as wide as the
+screen.
+
+The check uses the browser `SITE_BROWSER` names, or else the first Chrome,
+Chromium or Edge on `PATH` or in macOS's Applications folder. Without one it
+skips locally and fails in CI. From a fresh checkout:
+
+```sh
+pnpm install --frozen-lockfile
+cd site
+SITE_LAYOUT_REPORT=/tmp/site-layout node --test test/phone-layout.test.ts
+```
+
+`SITE_LAYOUT_REPORT` also writes every measurement to `layout.json` in that
+directory, with a screenshot of each: the whole page once loaded, otherwise
+the screen. Without it, the file only measures.
+
+The check measures geometry only, and covers only the pages and states it
+lists; add a new page family or interactive state to it. Look at the
+screenshots yourself for what it cannot judge: overlapping or unreadable
+text, awkward wrapping, contrast, and states it does not open, such as the
+homepage's story playing and keyboard focus. To look in a browser, run
+`SITE_SEARCH_RECORDING=fixtures/search pnpm --dir site dev` for every locale,
+the pseudo-locale included, or `pnpm --dir site build:fixture` then
+`pnpm --dir site preview` for the production pages, and use the browser's
+device emulation at each width.
+
+A pull request that changes the site reports this in its Evidence:
+
+- **Revision**: the commit measured.
+- **Pages**: the routes and locales, the pseudo-locale's among them.
+- **Widths and themes**: 320, 360 and 390 px; light and dark.
+- **Browser**: its name and version.
+- **Measured**: what `phone-layout.test.ts` reported, and for a layout fix
+  the measurements before and after, such as the page's scroll width and the
+  right edge of the element that overflowed.
+- **Checked by hand**: what you looked at yourself, and what you did not
+  check.
+- **Screenshots**: representative ones at 320 px in both themes, the
+  pseudo-locale's included, and before and after for a fix.
 
 ## Release sources
 
