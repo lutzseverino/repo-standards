@@ -9,7 +9,9 @@ import {
   parseTranslations,
   readTranslationFiles,
 } from "../src/i18n/translations.ts";
+import { LOCALES } from "../src/i18n/locales.ts";
 import { installText } from "../src/lib/catalogue.ts";
+import { formatDate } from "../src/lib/format.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 
 const site = (file: string) =>
@@ -430,6 +432,37 @@ test("each source page offers the source's own prompt and command", async () => 
     assert.ok(html.includes(`href="https://github.com/${source.repository}"`));
     assert.ok(html.includes(`href="${source.release.url}"`));
   }
+});
+
+test("each source page's release links exactly its version, with the comma touching it", async () => {
+  const { sources } = await loadCatalogue();
+  const lines: string[] = [];
+  for (const locale of LOCALES)
+    for (const source of sources) {
+      const page = `${locale === "en" ? "" : `${locale}/`}sources/${source.repository}/index.html`;
+      const release = read(page).match(
+        new RegExp(
+          `<dd>([^<]*)<a [^>]*href="${source.release.url}">([^<]*)</a>([^<]*)</dd>`,
+        ),
+      );
+      assert.ok(release, page);
+      const [, before, version, after] = release;
+      assert.equal(version, source.release.version, page);
+      // Whitespace at the edges of the <dd> doesn't render.
+      assert.equal(before.trim(), "", page);
+      assert.equal(
+        unescape(after).trimEnd(),
+        `, ${formatDate(source.release.publishedAt, locale)}`,
+        page,
+      );
+      if (source.repository === "lutzseverino/repo-canon")
+        lines.push(`${version}${unescape(after).trimEnd()}`);
+    }
+  assert.deepEqual(lines, [
+    "v0.17.0, 19 Oct 2026",
+    "v0.17.0, 19 oct 2026",
+    "v0.17.0, 19 d’oct. del 2026",
+  ]);
 });
 
 test("each source page names its whole repository, which a phone can break after each slash", async () => {
