@@ -327,6 +327,10 @@ including a successful retry after a 733-second cooldown.
 
 Agent surfaces retain their alphabetical source order and omit the human count
 tabs and explanation, keeping `llms.txt`, Markdown and `sources.json` unchanged.
+The regression test builds the current site and documentation again with the
+count UI removed and zero counts restoring alphabetical order, then compares
+every agent output byte for byte. It pins no agent-output hash, so unrelated
+documentation and discovery-copy changes apply equally to both builds.
 
 `SITE_SEARCH_RECORDING` names a recording of those inputs to build from
 instead: `page-<n>.json` holding the CLI's raw output and

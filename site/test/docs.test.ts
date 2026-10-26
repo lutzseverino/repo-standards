@@ -494,21 +494,136 @@ test("the homepage exposes real acquired counts in descending order with a lower
   );
 });
 
-test("ranking and count tabs preserve the established homepage agent surfaces byte for byte", () => {
-  const hashes = {
-    "llms.txt":
-      "5391662c577df9bb5ab78d09d21816c403e13ee37d5689c4fb24b6d764229a32",
-    "sources.json":
-      "4f134a9e64640642fb744cdeefbb0983bb3f3260d3f44d5e8afeafb739bf8318",
-    "index.md":
-      "a7d9b8e0ddd2c9a526443a988e960106752b5bf165bae801a26b3676d009f08b",
-  };
-  for (const [file, hash] of Object.entries(hashes))
-    assert.equal(
-      createHash("sha256").update(read(file)).digest("hex"),
-      hash,
-      file,
+test("ranking and count tabs preserve agent surfaces against a build without them", () => {
+  const project = mkdtempSync(path.join(site, "node_modules/.agent-baseline-"));
+  const fixtureSite = path.join(project, "site");
+  try {
+    mkdirSync(fixtureSite);
+    for (const item of [
+      "src",
+      "public",
+      "astro.config.mjs",
+      "tsconfig.json",
+      "package.json",
+    ])
+      cpSync(path.join(site, item), path.join(fixtureSite, item), {
+        recursive: true,
+      });
+    for (const folder of ["usage", "adr"])
+      cpSync(
+        path.join(repository, "docs", folder),
+        path.join(project, "docs", folder),
+        { recursive: true },
+      );
+    symlinkSync(
+      path.join(site, "node_modules"),
+      path.join(fixtureSite, "node_modules"),
+      "dir",
     );
+    const config = path.join(fixtureSite, "astro.config.mjs");
+    writeFileSync(
+      config,
+      readFileSync(config, "utf8").replace(
+        "export default defineConfig({",
+        'export default defineConfig({ cacheDir: "./.cache",',
+      ),
+    );
+
+    // Use today's source and docs, removing only the human count UI. A
+    // deliberate source change to those elements must update this fixture,
+    // while unrelated docs, translations and discovery copy need no pins.
+    for (const [file, pattern] of [
+      [
+        "components/sign/signposts.tsx",
+        /<aside>\s*<Face\b[^]*?signpost-adopters-tab[^]*?<\/aside>/,
+      ],
+      [
+        "components/home.tsx",
+        /<aside\b[^>]*>\s*\{strings\["home\.sources\.adopters-explanation"\]\}\s*<\/aside>/,
+      ],
+    ] as const) {
+      const target = path.join(fixtureSite, "src", file);
+      const original = readFileSync(target, "utf8");
+      assert.match(
+        original,
+        pattern,
+        `baseline must remove ${file}'s count UI`,
+      );
+      writeFileSync(target, original.replace(pattern, ""));
+    }
+
+    // Zero acquired counts restore the pre-count alphabetical order. This
+    // also tests the independent JSON and llms.txt catalogue consumers.
+    const recording = path.join(project, "search");
+    cpSync(path.join(site, "fixtures/search"), recording, { recursive: true });
+    const adoptionFile = path.join(recording, "adoptions.json");
+    const adoptions = JSON.parse(readFileSync(adoptionFile, "utf8")) as {
+      candidates: Record<string, string[]>;
+    };
+    for (const source of Object.keys(adoptions.candidates))
+      adoptions.candidates[source] = [];
+    writeFileSync(adoptionFile, JSON.stringify(adoptions));
+    execFileSync(
+      process.execPath,
+      [path.join(site, "node_modules/astro/bin/astro.mjs"), "build"],
+      {
+        cwd: fixtureSite,
+        env: { ...process.env, SITE_SEARCH_RECORDING: recording },
+        timeout: 120_000,
+        stdio: "pipe",
+      },
+    );
+    const baseline = path.join(fixtureSite, "dist");
+    const nodes = elements(
+      parse(readFileSync(path.join(baseline, "index.html"), "utf8")),
+    );
+    assert.ok(
+      !nodes.some((node) =>
+        attribute(node, "class")?.includes("signpost-adopters-tab"),
+      ),
+    );
+    assert.ok(
+      !nodes.some(
+        (node) =>
+          node.tagName === "aside" &&
+          text(node) === format("en", "home.sources.adopters-explanation"),
+      ),
+    );
+    const names = nodes
+      .filter((node) => attribute(node, "class") === "signpost-entry")
+      .map((node) => attribute(node, "data-source-name")!);
+    assert.deepEqual(
+      names,
+      [...names].sort((a, b) => a.localeCompare(b, "en")),
+    );
+    assert.notDeepEqual(
+      names,
+      elements(parse(read("index.html")))
+        .filter((node) => attribute(node, "class") === "signpost-entry")
+        .map((node) => attribute(node, "data-source-name")),
+      "the baseline must exercise a different list order",
+    );
+
+    const agentFiles = (directory: string) =>
+      readdirSync(directory, { recursive: true, encoding: "utf8" })
+        .filter(
+          (file) =>
+            file.endsWith(".md") ||
+            file === "llms.txt" ||
+            file === "sources.json",
+        )
+        .sort();
+    const files = agentFiles(baseline);
+    assert.deepEqual(agentFiles(output), files);
+    for (const file of files)
+      assert.deepEqual(
+        readFileSync(path.join(output, file)),
+        readFileSync(path.join(baseline, file)),
+        file,
+      );
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
 });
 
 // the header and footer of a built page: the nav on the site's own pages,
