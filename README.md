@@ -33,6 +33,17 @@ Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverin
 
 Or [install the adoption skill from a verified release tag](docs/usage/guides/install.md#install-the-adoption-skill).
 
+The adoption skill's [Socket](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards/security/socket)
+and [Snyk](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards/security/snyk)
+WARNs are expected for this design: Socket flags medium supply-chain and
+instruction-delegation risk; Snyk flags medium W012 for unverifiable external
+dependency provenance. The unversioned entry runs an external CLI and follows
+its instructions, so you trust that package, its output, and your chosen
+standards source. Pinning the resulting runtime does not verify the package
+before its first execution. Neither WARN proves malware; neither this
+explanation nor another skill's PASS guarantees safety. See the
+[trust guidance and recorded audit evidence](docs/usage/guides/install.md#adoption-skill-audit-warnings).
+
 To run it yourself, run `adopt` in a terminal, from your committed,
 clean Git working tree:
 

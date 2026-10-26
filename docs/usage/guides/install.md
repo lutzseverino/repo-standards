@@ -129,6 +129,36 @@ after a telemetry-enabled installation from a release tag, as
 separately from a directory observation; listing, indexing time, and ranking
 are not release guarantees.
 
+### Adoption skill audit warnings
+
+The adoption listing's [Socket detail](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards/security/socket)
+reports a medium supply-chain and instruction-delegation alert: the entry runs
+an unpinned external CLI, follows its printed instructions, and accepts
+user-selected remote standards sources. The [Snyk detail](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards/security/snyk)
+reports medium W012 for external dependency provenance and runtime instructions
+it cannot verify. See the [recorded audit evidence](https://github.com/lutzseverino/repo-standards/issues/428#issuecomment-6418210417)
+for the dated observations and comparison with the authoring skill.
+
+These warnings are expected consequences of the adoption design. The entry
+stays unversioned so the CLI owns the current adoption procedure; `--yes`
+avoids npm's confirmation prompt and `--json` selects the agent route. Neither
+report establishes that `--yes` alone causes the warning, or that removing it
+would clear one. The skill uses your named source or Repo Canon as the fallback.
+
+You trust the downloaded CLI package, the instructions it prints, and the
+selected standards source. Adoption pins the exact CLI it runs for subsequent
+project work; that pin does not verify the package before its first execution
+or remove supply-chain risk. npm's `--ignore-scripts` controls npm lifecycle
+scripts, not the trusted author operations adoption may run with normal host
+and network access. See the [script trust model](../reference/script-protocol.md)
+for those operations.
+
+Neither WARN proves malicious code. Inferring malware from these intended
+capabilities would be a false positive; the reported trust risk remains real.
+This explanation and another skill's PASS do not guarantee safety. These docs
+do not change the directory's badges or appear on the individual skill page,
+which renders the skill body.
+
 ## Install the authoring skill
 
 `author-standards` guides creation, revision, and resumption from confirmed
