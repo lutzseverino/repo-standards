@@ -1,0 +1,42 @@
+{
+  "title": {
+    "message": "Repo Standards: una configuració per a tots els teus repositoris",
+    "source": "3e893531"
+  },
+  "description": {
+    "message": "Escriu la teva configuració un cop: instruccions per a agents, docs, plantilles i comprovacions. El teu agent l'aplica a cada repositori i els manté al dia.",
+    "source": "500f501f"
+  },
+  "search.label": {
+    "message": "Cerca fonts d'estàndards",
+    "source": "0359d71e"
+  },
+  "search.no-match": {
+    "message": "Cap font d'estàndards no coincideix amb «{$query}»",
+    "source": "d2fb4ab1"
+  },
+  "search.clear": {
+    "message": "Esborra la cerca per veure les {$number}.",
+    "source": "c7976d46"
+  },
+  "listing.details": {
+    "message": "{$repository}, {$date}, requereix la CLI {$requirement}",
+    "source": "f4a53e7e"
+  },
+  "sources.origin": {
+    "message": "Les fonts provenen del tema públic de GitHub {$topic}, validades amb la CLI {$version}.",
+    "source": "a543e275"
+  },
+  "sources.left-out": {
+    "message": ".input {$count :integer} .match $count one {{{$number} repositori més té el tema, però queda fora perquè no té cap versió estable que aquesta CLI pugui fer servir.}} * {{{$number} repositoris més tenen el tema, però queden fora perquè no tenen cap versió estable que aquesta CLI pugui fer servir.}}",
+    "source": "84b9022f"
+  },
+  "sources.list-yours": {
+    "message": "Perquè hi aparegui la teva font, afegeix-li el tema i publica una versió estable.",
+    "source": "011dc577"
+  },
+  "support.invitation": {
+    "message": "Si Repo Standards manté els teus repositoris al dia, pots donar suport a la seva feina a {$first} o {$second}.",
+    "source": "252a7b2c"
+  }
+}

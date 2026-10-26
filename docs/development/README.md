@@ -180,7 +180,10 @@ it by naming exactly the entries you updated:
 pnpm --dir site i18n:source es home.search.label prose/how-it-works
 ```
 
-The command never updates everything at once. A new locale goes in
+The command never updates everything at once. The site serves English,
+Spanish (`es`) and Catalan (`ca`): a pull request that changes English site
+text updates both translations in it, and its body lists the strings and prose
+changed in each locale for the owner's review. A new locale goes in
 `locales.ts` with all of its catalogs and prose files. `pnpm --dir site dev`
 also serves the pseudo-locale at `/en-xa/`, generated from English: any text
 outside `⟦ ⟧` there bypasses the catalogs. Its padding can wrap every five

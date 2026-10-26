@@ -1,11 +1,12 @@
 ---
-// The same discovery links for the shared layout and Starlight's head.
+// The same discovery links for the shared layout and Starlight's head. Every
+// page's Markdown is its English version's: no other locale has its own.
+import { localeChoice } from "../i18n/choice";
+import { LOCALES } from "../i18n/locales";
 import { markdownPath } from "../lib/agent-paths";
+
+const { path } = localeChoice(LOCALES).page(Astro.url.pathname);
 ---
 
-<link
-  rel="alternate"
-  type="text/markdown"
-  href={markdownPath(Astro.url.pathname)}
-/>
+<link rel="alternate" type="text/markdown" href={markdownPath(path)} />
 <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />

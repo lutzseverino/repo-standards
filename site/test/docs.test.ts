@@ -135,8 +135,11 @@ test("every HTML page advertises built Markdown and llms.txt", () => {
     const href = attribute(markdown[0], "href")!;
     const pathname = new URL(href, "https://repo-standards.com").pathname;
     assert.ok(read(pathname.slice(1)).trim(), `${file} → ${href}`);
-    const page =
-      file === "index.html" ? "/" : `/${file.replace(/index\.html$/, "")}`;
+    // a page in another locale shares its English version's
+    const page = `/${file.replace(/index\.html$/, "")}`.replace(
+      /^\/(?:es|ca)\//,
+      "/",
+    );
     const expected =
       page === "/"
         ? "/index.md"
@@ -346,7 +349,7 @@ test("docs links reach built pages and fragments or the original files on GitHub
   assert.ok(githubDevelopment > 0);
 });
 
-test("one sitemap lists the homepage, How it works, every source page and every docs page", () => {
+test("one sitemap lists the homepage, How it works and every source page in each locale, and every docs page", () => {
   const index = read("sitemap-index.xml");
   assert.deepEqual(
     [...index.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]),
@@ -358,10 +361,14 @@ test("one sitemap lists the homepage, How it works, every source page and every 
   assert.deepEqual(
     urls.sort(),
     [
-      "/",
-      "/how-it-works/",
-      "/sources/lutzseverino/repo-canon/",
-      "/sources/lutzseverino/repo-standards-example/",
+      ...["", "/es", "/ca"].flatMap((prefix) =>
+        [
+          "/",
+          "/how-it-works/",
+          "/sources/lutzseverino/repo-canon/",
+          "/sources/lutzseverino/repo-standards-example/",
+        ].map((page) => `${prefix}${page}`),
+      ),
       ...docsPages().map(({ url }) => url),
       ...readdirSync(output, { recursive: true, encoding: "utf8" })
         .filter(
@@ -393,8 +400,20 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // moves the React renderer to a chunk of its own, which changes its hash.
   // Since #404 the text comes from the message catalogs: the Home island's
   // props carry its locale and finished strings, and whole messages change
-  // only React's text boundaries.
+  // only React's text boundaries. Since #405 the head starts by opening the
+  // visitor's language, the nav has a language menu beside the Support
+  // control, its controls are grouped so they wrap together on a phone, and
+  // the island's props carry the homepage in each language.
   const html = read("index.html")
+    .replace(
+      '<nav class="mb-8 flex flex-wrap items-center justify-end gap-1 text-[15px]">',
+      '<nav class="mb-8 flex items-center justify-end gap-1 text-[15px]">',
+    )
+    .replace(
+      /<\/a><div class="flex items-center gap-1">([\s\S]*?<\/button>)<\/div><\/nav>/,
+      "</a>$1</nav>",
+    )
+    .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
       "",
@@ -411,7 +430,7 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/\/_astro\/client\.[\w-]+\.js/g, "/_astro/client.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
     .replace(
-      /(component-export="Home"[^>]*props="\{)&quot;locale&quot;:\[0,&quot;en&quot;\],/,
+      /(component-export="Home"[^>]*props="\{)&quot;locale&quot;:\[0,&quot;en&quot;\],&quot;alternates&quot;:\[0,\{[^}]*\}\],/,
       "$1",
     )
     .replace(
@@ -421,7 +440,7 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     // Whole messages and templates change only React's text boundaries.
     .replace(/<!-- -->/g, "")
     .replace(
-      /<button type="button"[^>]*data-slot="dropdown-menu-trigger"[\s\S]*?<\/button>/,
+      /<button type="button"[^>]*data-slot="dropdown-menu-trigger"[\s\S]*?<\/button>/g,
       "",
     )
     .replace(/<aside\b[\s\S]*?<\/aside>/, "")
@@ -471,10 +490,12 @@ const islandOf = (nodes: HtmlElement[], node: HtmlElement) =>
 test("every page's header has one Support control, which opens a menu", () => {
   for (const file of framedPages()) {
     const { nodes, header } = pageFrame(file);
+    // the site's pages also have the language menu, which the docs don't
     const triggers = nodes.filter(
       (node) =>
         node.tagName === "button" &&
-        attribute(node, "aria-haspopup") === "menu",
+        attribute(node, "aria-haspopup") === "menu" &&
+        !attribute(node, "aria-label")?.startsWith("Language:"),
     );
     assert.equal(triggers.length, 1, file);
     const [trigger] = triggers;
@@ -503,6 +524,25 @@ test("every page's header has one Support control, which opens a menu", () => {
         ? "settled"
         : "load",
       file,
+    );
+  }
+});
+
+test("the docs stay English: no language menu, no language script and no EN badge", () => {
+  for (const { url, nodes } of docsPages()) {
+    const html = read(`${url.slice(1)}index.html`);
+    assert.ok(!html.includes("localeChoice"), url);
+    assert.ok(
+      !nodes.some((node) =>
+        /^(?:Language|Idioma|Llengua):/.test(
+          attribute(node, "aria-label") ?? "",
+        ),
+      ),
+      url,
+    );
+    assert.ok(
+      !nodes.some((node) => attribute(node, "data-slot") === "badge"),
+      url,
     );
   }
 });
@@ -678,6 +718,9 @@ test("theme choices survive navigation between the homepage and docs in both dir
     let ready = () => {};
     let schemeChanged = () => {};
     const context: Record<string, unknown> = {
+      // an English browser on an English page: the language script stays
+      location: { pathname: "/", search: "", hash: "" },
+      navigator: { languages: ["en-GB"] },
       document: {
         documentElement: root,
         querySelectorAll: () => controls,

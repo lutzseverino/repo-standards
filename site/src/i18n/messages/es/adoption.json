@@ -1,0 +1,158 @@
+{
+  "mode.label": {
+    "message": "Qué copiar",
+    "source": "96696ebb"
+  },
+  "mode.prompt": {
+    "message": "Prompt del agente",
+    "source": "92b6d2fe"
+  },
+  "mode.terminal": {
+    "message": "Terminal",
+    "source": "e0926fda"
+  },
+  "field.prompt": {
+    "message": "Prompt del agente",
+    "source": "92b6d2fe"
+  },
+  "field.terminal": {
+    "message": "Comando de terminal",
+    "source": "20afb901"
+  },
+  "copy": {
+    "message": "Copiar",
+    "source": "e21f935f"
+  },
+  "copied": {
+    "message": "Copiado",
+    "source": "8d525e5f"
+  },
+  "copy-by-hand": {
+    "message": "Cópialo",
+    "source": "d4db8766"
+  },
+  "dialog.prompt-copied": {
+    "message": "Prompt copiado",
+    "source": "c5539477"
+  },
+  "dialog.command-copied": {
+    "message": "Comando copiado",
+    "source": "e5c02424"
+  },
+  "dialog.description": {
+    "message": "Qué pasa ahora",
+    "source": "8f9b77e6"
+  },
+  "dialog.guide": {
+    "message": "Leer la guía de adopción",
+    "source": "55669b73"
+  },
+  "dialog.done": {
+    "message": "Entendido",
+    "source": "5ad3dbd1"
+  },
+  "dialog.close": {
+    "message": "Cerrar",
+    "source": "7d9eb7ac"
+  },
+  "prompt.start.title": {
+    "message": "Pégalo en tu agente de programación",
+    "source": "d20119e2"
+  },
+  "prompt.start.body": {
+    "message": "Abre el agente en el repositorio que quieres configurar, con al menos un commit y sin cambios pendientes. Sirve cualquier agente que pueda ejecutar comandos.",
+    "source": "b680c7da"
+  },
+  "prompt.apply.title": {
+    "message": "El agente adopta la configuración",
+    "source": "054ae161"
+  },
+  "prompt.apply.body": {
+    "message": "Elige una versión y un perfil y revisa los cambios propuestos. Después instala los archivos de la fuente, adapta el contenido propio de tu proyecto y ejecuta las comprobaciones de la fuente.",
+    "source": "efe19f0d"
+  },
+  "prompt.review.title": {
+    "message": "Tú revisas y haces commit",
+    "source": "2bf1d27e"
+  },
+  "prompt.review.body": {
+    "message": "Nadie hace commit por ti. Revisa los cambios, incluido cualquier archivo que la fuente haya sustituido, y haz commit como siempre. Para actualizar más adelante, vuelve a darle al agente el mismo prompt.",
+    "source": "443d1ada"
+  },
+  "terminal.start.title": {
+    "message": "Ejecútalo en tu repositorio",
+    "source": "18dc930c"
+  },
+  "terminal.start.body": {
+    "message": "En el repositorio que quieres configurar, con al menos un commit y sin cambios pendientes, con Node.js 24 o 26.",
+    "source": "c320cf86"
+  },
+  "terminal.apply.title": {
+    "message": "Responde a sus preguntas",
+    "source": "1c80d290"
+  },
+  "terminal.apply.body": {
+    "message": "Te pide una versión y un perfil y te muestra los cambios propuestos. Después instala los archivos de la fuente, te guía para adaptar tu propio contenido y ejecuta las comprobaciones de la fuente.",
+    "source": "f08c1831"
+  },
+  "terminal.review.title": {
+    "message": "Revisa y haz commit",
+    "source": "96f097b7"
+  },
+  "terminal.review.body": {
+    "message": "Nadie hace commit por ti. Revisa los cambios, incluido cualquier archivo que la fuente haya sustituido, y haz commit como siempre. Para actualizar más adelante, vuelve a ejecutar el mismo comando.",
+    "source": "0c3c1936"
+  },
+  "art.repository": {
+    "message": "tu-repositorio",
+    "source": "c6c5d504"
+  },
+  "art.agent": {
+    "message": "Agente de programación en tu-repositorio",
+    "source": "94a0b4f2"
+  },
+  "art.source": {
+    "message": "fuente",
+    "source": "41cf6794"
+  },
+  "art.tree.instructions": {
+    "message": "instrucciones para agentes",
+    "source": "4e5e1a5f"
+  },
+  "art.tree.skills": {
+    "message": "skills",
+    "source": "32c1cf49"
+  },
+  "art.tree.guide": {
+    "message": "guía de contribución",
+    "source": "f57cf08b"
+  },
+  "art.tree.github": {
+    "message": "plantillas y comprobaciones",
+    "source": "4c2bc4e9"
+  },
+  "art.tree.adapted": {
+    "message": "tu contenido, adaptado",
+    "source": "fa4e2fea"
+  },
+  "art.review.changes": {
+    "message": "Cambios sin commit",
+    "source": "a388bd2d"
+  },
+  "art.review.installed": {
+    "message": "+ instalado",
+    "source": "2b4fcec0"
+  },
+  "art.review.adapted": {
+    "message": "~ adaptado",
+    "source": "368f4cdc"
+  },
+  "art.review.hint": {
+    "message": "Revisa y haz commit como siempre",
+    "source": "0c689a52"
+  },
+  "art.review.commit": {
+    "message": "Commit",
+    "source": "82a9c46f"
+  }
+}

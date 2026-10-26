@@ -1,5 +1,6 @@
-// Build Markdown alternates from the original docs, or the rendered page's
-// content. Run before sitemap so it also lists the generated agent surfaces.
+// Build Markdown alternates from the original docs, or the rendered English
+// page's content; a page in another locale shares its English version's.
+// Run before sitemap so it also lists the generated agent surfaces.
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,8 @@ import { toMarkdown } from "mdast-util-to-markdown";
 import { gfm } from "micromark-extension-gfm";
 import type { Root } from "mdast";
 import { SKIP, visit } from "unist-util-visit";
+import { localeChoice } from "../i18n/choice.ts";
+import { LOCALES } from "../i18n/locales.ts";
 import { markdownPath } from "./agent-paths.ts";
 import { docsLink, readDocs } from "./docs-content.ts";
 
@@ -35,8 +38,10 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
         );
         sitemapUrls.length = 0;
         const files = await readdir(output, { recursive: true });
+        const { page: localePage } = localeChoice(LOCALES);
         for (const file of files.filter((file) => file.endsWith(".html"))) {
           const pathname = `/${file.replace(/index\.html$/, "")}`;
+          if (localePage(pathname).path !== pathname) continue;
           const page = new URL(pathname, site);
           const markdown = markdownPath(pathname);
           const document = documents.get(pathname);

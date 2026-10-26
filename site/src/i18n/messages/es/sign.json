@@ -1,0 +1,66 @@
+{
+  "tagline": {
+    "message": "Escribe tu configuración una vez. Tu agente de programación la aplica en cada repositorio.",
+    "source": "a767af98"
+  },
+  "start.label": {
+    "message": "Repo Canon {$version}. Una configuración lista para empezar",
+    "source": "94408a19"
+  },
+  "start.tagline": {
+    "message": "Una configuración lista para empezar",
+    "source": "c88df95f"
+  },
+  "story.tab": {
+    "message": "Cómo funciona",
+    "source": "9c870aa6"
+  },
+  "story.play": {
+    "message": "Cómo funciona: ver una breve historia",
+    "source": "e0d8bc15"
+  },
+  "story.read": {
+    "message": "Leer cómo funciona",
+    "source": "12331ec9"
+  },
+  "story.caption.own-way": {
+    "message": "Cada repositorio, configurado a su manera",
+    "source": "e06a7dd0"
+  },
+  "story.caption.write-once": {
+    "message": "Escribe la configuración una vez",
+    "source": "acd5810b"
+  },
+  "story.caption.agent-applies": {
+    "message": "Tu agente de programación la aplica",
+    "source": "6be92abf"
+  },
+  "story.caption.kept-alike": {
+    "message": "Todos iguales, y así se mantienen",
+    "source": "07f0e725"
+  },
+  "story.plate": {
+    "message": "Estándares comunes",
+    "source": "f8545779"
+  },
+  "story.no-docs": {
+    "message": "sin docs",
+    "source": "1b64c39e"
+  },
+  "story.checks-pass": {
+    "message": "✓ Comprobaciones OK",
+    "source": "bbdce14b"
+  },
+  "story.controls": {
+    "message": "Cómo funciona",
+    "source": "9c870aa6"
+  },
+  "story.play-again": {
+    "message": "Repetir",
+    "source": "5ef30d27"
+  },
+  "story.go-back": {
+    "message": "Volver",
+    "source": "6aadac2f"
+  }
+}

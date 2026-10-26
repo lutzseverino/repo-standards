@@ -10,7 +10,7 @@ import {
 } from "@/components/app/empty";
 import { TooltipProvider } from "@/components/app/tooltip";
 import type { Rich, Strings } from "@/i18n/ids";
-import { localePath, type Locale } from "@/i18n/locales";
+import { localePath, type Locale, type SiteLocale } from "@/i18n/locales";
 import { formatMessage } from "@/i18n/message";
 import {
   INSTALL_MODE_STRINGS,
@@ -19,6 +19,8 @@ import {
   InstallModeSwitch,
   useInstallMode,
 } from "./install";
+import { DOCS_LINK_STRINGS, DocsLink } from "./docs-link";
+import { LANGUAGE_STRINGS, LanguageMenu } from "./language-menu";
 import { Profiles } from "./profiles";
 import { RichText } from "./rich-text";
 import { Search } from "./search";
@@ -38,12 +40,13 @@ import { SUPPORT } from "@/lib/support";
 import { useTheme } from "@/lib/theme";
 
 export const HOME_STRINGS = [
-  "common.nav.documentation",
+  ...DOCS_LINK_STRINGS,
   "common.nav.how-it-works",
   "common.theme.toggle",
   "home.search.label",
   "home.sources.list-yours",
   ...SUPPORT_STRINGS,
+  ...LANGUAGE_STRINGS,
   ...SIGN_STRINGS,
   ...INSTALL_MODE_STRINGS,
   ...INSTALL_STRINGS,
@@ -53,6 +56,8 @@ export const HOME_STRINGS = [
 /** The homepage's text that takes values, formatted when the page is built,
  * except the one message that takes the visitor's search. */
 export type HomeText = {
+  /** The language menu's name, with the page's language. */
+  language: string;
   /** The starting point's plate's name. */
   startLabel: string;
   /** Each listed source's repository, release date and CLI requirement, by
@@ -82,11 +87,14 @@ const LIGHT_LAYERS = [
 
 export function Home({
   locale,
+  alternates,
   catalogue,
   strings,
   text,
 }: {
   locale: Locale;
+  /** The homepage in each language. */
+  alternates: Record<SiteLocale, string>;
   catalogue: Catalogue;
   strings: Strings<(typeof HOME_STRINGS)[number]>;
   text: HomeText;
@@ -115,10 +123,13 @@ export function Home({
         />
       ))}
       <main className="sign-page mx-auto max-w-6xl px-6 pt-10 pb-32">
-        <nav className="mb-8 flex items-center justify-end gap-1 text-[15px]">
-          <a className={buttonVariants({ variant: "ghost" })} href="/docs/">
-            {strings["common.nav.documentation"]}
-          </a>
+        {/* on a phone the controls wrap onto a line of their own */}
+        <nav className="mb-8 flex flex-wrap items-center justify-end gap-1 text-[15px]">
+          <DocsLink
+            className={buttonVariants({ variant: "ghost" })}
+            locale={locale}
+            strings={strings}
+          />
           <button
             type="button"
             className={buttonVariants({ variant: "ghost" })}
@@ -132,12 +143,21 @@ export function Home({
           <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
             GitHub
           </a>
-          <SupportMenu compact strings={strings} />
-          <ThemeToggle
-            theme={theme}
-            onChange={setTheme}
-            label={strings["common.theme.toggle"]}
-          />
+          <div className="flex items-center gap-1">
+            <SupportMenu compact strings={strings} />
+            <LanguageMenu
+              compact
+              locale={locale}
+              alternates={alternates}
+              current={text.language}
+              strings={strings}
+            />
+            <ThemeToggle
+              theme={theme}
+              onChange={setTheme}
+              label={strings["common.theme.toggle"]}
+            />
+          </div>
         </nav>
 
         <SignAssembly

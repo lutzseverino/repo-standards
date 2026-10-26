@@ -6,7 +6,8 @@
 // page passes its own social image or takes the default one, and adds its own
 // head elements, such as JSON-LD, in the `head` slot. After the page comes
 // the footer, with the ways to support Repo Standards. `<html lang>` is the
-// page's locale.
+// page's locale, and before anything else the head opens the page in the
+// visitor's language.
 import AgentLinks from "@/components/AgentLinks.astro";
 import { format } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
@@ -15,8 +16,10 @@ import { themeScript } from "@/lib/theme-core";
 import "@/styles/global.css";
 import "@/styles/tokens.css";
 import "@/styles/support.css";
-// after the stylesheets: imported before them, they move the layout's
-// stylesheet after the page's own
+// after the stylesheets: Astro orders a page's stylesheets by where they are
+// imported, so an import before them moves the layout's stylesheet after the
+// page's own, and with it the order of the cascade layers
+import LocaleScript from "@/components/LocaleScript.astro";
 import SupportLine from "@/components/SupportLine.astro";
 import { defaultSocialImage, type SocialImage } from "@/lib/social-image";
 
@@ -40,6 +43,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
+    <LocaleScript locale={locale} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>

@@ -5,6 +5,10 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { build } from "astro";
+import {
+  parseTranslations,
+  readTranslationFiles,
+} from "../src/i18n/translations.ts";
 import { installText } from "../src/lib/catalogue.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 
@@ -52,17 +56,33 @@ test("a page built through the layout is canonical at its own URL", () => {
   assert.equal(html.match(BEACON)?.length, 1);
 });
 
-test("the built site is English only, with its locale on every page and no pseudo-locale", () => {
+test("the built site has each page in English, Spanish and Catalan, with its locale, and no pseudo-locale", () => {
   const files = readdirSync(output, { recursive: true, encoding: "utf8" });
   assert.ok(
     !files.some((file) => /^en-xa(?:\/|$)/i.test(file)),
     "no pseudo-locale route is built",
   );
   const pages = files.filter((file) => file.endsWith(".html"));
-  assert.ok(pages.length > 0);
+  const english = pages.filter((file) => !/^(?:es|ca)\//.test(file));
+  for (const locale of ["es", "ca"])
+    assert.deepEqual(
+      pages
+        .filter((file) => file.startsWith(`${locale}/`))
+        .map((file) => file.slice(locale.length + 1))
+        .sort(),
+      english
+        .filter(
+          (file) =>
+            !file.startsWith("docs/") &&
+            !["404.html", "layout-test/index.html"].includes(file),
+        )
+        .sort(),
+      `every site page in ${locale}`,
+    );
   for (const file of pages) {
     const html = read(file);
-    assert.match(html, /<html lang="en"[ >]/, file);
+    const locale = /^(es|ca)\//.exec(file)?.[1] ?? "en";
+    assert.match(html, new RegExp(`<html lang="${locale}"[ >]`), file);
     // the docs, which describe the pseudo-locale, are not localized
     if (!file.startsWith("docs/")) assert.doesNotMatch(html, /[⟦⟧]/, file);
   }
@@ -379,7 +399,9 @@ const inlineScripts = (html: string) =>
   [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 
 test("the head applies the stored or system theme as the class and the attribute", () => {
-  const [script] = inlineScripts(read("index.html"));
+  const script = inlineScripts(read("index.html")).find((s) =>
+    s.includes("function themes"),
+  )!;
   const run = (stored: string | null, systemDark: boolean) => {
     const classes = new Set<string>();
     const root = {
@@ -595,4 +617,167 @@ test("once the torch has taken over, the fonts change nothing", async () => {
   vm.runInNewContext(script, window);
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(settled, 1);
+});
+
+/* ---------- the site in Spanish and Catalan ---------- */
+
+const SITE_PAGES = [
+  "",
+  "how-it-works/",
+  "sources/lutzseverino/repo-canon/",
+  "sources/lutzseverino/repo-standards-example/",
+];
+const PREFIXES = { en: "", es: "es/", ca: "ca/" } as const;
+const localePages = () =>
+  Object.entries(PREFIXES).flatMap(([locale, prefix]) =>
+    SITE_PAGES.map((page) => ({
+      locale,
+      page,
+      file: `${prefix}${page}index.html`,
+    })),
+  );
+
+test("every site page opens the visitor's language first in its head, and loads the layout's stylesheet first", () => {
+  for (const { file } of localePages()) {
+    const html = read(file);
+    assert.match(
+      html,
+      /<head><meta charset="UTF-8"><!--[^>]*--><script>\(\(\) => \{\n {2}const choice = \(function localeChoice\(/,
+      file,
+    );
+    // the layout's stylesheet declares the cascade layers' order, so it
+    // must come before the sign's, which use them
+    assert.match(
+      /<link rel="stylesheet" href="([^"]+)"/.exec(html)?.[1] ?? "",
+      /^\/_astro\/base\.[\w-]+\.css$/,
+      file,
+    );
+  }
+});
+
+test("a built page's language script opens the same page in the saved language", () => {
+  const script = inlineScripts(read("es/how-it-works/index.html")).find((s) =>
+    s.includes("function localeChoice"),
+  )!;
+  const run = (
+    pathname: string,
+    stored: string | null,
+    languages: string[],
+  ) => {
+    const replaced: string[] = [];
+    vm.runInNewContext(script, {
+      window: { localStorage: { getItem: () => stored } },
+      location: {
+        pathname,
+        search: "",
+        hash: "",
+        replace: (to: string) => replaced.push(to),
+      },
+      navigator: { languages },
+    });
+    return replaced;
+  };
+  assert.deepEqual(run("/es/how-it-works/", "ca", []), ["/ca/how-it-works/"]);
+  assert.deepEqual(run("/es/how-it-works/", "en", []), ["/how-it-works/"]);
+  assert.deepEqual(run("/how-it-works/", null, ["es-ES"]), [
+    "/es/how-it-works/",
+  ]);
+  assert.deepEqual(run("/es/how-it-works/", null, ["en"]), []);
+});
+
+test("every site page's nav has a language menu naming the page's language, which leads to the same page in each", () => {
+  const names = {
+    en: "Language: English",
+    es: "Idioma: Español",
+    ca: "Llengua: Català",
+  } as const;
+  for (const { locale, page, file } of localePages()) {
+    const html = read(file);
+    const triggers = [
+      ...html.matchAll(
+        /<button [^>]*data-slot="dropdown-menu-trigger"[^>]*aria-label="([^"]*)"/g,
+      ),
+    ].map((m) => m[1]);
+    assert.deepEqual(triggers, [names[locale as keyof typeof names]], file);
+    const alternates = Object.entries(PREFIXES)
+      .map(
+        ([other, prefix]) =>
+          `&quot;${other}&quot;:[0,&quot;/${prefix}${page}&quot;]`,
+      )
+      .join(",");
+    assert.ok(
+      html.includes(`&quot;alternates&quot;:[0,{${alternates}}]`),
+      `${file} links its own page in every language`,
+    );
+  }
+});
+
+test("in Spanish and Catalan the nav's Docs link carries an EN badge, and in English none", () => {
+  for (const { locale, file } of localePages()) {
+    const html = read(file);
+    const link = /<a [^>]*href="\/docs\/"[^>]*>[\s\S]*?<\/a>/.exec(html)![0];
+    if (locale === "en") {
+      assert.doesNotMatch(link, /hreflang|data-slot="badge"/i, file);
+      continue;
+    }
+    assert.match(link, /hreflang="en"/i, file);
+    assert.match(
+      link,
+      /<span data-slot="badge"[^>]*aria-hidden="true"[^>]*>EN<\/span>/,
+      file,
+    );
+    assert.match(
+      link,
+      locale === "es" ? /\(en inglés\)/ : /\(en anglès\)/,
+      file,
+    );
+  }
+});
+
+test("Spanish and Catalan pages show none of the English catalogs' or prose's text", () => {
+  const translations = parseTranslations(
+    readTranslationFiles(site("src/i18n")),
+  );
+  const english = translations.en;
+  // whole messages of two words or more without variables, and the English
+  // prose's headings and sentences
+  const messages = Object.entries(english.messages)
+    .filter(
+      ([, message]) =>
+        typeof message === "string" &&
+        !message.includes("{") &&
+        message.includes(" "),
+    )
+    .map(([id, message]) => ({ id, text: message as string }));
+  const prose = Object.values(english.prose).flatMap((text) =>
+    text
+      .split(/\n#+ |\.\s/)
+      .map((part) => part.replace(/\n/g, " ").trim())
+      .filter((part) => /^[A-Z][a-z]+ [a-z]+ [a-z]+/.test(part))
+      .map((part) => part.split(" ").slice(0, 5).join(" ")),
+  );
+  for (const { locale, file } of localePages()) {
+    if (locale === "en") continue;
+    const html = unescape(read(file));
+    for (const { id, text } of messages) {
+      const own = translations[locale].messages[id] as { message: string };
+      if (own.message === text) continue;
+      assert.ok(!html.includes(text), `${file} shows ${id}: ${text}`);
+    }
+    for (const words of prose)
+      assert.ok(!html.includes(words), `${file} shows the prose ${words}`);
+  }
+});
+
+test("each How it works page's links within itself reach one of its headings", () => {
+  for (const prefix of Object.values(PREFIXES)) {
+    const html = read(`${prefix}how-it-works/index.html`);
+    const ids = new Set([...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]));
+    const fragments = [...html.matchAll(/href="#([^"]+)"/g)].map((m) =>
+      decodeURIComponent(m[1]),
+    );
+    assert.ok(fragments.length > 0, prefix);
+    for (const fragment of fragments)
+      assert.ok(ids.has(fragment), `${prefix}how-it-works/ → #${fragment}`);
+  }
 });

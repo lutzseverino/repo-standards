@@ -4,9 +4,17 @@
 // from the locale's i18n/prose/<locale>/how-it-works.md. Every claim follows
 // the usage documents and the ADRs.
 import { unified } from "@astrojs/markdown-remark";
+import { DOCS_LINK_STRINGS, DocsLink } from "@/components/docs-link";
+import { LANGUAGE_STRINGS, LanguageMenu } from "@/components/language-menu";
 import { SUPPORT_STRINGS, SupportMenu } from "@/components/support";
 import { format, prose, strings } from "@/i18n/format";
-import { localePath, localeRoutes, type Locale } from "@/i18n/locales";
+import {
+  localeAlternates,
+  localeName,
+  localePath,
+  localeRoutes,
+  type Locale,
+} from "@/i18n/locales";
 import BaseLayout from "@/layouts/base.astro";
 
 export function getStaticPaths() {
@@ -36,9 +44,22 @@ const { code: article } = await markdown.render(prose(locale, "how-it-works"));
       <a class="font-bold" href={localePath(locale, "/")}>
         Repo Standards
       </a>
-      <a href="/docs/">{format(locale, "common.nav.documentation")}</a>
+      <DocsLink
+        className="inline-flex items-center gap-1.5"
+        locale={locale}
+        strings={strings(locale, DOCS_LINK_STRINGS)}
+      />
       <a href={REPOSITORY}>GitHub</a>
       <SupportMenu client:settled strings={strings(locale, SUPPORT_STRINGS)} />
+      <LanguageMenu
+        client:settled
+        locale={locale}
+        alternates={localeAlternates("/how-it-works/")}
+        current={format(locale, "common.language.current", {
+          language: localeName(locale),
+        })}
+        strings={strings(locale, LANGUAGE_STRINGS)}
+      />
     </nav>
 
     <article set:html={article} />

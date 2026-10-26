@@ -1,0 +1,106 @@
+{
+  "title": {
+    "message": "{$name}: {$summary} | Repo Standards",
+    "source": "93f64740"
+  },
+  "description.installs": {
+    "message": "{$description} Instala {$installs}.",
+    "source": "75ecb4b5"
+  },
+  "description.skills": {
+    "message": ".input {$count :integer} .match $count one {{{$number} skill para agentes}} * {{{$number} skills para agentes}}",
+    "source": "fd27b6e6"
+  },
+  "description.checks": {
+    "message": ".input {$count :integer} .match $count one {{{$number} comprobación}} * {{{$number} comprobaciones}}",
+    "source": "5f895ecd"
+  },
+  "repo-canon.summary": {
+    "message": "plantilla de AGENTS.md, skills para agentes y guía de contribución",
+    "source": "4765215e"
+  },
+  "repo-canon.description": {
+    "message": "Una configuración lista para empezar: AGENTS.md, skills para agentes, guía de contribución, plantillas de issues y PR, y comprobaciones que tu agente instala por ti.",
+    "source": "86454060"
+  },
+  "release.label": {
+    "message": "Última versión",
+    "source": "4abf09ee"
+  },
+  "release.value": {
+    "message": "{$version}, {$date}",
+    "source": "fdcc98aa"
+  },
+  "requires.label": {
+    "message": "Requiere",
+    "source": "5f9bbdd1"
+  },
+  "requires.value": {
+    "message": "CLI de Repo Standards {$requirement}",
+    "source": "a6661f8a"
+  },
+  "repository.label": {
+    "message": "Repositorio",
+    "source": "13d6ff07"
+  },
+  "introduction.heading": {
+    "message": "Una configuración lista para empezar",
+    "source": "c88df95f"
+  },
+  "adopt.heading": {
+    "message": "Adopta {$name}",
+    "source": "435a7bd4"
+  },
+  "adopt.text": {
+    "message": "Dale el prompt a tu agente de programación en el repositorio que quieres configurar, o ejecuta tú el comando allí. En los dos casos eliges una versión y un perfil, y no se hace ningún commit hasta que revisas los cambios.",
+    "source": "dacaf6d7"
+  },
+  "profiles.heading": {
+    "message": "Perfiles",
+    "source": "535e52e4"
+  },
+  "installs.heading": {
+    "message": "Qué instala",
+    "source": "fd59750d"
+  },
+  "installs.text": {
+    "message": "Cada declaración de su {$file} en {$version}, con las rutas que instala o gestiona y las comprobaciones que ejecuta.",
+    "source": "90987ef1"
+  },
+  "installs.declaration": {
+    "message": "Declaración",
+    "source": "7609342d"
+  },
+  "installs.targets": {
+    "message": "Instala o gestiona",
+    "source": "7c34a1ec"
+  },
+  "installs.checks": {
+    "message": "Comprobaciones",
+    "source": "de07d072"
+  },
+  "installs.profiles": {
+    "message": "Perfiles",
+    "source": "535e52e4"
+  },
+  "installs.discovered": {
+    "message": "Rutas que encuentra en cada proyecto",
+    "source": "4975f52f"
+  },
+  "installs.every-profile": {
+    "message": "Todos",
+    "source": "a52ace42"
+  },
+  "kind.file": {
+    "message": "Archivo",
+    "source": "50009ce1"
+  },
+  "kind.skill": {
+    "message": "Skill",
+    "source": "6df1bb18"
+  },
+  "kind.repository": {
+    "message": "Pautas del repositorio",
+    "source": "b733b3ee"
+  }
+}

@@ -2,7 +2,12 @@
 import { HOME_STRINGS, Home, type HomeText } from "@/components/home";
 import { restScript } from "@/components/sign/rig";
 import { format, messageSource, rich, strings } from "@/i18n/format";
-import { localeRoutes, type Locale } from "@/i18n/locales";
+import {
+  localeAlternates,
+  localeName,
+  localeRoutes,
+  type Locale,
+} from "@/i18n/locales";
 import BaseLayout from "@/layouts/base.astro";
 import { STARTING_POINT, listed } from "@/lib/catalogue";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -34,6 +39,9 @@ const structuredData = buildStructuredData(catalogue, {
 const { rejectedCount: rejected } = catalogue;
 const start = catalogue.sources.find((s) => s.repository === STARTING_POINT)!;
 const text: HomeText = {
+  language: format(locale, "common.language.current", {
+    language: localeName(locale),
+  }),
   startLabel: format(locale, "sign.start.label", {
     version: start.release.version,
   }),
@@ -81,6 +89,7 @@ const text: HomeText = {
   <Home
     client:load
     locale={locale}
+    alternates={localeAlternates("/")}
     catalogue={listed(catalogue)}
     strings={strings(locale, HOME_STRINGS)}
     text={text}

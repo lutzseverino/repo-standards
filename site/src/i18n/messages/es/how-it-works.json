@@ -1,0 +1,10 @@
+{
+  "title": {
+    "message": "Cómo funciona Repo Standards | Repo Standards",
+    "source": "55cb6eed"
+  },
+  "description": {
+    "message": "Cómo funciona Repo Standards: la CLI instala una configuración fijada, tu agente adapta el resto y tú lo revisas, y cuándo encaja mejor una plantilla o Copier.",
+    "source": "1956eb31"
+  }
+}
