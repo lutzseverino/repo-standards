@@ -163,15 +163,26 @@ type State = { name: string; control: string; index: number; shows: string };
 const statesOf = (tab: Tab) =>
   tab.evaluate((states: typeof STATES) => {
     const found: State[] = [];
+    const seen = new Map<string, number>();
     for (const { controls, shows } of states)
-      [...document.querySelectorAll(controls)].forEach((control, index) =>
+      [...document.querySelectorAll(controls)].forEach((control, index) => {
+        const label = (
+          control.getAttribute("aria-label") ||
+          control.textContent ||
+          controls
+        )
+          .replace(/\s+/g, " ")
+          .trim();
+        // the second of two Copy buttons is "Copy 2"
+        const count = (seen.get(label) ?? 0) + 1;
+        seen.set(label, count);
         found.push({
-          name: `open: ${(control.getAttribute("aria-label") || control.textContent || controls).replace(/\s+/g, " ").trim()}`,
+          name: `open: ${label}${count > 1 ? ` ${count}` : ""}`,
           control: controls,
           index,
           shows,
-        }),
-      );
+        });
+      });
     return found;
   }, STATES);
 
