@@ -1,11 +1,14 @@
 ---
 // The footer's line under every page, the docs' too: both ways to support
-// Repo Standards, by name. support.css styles it.
-import { SUPPORT, SUPPORT_LABEL } from "@/lib/support";
+// Repo Standards, by name, after the page's `label`. support.css styles it.
+import { SUPPORT } from "@/lib/support";
+
+type Props = { label: string };
+const { label } = Astro.props;
 ---
 
 <p class="support-line">
-  {SUPPORT_LABEL}:
+  {label}
   {SUPPORT.map(({ name, url }, i) => (
     <>
       {i > 0 && " · "}

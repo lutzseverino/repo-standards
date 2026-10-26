@@ -1,6 +1,6 @@
 // The homepage: the sign assembly over the signposts, lit by a hand torch.
 import { useState } from "react";
-import { AdoptionDialog } from "./adoption-dialog";
+import { ADOPTION_DIALOG_STRINGS, AdoptionDialog } from "./adoption-dialog";
 import { buttonVariants } from "@/components/app/button";
 import {
   Empty,
@@ -9,14 +9,24 @@ import {
   EmptyTitle,
 } from "@/components/app/empty";
 import { TooltipProvider } from "@/components/app/tooltip";
-import { Install, InstallModeSwitch, useInstallMode } from "./install";
+import type { Rich, Strings } from "@/i18n/ids";
+import { localePath, type Locale } from "@/i18n/locales";
+import { formatMessage } from "@/i18n/message";
+import {
+  INSTALL_MODE_STRINGS,
+  INSTALL_STRINGS,
+  Install,
+  InstallModeSwitch,
+  useInstallMode,
+} from "./install";
 import { Profiles } from "./profiles";
+import { RichText } from "./rich-text";
 import { Search } from "./search";
-import { SignAssembly } from "./sign/assembly";
+import { SIGN_STRINGS, SignAssembly } from "./sign/assembly";
 import { SignpostList } from "./sign/signposts";
 import { useTorch } from "./sign/torch";
 import { REPOSITORY } from "./site-nav";
-import { SupportMenu } from "./support";
+import { SUPPORT_STRINGS, SupportMenu } from "./support";
 import { ThemeToggle } from "./theme-toggle";
 import {
   STARTING_POINT,
@@ -24,9 +34,42 @@ import {
   type Catalogue,
   type InstallMode,
 } from "@/lib/catalogue";
-import { formatDate, formatNumber, selectPlural } from "@/lib/format";
 import { SUPPORT } from "@/lib/support";
 import { useTheme } from "@/lib/theme";
+
+export const HOME_STRINGS = [
+  "common.nav.documentation",
+  "common.nav.how-it-works",
+  "common.theme.toggle",
+  "home.search.label",
+  "home.sources.list-yours",
+  ...SUPPORT_STRINGS,
+  ...SIGN_STRINGS,
+  ...INSTALL_MODE_STRINGS,
+  ...INSTALL_STRINGS,
+  ...ADOPTION_DIALOG_STRINGS,
+] as const;
+
+/** The homepage's text that takes values, formatted when the page is built,
+ * except the one message that takes the visitor's search. */
+export type HomeText = {
+  /** The starting point's plate's name. */
+  startLabel: string;
+  /** Each listed source's repository, release date and CLI requirement, by
+   * repository. */
+  details: Record<string, string>;
+  /** How to see every source again after a search that matches none. */
+  clear: string;
+  /** Where the sources come from, with a `topic` slot. */
+  origin: Rich;
+  /** How many more repositories the list leaves out, or nothing. */
+  leftOut: string;
+  /** The invitation to support, with `first` and `second` slots. */
+  invitation: Rich;
+  /** The MF2 source of the message for a search that matches nothing,
+   * formatted here with the search. */
+  noMatch: string;
+};
 
 // page-wide light layers and their diameter in beam radii. Like the other lit
 // elements, they are lit before the page hydrates (sign/rig.ts), so React is
@@ -37,7 +80,17 @@ const LIGHT_LAYERS = [
   ["sign-lit-prism", 2],
 ] as const;
 
-export function Home({ catalogue }: { catalogue: Catalogue }) {
+export function Home({
+  locale,
+  catalogue,
+  strings,
+  text,
+}: {
+  locale: Locale;
+  catalogue: Catalogue;
+  strings: Strings<(typeof HOME_STRINGS)[number]>;
+  text: HomeText;
+}) {
   const [theme, setTheme] = useTheme();
   const [mode, setMode] = useInstallMode();
   const [query, setQuery] = useState("");
@@ -49,7 +102,6 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
   const { sources } = catalogue;
   const start = sources.find((s) => s.repository === STARTING_POINT)!;
   const visible = sources.filter((s) => matches(s, query));
-  const rejected = catalogue.rejectedCount;
 
   return (
     <TooltipProvider>
@@ -65,7 +117,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
       <main className="sign-page mx-auto max-w-6xl px-6 pt-10 pb-32">
         <nav className="mb-8 flex items-center justify-end gap-1 text-[15px]">
           <a className={buttonVariants({ variant: "ghost" })} href="/docs/">
-            Documentation
+            {strings["common.nav.documentation"]}
           </a>
           <button
             type="button"
@@ -75,36 +127,54 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
               setPlayRequest((n) => n + 1);
             }}
           >
-            How it works
+            {strings["common.nav.how-it-works"]}
           </button>
           <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
             GitHub
           </a>
-          <SupportMenu compact />
-          <ThemeToggle theme={theme} onChange={setTheme} />
+          <SupportMenu compact strings={strings} />
+          <ThemeToggle
+            theme={theme}
+            onChange={setTheme}
+            label={strings["common.theme.toggle"]}
+          />
         </nav>
 
-        <SignAssembly start={start} playRequest={playRequest} />
+        <SignAssembly
+          start={start}
+          startLabel={text.startLabel}
+          howItWorks={localePath(locale, "/how-it-works/")}
+          playRequest={playRequest}
+          strings={strings}
+        />
 
         <section className="mt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Search value={query} onChange={setQuery} />
-            <InstallModeSwitch mode={mode} onChange={setMode} />
+            <Search
+              value={query}
+              onChange={setQuery}
+              label={strings["home.search.label"]}
+            />
+            <InstallModeSwitch
+              mode={mode}
+              onChange={setMode}
+              strings={strings}
+            />
           </div>
           <div className="mt-8">
-            <SignpostList sources={visible}>
+            <SignpostList locale={locale} sources={visible}>
               {(s) => (
                 <>
                   <Install
                     source={s}
                     mode={mode}
                     onCopied={() => setCopied(mode)}
+                    strings={strings}
                   />
                   <div>
                     <p className="leading-snug">{s.description}</p>
                     <div className="mt-1 text-[14px] text-muted-foreground">
-                      {s.repository}, {formatDate(s.release.publishedAt, "en")},{" "}
-                      {`needs CLI ${s.requires.replace(">=", "≥ ")}`}
+                      {text.details[s.repository]}
                     </div>
                   </div>
                   <div>
@@ -117,49 +187,61 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
               <Empty className="py-10">
                 <EmptyHeader>
                   <EmptyTitle className="text-base">
-                    No standards source matches “{query}”
+                    {formatMessage(
+                      locale,
+                      "home.search.no-match",
+                      text.noMatch,
+                      {
+                        query,
+                      },
+                    )}
                   </EmptyTitle>
                   <EmptyDescription className="text-[15px]">
-                    Clear the search to see all{" "}
-                    {formatNumber(sources.length, "en")}.
+                    {text.clear}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
             )}
           </div>
           <p className="mt-10 max-w-2xl text-[15px] leading-snug text-muted-foreground">
-            Sources come from the public GitHub topic{" "}
-            <code>repo-standards</code>, validated with CLI{" "}
-            {catalogue.cliVersion}.{" "}
-            {rejected > 0 &&
-              selectPlural(rejected, "en", {
-                one: `${formatNumber(rejected, "en")} more repository carries the topic but is left out, without a stable release this CLI can use. `,
-                other: `${formatNumber(rejected, "en")} more repositories carry the topic but are left out, without a stable release this CLI can use. `,
-              })}
-            To list your own source, add the topic and publish a stable release.
+            <RichText
+              parts={text.origin}
+              slots={{ topic: <code>repo-standards</code> }}
+            />{" "}
+            {text.leftOut && `${text.leftOut} `}
+            {strings["home.sources.list-yours"]}
           </p>
           {/* for people: the Markdown version leaves asides out */}
           <aside className="mt-4 max-w-2xl text-[15px] leading-snug text-muted-foreground">
-            If Repo Standards keeps your repositories in step, you can support
-            its work on{" "}
-            <a
-              className="text-foreground underline underline-offset-4"
-              href={SUPPORT[0].url}
-            >
-              {SUPPORT[0].name}
-            </a>{" "}
-            or{" "}
-            <a
-              className="text-foreground underline underline-offset-4"
-              href={SUPPORT[1].url}
-            >
-              {SUPPORT[1].name}
-            </a>
-            .
+            <RichText
+              parts={text.invitation}
+              slots={{
+                first: (
+                  <a
+                    className="text-foreground underline underline-offset-4"
+                    href={SUPPORT[0].url}
+                  >
+                    {SUPPORT[0].name}
+                  </a>
+                ),
+                second: (
+                  <a
+                    className="text-foreground underline underline-offset-4"
+                    href={SUPPORT[1].url}
+                  >
+                    {SUPPORT[1].name}
+                  </a>
+                ),
+              }}
+            />
           </aside>
         </section>
       </main>
-      <AdoptionDialog copied={copied} onClose={() => setCopied(null)} />
+      <AdoptionDialog
+        copied={copied}
+        onClose={() => setCopied(null)}
+        strings={strings}
+      />
     </TooltipProvider>
   );
 }

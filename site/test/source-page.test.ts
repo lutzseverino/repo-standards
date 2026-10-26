@@ -37,7 +37,7 @@ async function repoCanon(
 }
 
 test("everything Repo Canon's introduction names, its release installs", async () => {
-  const introduction = sourceIntroduction(await repoCanon());
+  const introduction = sourceIntroduction(await repoCanon(), "en");
   assert.deepEqual(
     introduction?.topics.map((t) => t.heading),
     [
@@ -68,7 +68,7 @@ test("a Repo Canon release without something its page names fails the build", as
     ];
   });
   assert.throws(
-    () => sourceIntroduction(source),
+    () => sourceIntroduction(source, "en"),
     /names \.github\/PULL_REQUEST_TEMPLATE\.md under "Issue and PR templates", which its standards\.yaml at v0\.17\.0 does not install/,
   );
 });
@@ -80,7 +80,7 @@ test("only Repo Canon has an introduction", async () => {
       Promise.resolve(recorded(`standards/${repository}.yaml`)),
   });
   assert.deepEqual(
-    sources.map((s) => sourceIntroduction(s) !== undefined),
+    sources.map((s) => sourceIntroduction(s, "en") !== undefined),
     sources.map((s) => s.repository === "lutzseverino/repo-canon"),
   );
 });
@@ -119,7 +119,7 @@ const source: DetailedSource = {
 
 test("a source's title is its name and description", () => {
   assert.equal(
-    sourceTitle(source),
+    sourceTitle(source, "en"),
     "alice: Standards for Alice projects | Repo Standards",
   );
 });

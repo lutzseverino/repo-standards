@@ -12,6 +12,7 @@
     "ui:update": "node scripts/registry.mjs update",
     "ui:check": "node scripts/registry.mjs check",
     "social-image": "node scripts/social-image.mjs",
+    "i18n:source": "node scripts/translation-source.ts",
     "test": "node --test test/*.test.ts"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "mdast-util-from-markdown": "2.1.0",
     "mdast-util-gfm": "3.1.0",
     "mdast-util-to-markdown": "2.2.0",
+    "messageformat": "4.1.0",
     "micromark-extension-gfm": "3.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

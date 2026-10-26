@@ -52,6 +52,22 @@ test("a page built through the layout is canonical at its own URL", () => {
   assert.equal(html.match(BEACON)?.length, 1);
 });
 
+test("the built site is English only, with its locale on every page and no pseudo-locale", () => {
+  const files = readdirSync(output, { recursive: true, encoding: "utf8" });
+  assert.ok(
+    !files.some((file) => /^en-xa(?:\/|$)/i.test(file)),
+    "no pseudo-locale route is built",
+  );
+  const pages = files.filter((file) => file.endsWith(".html"));
+  assert.ok(pages.length > 0);
+  for (const file of pages) {
+    const html = read(file);
+    assert.match(html, /<html lang="en"[ >]/, file);
+    // the docs, which describe the pseudo-locale, are not localized
+    if (!file.startsWith("docs/")) assert.doesNotMatch(html, /[⟦⟧]/, file);
+  }
+});
+
 test("the homepage is canonical at the site root and loads the beacon once", () => {
   const html = read("index.html");
   assert.equal(

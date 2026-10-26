@@ -4,6 +4,7 @@
 // profiles each start on one line across a row.
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/app/card";
+import { localePath, type Locale } from "@/i18n/locales";
 import { sourcePath, type Source } from "@/lib/catalogue";
 import { Arrow, ExitArrow } from "./arrow";
 import { Face } from "./face";
@@ -11,9 +12,11 @@ import { fitName } from "./fit-name";
 import { announceLayout } from "./torch";
 
 export function SignpostList({
+  locale,
   sources,
   children,
 }: {
+  locale: Locale;
   sources: Source[];
   /** The card body for each source. */
   children: (source: Source) => ReactNode;
@@ -53,7 +56,7 @@ export function SignpostList({
             <Face
               as="a"
               kind="blue"
-              href={sourcePath(s)}
+              href={localePath(locale, sourcePath(s))}
               label={`${s.name} ${s.release.version}`}
               className="signpost-plate"
             >

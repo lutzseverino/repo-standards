@@ -10,7 +10,8 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
-import { NOTICE, repositoryUrl, type Source } from "@/lib/catalogue";
+import type { Strings } from "@/i18n/ids";
+import { repositoryUrl, type Source } from "@/lib/catalogue";
 import { Arrow } from "./arrow";
 import { Face, Surface } from "./face";
 import { sinkPosts } from "./posts";
@@ -22,7 +23,17 @@ import {
   railPath,
 } from "./rail";
 import { lightRig } from "./rig";
-import { Story, type Beat } from "./story";
+import { STORY_STRINGS, Story, type Beat } from "./story";
+
+export const SIGN_STRINGS = [
+  "common.notice",
+  "sign.tagline",
+  "sign.start.tagline",
+  "sign.story.tab",
+  "sign.story.play",
+  "sign.story.read",
+  ...STORY_STRINGS,
+] as const;
 
 /** The pointer stands in for the viewer's eye and tilts the assembly. On entry
  * and when the pointer leaves, the sign settles into a presentational pose and
@@ -209,11 +220,19 @@ type Phase = "idle" | "playing" | "leaving" | "rising";
 
 export function SignAssembly({
   start,
+  startLabel,
+  howItWorks,
   playRequest,
+  strings,
 }: {
   start: Source;
+  /** The starting point's plate's name: its name, release and tagline. */
+  startLabel: string;
+  /** The story in words: the How it works page's path. */
+  howItWorks: string;
   /** Changes whenever the page asks for the story, from its nav. */
   playRequest: number;
+  strings: Strings<(typeof SIGN_STRINGS)[number]>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const railRef = useRef<SVGSVGElement>(null);
@@ -309,7 +328,7 @@ export function SignAssembly({
             <div className="sign-mount sign-mount--tab story-cue">
               <Face kind="white" className="sign-tab-face" hidden>
                 <span className="sign-face__inner flex items-center gap-1.5">
-                  How it works
+                  {strings["sign.story.tab"]}
                   <Arrow size={16} />
                 </span>
               </Face>
@@ -317,12 +336,12 @@ export function SignAssembly({
                 ref={cue}
                 type="button"
                 className="story-cue-button"
-                aria-label="How it works: play a short story"
+                aria-label={strings["sign.story.play"]}
                 onClick={() => play()}
               />
               {/* the story in words, a plain link that needs no script */}
-              <a className="story-read" href="/how-it-works/">
-                Read how it works
+              <a className="story-read" href={howItWorks}>
+                {strings["sign.story.read"]}
               </a>
             </div>
 
@@ -339,8 +358,7 @@ export function SignAssembly({
                   Repo Standards
                 </span>{" "}
                 <span className="sign-face__inner mt-3 block text-[20px] font-medium leading-tight md:text-[25px]">
-                  Write your setup down once. Your coding agent applies it to
-                  every repository.
+                  {strings["sign.tagline"]}
                 </span>
               </Face>
             </div>
@@ -352,7 +370,7 @@ export function SignAssembly({
                 href={repositoryUrl(start)}
                 slats
                 leds
-                label={`Repo Canon ${start.release.version}. A ready-made setup to start from`}
+                label={startLabel}
                 className="px-6 pb-5 pt-5 md:px-8"
               >
                 <span className="sign-face__inner flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -367,7 +385,7 @@ export function SignAssembly({
                 <span className="sign-inset sign-face__inner mt-4 text-[18px] md:text-[21px]">
                   <Surface />
                   <span className="relative z-[3]">
-                    A ready-made setup to start from
+                    {strings["sign.start.tagline"]}
                   </span>
                 </span>
               </Face>
@@ -383,7 +401,9 @@ export function SignAssembly({
                 kind="white"
                 className="px-6 py-4 text-[16px] font-medium leading-snug md:text-[17px]"
               >
-                <span className="sign-face__inner block">{NOTICE}</span>
+                <span className="sign-face__inner block">
+                  {strings["common.notice"]}
+                </span>
               </Face>
             </div>
           </div>
@@ -395,6 +415,7 @@ export function SignAssembly({
             onBeat={setBeat}
             leaving={phase === "leaving" || phase === "rising"}
             onDone={stop}
+            strings={strings}
           />
         )}
       </div>

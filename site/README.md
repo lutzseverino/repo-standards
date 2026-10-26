@@ -123,21 +123,35 @@ contrast for text, links and code on every background they are drawn on;
 `test/docs.test.ts` checks the built code colours, the plate and the font
 faces.
 
-`src/pages/index.astro` loads the data and renders the homepage,
-`src/components/home.tsx`. `src/pages/how-it-works.astro` tells the homepage
-story in words, with who does what, the tools that fit some jobs better and
-the current limits; its claims follow the usage documents and the ADRs.
-Each plate in the homepage's list links to the source's page,
-`src/pages/sources/[owner]/[repo].astro`: the source's description, latest
-release, CLI requirement and profiles, the agent prompt and terminal command
-(`source-adoption.tsx`), the site's notice and what the source installs.
-`src/lib/source-page.ts` writes each page's title and description, and Repo
-Canon's introduction, which names what it provides in the words people search
-for. Each thing the introduction names must be among what its release
-installs, or the build fails until the introduction is updated. A source page
-carries JSON-LD for its source, and its nav (`site-nav.tsx`) leads home.
-Every page outside the docs renders inside
-`src/layouts/base.astro`, which owns the head: the theme, the page's title,
+The site's text comes from message catalogs and prose files in `src/i18n/`,
+through `format()`; the [development guide](../docs/development/README.md#site-translations)
+says how to change it and its translations, and
+[ADR 0030](../docs/adr/0030-localize-the-site-through-mf2-catalogs.md) records
+the design. The pages live under `src/pages/[...locale]/`, built once for each
+locale in `src/i18n/locales.ts`: the default, English, at the root and any
+other under `/<tag>/`. The development server also serves the pseudo-locale
+at `/en-xa/`, which `test/pseudo-locale.test.ts` checks there; the build
+never includes it. The docs, `llms.txt`, `sources.json`, the prompts and the
+Markdown versions stay in English.
+
+`src/pages/[...locale]/index.astro` loads the data and renders the homepage,
+`src/components/home.tsx`. `src/pages/[...locale]/how-it-works.astro` renders
+`src/i18n/prose/<locale>/how-it-works.md`, the homepage story in words, with
+who does what, the tools that fit some jobs better and the current limits; its
+claims follow the usage documents and the ADRs. Each plate in the homepage's
+list links to the source's page,
+`src/pages/[...locale]/sources/[owner]/[repo].astro`: the source's
+description, latest release, CLI requirement and profiles, the agent prompt
+and terminal command (`source-adoption.tsx`), the site's notice and what the
+source installs. `src/lib/source-page.ts` writes each page's title and
+description, and Repo Canon's introduction from
+`src/i18n/prose/<locale>/repo-canon.md`, which names what it provides in the
+words people search for. Each thing the introduction names must be among what
+its release installs, or the build fails until the introduction is updated. A
+source page carries JSON-LD for its source, and its nav (`site-nav.tsx`) leads
+home. Every page outside the docs renders inside
+`src/layouts/base.astro`, which owns the head: the page's locale as
+`<html lang>`, the theme, the page's title,
 description and canonical URL, its own path on `site`, the Open Graph and
 Twitter card tags, the favicons, the web manifest and the Cloudflare Web
 Analytics beacon. `og:title`, `og:description` and `og:url` repeat the page's

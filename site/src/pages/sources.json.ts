@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import { NOTICE, repositoryUrl, sourcePath } from "../lib/catalogue";
+import { format } from "../i18n/format";
+import { DEFAULT_LOCALE } from "../i18n/locales";
+import { repositoryUrl, sourcePath } from "../lib/catalogue";
 import { loadCatalogue } from "../lib/load-catalogue";
 
 export const GET: APIRoute = async ({ site }) => {
@@ -7,7 +9,7 @@ export const GET: APIRoute = async ({ site }) => {
   return Response.json({
     schema: "repo-standards/sources/v1",
     cliVersion,
-    notice: NOTICE,
+    notice: format(DEFAULT_LOCALE, "common.notice"),
     sources: sources.map((source) => ({
       repository: repositoryUrl(source),
       name: source.name,

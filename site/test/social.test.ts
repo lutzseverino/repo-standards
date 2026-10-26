@@ -17,12 +17,13 @@ function pngSize(png: Buffer) {
 }
 
 test("the default social image is a 1200x630 PNG", () => {
-  assert.deepEqual(pngSize(read(defaultSocialImage.src)), {
+  const image = defaultSocialImage("en");
+  assert.deepEqual(pngSize(read(image.src)), {
     width: 1200,
     height: 630,
   });
-  assert.equal(defaultSocialImage.width, 1200);
-  assert.equal(defaultSocialImage.height, 630);
+  assert.equal(image.width, 1200);
+  assert.equal(image.height, 630);
 });
 
 test("the web manifest names the site and lists its icons at their sizes", () => {

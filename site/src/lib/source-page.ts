@@ -1,22 +1,25 @@
 // What a source's own page says about it beyond its listing: its title and
-// description, and Repo Canon's introduction, which the site writes itself.
+// description, and Repo Canon's introduction, which the site writes itself in
+// i18n/prose/<locale>/repo-canon.md.
+import type { RootContent } from "mdast";
+import { fromMarkdown } from "mdast-util-from-markdown";
 import {
   STARTING_POINT,
   type Declaration,
   type DetailedSource,
   type Source,
 } from "./catalogue.ts";
-import { formatList, formatNumber, selectPlural } from "./format.ts";
-
-export const SITE_NAME = "Repo Standards";
+import { formatList, formatNumber } from "./format.ts";
+import { format, prose } from "../i18n/format.ts";
+import type { MessageId } from "../i18n/ids.ts";
+import type { Locale } from "../i18n/locales.ts";
 
 /** A search result's description is cut at about this many characters. */
 const DESCRIPTION_LIMIT = 155;
 
-/** One thing a source provides, under a heading in searchers' words. */
+/** One thing a source provides, under a heading in searchers' words, in the
+ * order the introduction's prose gives the headings. */
 type Topic = {
-  heading: string;
-  text: string;
   /** The installed paths and check IDs a declaration adds to the topic. */
   shows: (declaration: Declaration) => string[];
   /** What the heading and text name. Each must be among what the topic
@@ -27,14 +30,17 @@ type Topic = {
 
 type Introduction = {
   /** The title's description. */
-  short: string;
+  summary: MessageId;
   /** The page's meta description. */
-  description: string;
-  lead: string;
+  description: MessageId;
+  /** The prose file holding the lead and each topic's heading and text. */
+  prose: string;
   topics: Topic[];
 };
 
-export type IntroducedTopic = Pick<Topic, "heading" | "text"> & {
+export type IntroducedTopic = {
+  heading: string;
+  text: string;
   items: string[];
 };
 
@@ -42,14 +48,11 @@ export type IntroducedTopic = Pick<Topic, "heading" | "text"> & {
  * they want an AGENTS.md or agent skills. Its page names them in their words,
  * and each claim is checked against the release it describes. */
 const STARTING_POINT_INTRODUCTION: Introduction = {
-  short: "AGENTS.md template, agent skills and contribution guidelines",
-  description:
-    "A ready-made setup to start from: AGENTS.md, agent skills, contribution guidelines, issue and PR templates, and checks your coding agent installs for you.",
-  lead: "Repo Canon is a ready-made setup to start from. Your coding agent installs it in your repository and adapts it to your project, and the same prompt later updates it to a newer release.",
+  summary: "sources.repo-canon.summary",
+  description: "sources.repo-canon.description",
+  prose: "repo-canon",
   topics: [
     {
-      heading: "AGENTS.md",
-      text: "An AGENTS.md that coding agents read first, with the project's agent docs beside it in docs/agents/.",
       shows: (d) =>
         d.targets.filter(
           (t) => t === "AGENTS.md" || t.startsWith("docs/agents/"),
@@ -57,8 +60,6 @@ const STARTING_POINT_INTRODUCTION: Introduction = {
       claims: ["AGENTS.md", "docs/agents/"],
     },
     {
-      heading: "Agent skills",
-      text: "Skills in .agents/skills/ for triage, specifications and tickets, test-driven development, code review and pull requests.",
       shows: (d) => (d.kind === "skill" ? d.targets : []),
       claims: [
         ".agents/skills/triage/",
@@ -70,14 +71,10 @@ const STARTING_POINT_INTRODUCTION: Introduction = {
       ],
     },
     {
-      heading: "Contribution guidelines",
-      text: "A CONTRIBUTING.md for the people and the agents who work on the repository.",
       shows: (d) => d.targets.filter((t) => t === "CONTRIBUTING.md"),
       claims: ["CONTRIBUTING.md"],
     },
     {
-      heading: "Issue and PR templates",
-      text: "GitHub issue forms for bug reports, feature requests, specifications and implementation tickets, and a pull request template.",
       shows: (d) =>
         d.targets.filter(
           (t) =>
@@ -93,8 +90,6 @@ const STARTING_POINT_INTRODUCTION: Introduction = {
       ],
     },
     {
-      heading: "Checks",
-      text: "Checks of the documentation's navigation, the READMEs' structure and the pull request reviewer file, run on adoption and with repo-standards check, and GitHub Actions workflows, among them checks of issue contracts and pull request metadata.",
       shows: (d) => [
         ...d.checks,
         ...d.targets.filter((t) => t.startsWith(".github/workflows/")),
@@ -115,20 +110,25 @@ const INTRODUCTIONS: Record<string, Introduction> = {
   [STARTING_POINT]: STARTING_POINT_INTRODUCTION,
 };
 
-/** `<source name>: <short description> | Repo Standards`. */
-export function sourceTitle(source: Source): string {
-  const short = INTRODUCTIONS[source.repository]?.short ?? source.description;
-  return `${source.name}: ${short} | ${SITE_NAME}`;
+/** `<source name>: <summary> | Repo Standards`. */
+export function sourceTitle(source: Source, locale: Locale): string {
+  const introduction = INTRODUCTIONS[source.repository];
+  return format(locale, "sources.title", {
+    name: source.name,
+    summary: introduction
+      ? format(locale, introduction.summary)
+      : source.description,
+  });
 }
 
 /** The source's own description and what it installs, within a search
  * result's length. Repo Canon's is the site's own. */
 export function sourceDescription(
   source: DetailedSource,
-  locale: string,
+  locale: Locale,
 ): string {
   const introduction = INTRODUCTIONS[source.repository];
-  if (introduction) return introduction.description;
+  if (introduction) return format(locale, introduction.description);
   const own = /[.!?]$/.test(source.description)
     ? source.description
     : `${source.description}.`;
@@ -143,18 +143,21 @@ export function sourceDescription(
     .filter((t) => !t.includes("/"));
   const skills = installs.filter((d) => d.kind === "skill").length;
   const checks = installs.reduce((n, d) => n + d.checks.length, 0);
+  const count = (id: MessageId, n: number) =>
+    format(locale, id, { count: n, number: formatNumber(n, locale) });
   const counts = [
-    skills > 0 &&
-      `${formatNumber(skills, locale)} ${selectPlural(skills, locale, { one: "agent skill", other: "agent skills" })}`,
-    checks > 0 &&
-      `${formatNumber(checks, locale)} ${selectPlural(checks, locale, { one: "check", other: "checks" })}`,
+    skills > 0 && count("sources.description.skills", skills),
+    checks > 0 && count("sources.description.checks", checks),
   ].filter((c) => c !== false);
   // as many of the files as fit, with the counts
   for (let n = files.length; n >= 0; n--) {
     const items = [...files.slice(0, n), ...counts];
     if (items.length === 0) break;
-    // Existing English descriptions omit the serial comma.
-    const text = `${own} Installs ${formatList(items, locale === "en" ? "en-GB" : locale)}.`;
+    const text = format(locale, "sources.description.installs", {
+      description: own,
+      // Existing English descriptions omit the serial comma.
+      installs: formatList(items, locale === "en" ? "en-GB" : locale),
+    });
     if (text.length <= DESCRIPTION_LIMIT) return text;
   }
   return own;
@@ -165,12 +168,22 @@ export function sourceDescription(
  * the page never states what it does not install. */
 export function sourceIntroduction(
   source: DetailedSource,
+  locale: Locale,
 ): { lead: string; topics: IntroducedTopic[] } | undefined {
   const introduction = INTRODUCTIONS[source.repository];
   if (!introduction) return undefined;
+  const { lead, sections } = introductionProse(
+    prose(locale, introduction.prose),
+    `${introduction.prose} in ${locale}`,
+  );
+  if (sections.length !== introduction.topics.length)
+    throw new Error(
+      `The prose ${introduction.prose} in ${locale} has ${sections.length} topics, but site/src/lib/source-page.ts checks ${introduction.topics.length}.`,
+    );
   return {
-    lead: introduction.lead,
-    topics: introduction.topics.map(({ heading, text, shows, claims }) => {
+    lead,
+    topics: introduction.topics.map(({ shows, claims }, i) => {
+      const { heading, text } = sections[i];
       const items = [...new Set(source.installs.flatMap(shows))].sort();
       for (const claim of claims)
         if (
@@ -179,9 +192,40 @@ export function sourceIntroduction(
           )
         )
           throw new Error(
-            `The page for ${source.repository} names ${claim} under "${heading}", which its standards.yaml at ${source.release.version} does not install. Update its introduction in site/src/lib/source-page.ts.`,
+            `The page for ${source.repository} names ${claim} under "${heading}", which its standards.yaml at ${source.release.version} does not install. Update its introduction in site/src/lib/source-page.ts and site/src/i18n/prose/.`,
           );
       return { heading, text, items };
     }),
   };
+}
+
+/** An introduction's plain text: a lead paragraph, then each topic as a
+ * second-level heading over one paragraph. */
+function introductionProse(
+  markdown: string,
+  file: string,
+): { lead: string; sections: { heading: string; text: string }[] } {
+  const fail = (): never => {
+    throw new Error(
+      `The prose ${file} must be a plain-text lead paragraph, then each topic as a "## heading" over one plain-text paragraph.`,
+    );
+  };
+  const plain = (
+    node: RootContent | undefined,
+    type: "heading" | "paragraph",
+  ): string => {
+    if (node?.type !== type || (node.type === "heading" && node.depth !== 2))
+      return fail();
+    return node.children
+      .map((child) => (child.type === "text" ? child.value : fail()))
+      .join("");
+  };
+  const [lead, ...rest] = fromMarkdown(markdown).children;
+  const sections = [];
+  for (let i = 0; i < rest.length; i += 2)
+    sections.push({
+      heading: plain(rest[i], "heading"),
+      text: plain(rest[i + 1], "paragraph"),
+    });
+  return { lead: plain(lead, "paragraph"), sections };
 }

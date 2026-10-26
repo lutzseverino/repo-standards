@@ -18,9 +18,10 @@ import vm from "node:vm";
 import { parse, type DefaultTreeAdapterMap } from "parse5";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { visit } from "unist-util-visit";
-import { installText, NOTICE } from "../src/lib/catalogue.ts";
+import { format } from "../src/i18n/format.ts";
+import { installText } from "../src/lib/catalogue.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
-import { SUPPORT, SUPPORT_LABEL } from "../src/lib/support.ts";
+import { SUPPORT } from "../src/lib/support.ts";
 import { themes } from "../src/lib/theme-core.ts";
 import { CODE_BACKGROUND, contrast, palette } from "./docs-palette.ts";
 
@@ -169,7 +170,7 @@ test("sources.json and stable prompts describe exactly the accepted catalogue", 
   ]);
   assert.equal(manifest.schema, "repo-standards/sources/v1");
   assert.equal(manifest.cliVersion, catalogue.cliVersion);
-  assert.equal(manifest.notice, NOTICE);
+  assert.equal(manifest.notice, format("en", "common.notice"));
   assert.deepEqual(
     manifest.sources,
     catalogue.sources.map((source) => ({
@@ -390,6 +391,9 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // the footer, which the support tests check, with their inlined styles;
   // the nodes they add renumber React's ids. The control's Dropdown Menu
   // moves the React renderer to a chunk of its own, which changes its hash.
+  // Since #404 the text comes from the message catalogs: the Home island's
+  // props carry its locale and finished strings, and whole messages change
+  // only React's text boundaries.
   const html = read("index.html")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
@@ -406,8 +410,16 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/\/_astro\/client\.[\w-]+\.js/g, "/_astro/client.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
-    // A whole CLI-notice template changes only React's text boundaries.
-    .replace(/,<!-- --> <!-- -->needs CLI /g, ", needs CLI <!-- -->")
+    .replace(
+      /(component-export="Home"[^>]*props="\{)&quot;locale&quot;:\[0,&quot;en&quot;\],/,
+      "$1",
+    )
+    .replace(
+      /(component-export="Home"[^>]*props="\{[^"]*?),&quot;strings&quot;:[^"]*(\}")/,
+      "$1$2",
+    )
+    // Whole messages and templates change only React's text boundaries.
+    .replace(/<!-- -->/g, "")
     .replace(
       /<button type="button"[^>]*data-slot="dropdown-menu-trigger"[\s\S]*?<\/button>/,
       "",
@@ -418,7 +430,7 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "49177e1b2ca8f5aa51006e689cc67c36c9dacac8fb718e84a1b14603b059352e",
+    "9862b3afc61b39c7bbe68c06d5ce0fe88b6d6e631071d54671d01434b058060e",
   );
 });
 
@@ -502,7 +514,7 @@ test("every page's footer links both pages", () => {
       footers.some(
         (footer) =>
           links(footer).join() === SUPPORT_URLS.join() &&
-          text(footer).includes(SUPPORT_LABEL),
+          text(footer).includes(format("en", "common.support.footer")),
       ),
       file,
     );

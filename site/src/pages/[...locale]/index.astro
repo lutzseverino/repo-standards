@@ -1,0 +1,95 @@
+---
+import { HOME_STRINGS, Home, type HomeText } from "@/components/home";
+import { restScript } from "@/components/sign/rig";
+import { format, messageSource, rich, strings } from "@/i18n/format";
+import { localeRoutes, type Locale } from "@/i18n/locales";
+import BaseLayout from "@/layouts/base.astro";
+import { STARTING_POINT, listed } from "@/lib/catalogue";
+import { formatDate, formatNumber } from "@/lib/format";
+import { loadCatalogue } from "@/lib/load-catalogue";
+import {
+  buildStructuredData,
+  serializeStructuredData,
+} from "@/lib/structured-data";
+import "@/components/sign/sign.css";
+import "@/components/sign/light.css";
+import "@/components/sign/story.css";
+import "@/components/adoption-dialog.css";
+
+export function getStaticPaths() {
+  return localeRoutes();
+}
+
+type Props = { locale: Locale };
+
+const { locale } = Astro.props;
+const catalogue = await loadCatalogue();
+const title = format(locale, "home.title");
+const description = format(locale, "home.description");
+const structuredData = buildStructuredData(catalogue, {
+  name: "Repo Standards",
+  url: Astro.site!.href,
+  description,
+});
+const { rejectedCount: rejected } = catalogue;
+const start = catalogue.sources.find((s) => s.repository === STARTING_POINT)!;
+const text: HomeText = {
+  startLabel: format(locale, "sign.start.label", {
+    version: start.release.version,
+  }),
+  details: Object.fromEntries(
+    catalogue.sources.map((s) => [
+      s.repository,
+      format(locale, "home.listing.details", {
+        repository: s.repository,
+        date: formatDate(s.release.publishedAt, locale),
+        requirement: s.requires.replace(">=", "≥ "),
+      }),
+    ]),
+  ),
+  clear: format(locale, "home.search.clear", {
+    number: formatNumber(catalogue.sources.length, locale),
+  }),
+  origin: rich(
+    locale,
+    "home.sources.origin",
+    { version: catalogue.cliVersion },
+    ["topic"],
+  ),
+  leftOut:
+    rejected > 0
+      ? format(locale, "home.sources.left-out", {
+          count: rejected,
+          number: formatNumber(rejected, locale),
+        })
+      : "",
+  invitation: rich(locale, "home.support.invitation", {}, ["first", "second"]),
+  noMatch: messageSource(locale, "home.search.no-match"),
+};
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <Fragment slot="head">
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={serializeStructuredData(structuredData)}
+    />
+    <!-- holds the first paint until the page is drawn at rest, below -->
+    <link rel="expect" href="#at-rest" blocking="render" />
+  </Fragment>
+  <Home
+    client:load
+    locale={locale}
+    catalogue={listed(catalogue)}
+    strings={strings(locale, HOME_STRINGS)}
+    text={text}
+  />
+  <!-- draws the sign at its pose and the lights on before the first paint,
+       so hydration changes nothing -->
+  <script is:inline set:html={restScript()} />
+  <!-- the first paint waits for this marker: the parser reaches it only
+       once the script above has run, while the script element itself is
+       in the document before it runs -->
+  <template id="at-rest"></template>
+</BaseLayout>

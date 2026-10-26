@@ -1,0 +1,18 @@
+{
+  "tagline": "Write your setup down once. Your coding agent applies it to every repository.",
+  "start.label": "Repo Canon {$version}. A ready-made setup to start from",
+  "start.tagline": "A ready-made setup to start from",
+  "story.tab": "How it works",
+  "story.play": "How it works: play a short story",
+  "story.read": "Read how it works",
+  "story.caption.own-way": "Every repository, set up its own way",
+  "story.caption.write-once": "Write the setup down once",
+  "story.caption.agent-applies": "Your coding agent applies it",
+  "story.caption.kept-alike": "All alike, and kept that way",
+  "story.plate": "Shared standards",
+  "story.no-docs": "no docs",
+  "story.checks-pass": "✓ Checks pass",
+  "story.controls": "How it works",
+  "story.play-again": "Play again",
+  "story.go-back": "Go back"
+}

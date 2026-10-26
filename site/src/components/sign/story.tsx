@@ -15,12 +15,37 @@ import {
 } from "react";
 import { ArrowLeft, FolderGit2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/app/button";
+import type { Strings } from "@/i18n/ids";
 import { Arrow } from "./arrow";
 import { Surface } from "./face";
 import { seeded } from "./rail";
 
 /** The caption that is up, and how long it stays. */
 export type Beat = { key: string; ms: number };
+
+/** Each beat's caption; the first beat has none. */
+const CAPTIONS = [
+  null,
+  "sign.story.caption.own-way",
+  "sign.story.caption.write-once",
+  "sign.story.caption.agent-applies",
+  "sign.story.caption.kept-alike",
+] as const;
+
+export const STORY_STRINGS = [
+  "sign.story.caption.own-way",
+  "sign.story.caption.write-once",
+  "sign.story.caption.agent-applies",
+  "sign.story.caption.kept-alike",
+  "sign.story.plate",
+  "sign.story.no-docs",
+  "sign.story.checks-pass",
+  "sign.story.controls",
+  "sign.story.play-again",
+  "sign.story.go-back",
+] as const;
+
+type StoryStrings = Strings<(typeof STORY_STRINGS)[number]>;
 
 /* ---------- the repositories ---------- */
 
@@ -166,7 +191,17 @@ function delay(repo: Repo, o: number) {
  * faces are drawn; the update cross-fades them, after a pop and a scan. The
  * card moves in and out; its body pops. Kept apart, the pop's held end can
  * never stop the way out from animating. */
-function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
+function Mini({
+  repo,
+  d,
+  enter,
+  strings,
+}: {
+  repo: Repo;
+  d: number;
+  enter: number;
+  strings: StoryStrings;
+}) {
   return (
     <div
       className="story-mini"
@@ -195,7 +230,9 @@ function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
               <div key={f}>{f}</div>
             ))}
             {repo.files.length < 2 && (
-              <div className="story-mini-missing">no docs</div>
+              <div className="story-mini-missing">
+                {strings["sign.story.no-docs"]}
+              </div>
             )}
           </div>
         </div>
@@ -209,7 +246,9 @@ function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
               <div key={f}>{f}</div>
             ))}
           </div>
-          <div className="story-mini-foot">✓ Checks pass</div>
+          <div className="story-mini-foot">
+            {strings["sign.story.checks-pass"]}
+          </div>
         </div>
         <span className="story-mini-scan" />
       </div>
@@ -218,28 +257,18 @@ function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
 }
 
 /** The plate for any set of standards. The shield says it is versioned. */
-function StandardsPlate() {
+function StandardsPlate({ label }: { label: string }) {
   return (
     <div className="sign-face sign-face--blue story-plate">
       <Surface />
       <span className="sign-face__inner flex items-center gap-4">
         <Arrow size={40} />
         <span className="sign-shield tabular-nums text-[16px]">v2.1.0</span>
-        <span className="text-[34px] font-bold leading-none">
-          Shared standards
-        </span>
+        <span className="text-[34px] font-bold leading-none">{label}</span>
       </span>
     </div>
   );
 }
-
-const CAPTIONS = [
-  "",
-  "Every repository, set up its own way",
-  "Write the setup down once",
-  "Your coding agent applies it",
-  "All alike, and kept that way",
-];
 
 // sink, rise, the plate appears, it falls, the wave, the end; the floor
 // starts rising while the sign is still sinking, so the stage is never empty
@@ -275,6 +304,7 @@ export function Story({
   onBeat,
   leaving,
   onDone,
+  strings,
 }: {
   /** Asked for by the visitor, rather than played on its own: the focus
    * moves from the sunk sign to the story's controls. */
@@ -285,6 +315,7 @@ export function Story({
   leaving: boolean;
   /** Go back, or the story's end: the sign comes back. */
   onDone: () => void;
+  strings: StoryStrings;
 }) {
   // Play again rewinds in place: the floor stays, the repositories turn back
   // into their own setups, and the story runs on from there
@@ -308,6 +339,7 @@ export function Story({
   const beat = step < 3 ? step : step < 5 ? 3 : 4;
   const beatMs = BEATS[beat];
   const beatKey = `${replays}-${beat}`;
+  const caption = CAPTIONS[beat];
   // after the last caption's time, the sign comes back
   useEffect(() => {
     if (step !== 5 || leaving) return;
@@ -339,14 +371,14 @@ export function Story({
         } as CSSProperties
       }
     >
-      {step >= 1 && (
+      {caption && (
         <div
           key={beatKey}
           className="sign-face sign-face--white story-caption"
           role="status"
         >
           <Surface />
-          <span className="sign-face__inner">{CAPTIONS[beat]}</span>
+          <span className="sign-face__inner">{strings[caption]}</span>
         </div>
       )}
       <div className="story-floor" aria-hidden="true">
@@ -365,6 +397,7 @@ export function Story({
                   d={landedAt === null ? 0 : delay(repo, landedAt)}
                   // nearest rows first, as if coming up from below
                   enter={(ROWS * COPIES - 1 - repo.r) * 55 + repo.c * 20}
+                  strings={strings}
                 />
               ))}
             </div>
@@ -380,17 +413,21 @@ export function Story({
           <span className="story-ring" data-plate={plate} />
         </div>
         <div className="story-fall" data-plate={plate}>
-          <StandardsPlate />
+          <StandardsPlate label={strings["sign.story.plate"]} />
         </div>
       </div>
-      <div className="story-controls" role="group" aria-label="How it works">
+      <div
+        className="story-controls"
+        role="group"
+        aria-label={strings["sign.story.controls"]}
+      >
         <Button variant="outline" onClick={() => setReplays((r) => r + 1)}>
           <RotateCcw data-icon="inline-start" />
-          Play again
+          {strings["sign.story.play-again"]}
         </Button>
         <Button ref={back} onClick={onDone}>
           <ArrowLeft data-icon="inline-start" />
-          Go back
+          {strings["sign.story.go-back"]}
         </Button>
       </div>
     </div>

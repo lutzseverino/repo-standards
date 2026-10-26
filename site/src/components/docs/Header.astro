@@ -2,9 +2,11 @@
 // The supported Starlight override for the header: Starlight's own, then the
 // site's one Support control, an island that hydrates once the page has
 // settled (lib/settled.ts). Starlight hides its right-hand group below 50rem;
-// the control stays at every width.
+// the control stays at every width. The docs are in English only.
 import Default from "@astrojs/starlight/components/Header.astro";
-import { SupportMenu } from "../support";
+import { strings } from "../../i18n/format";
+import { DEFAULT_LOCALE } from "../../i18n/locales";
+import { SUPPORT_STRINGS, SupportMenu } from "../support";
 import "../../styles/docs-components.css";
 ---
 
@@ -12,7 +14,10 @@ import "../../styles/docs-components.css";
   <div class="docs-header__stock">
     <Default />
   </div>
-  <SupportMenu client:settled />
+  <SupportMenu
+    client:settled
+    strings={strings(DEFAULT_LOCALE, SUPPORT_STRINGS)}
+  />
 </div>
 
 <style>

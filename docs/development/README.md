@@ -147,6 +147,44 @@ leaves the tree clean until an actual adoption run starts. To keep the current
 CLI pin, an already restored matching project runtime can launch the update
 directly.
 
+## Site translations
+
+The website's text lives in `site/src/i18n/`, as
+[ADR 0030](../adr/0030-localize-the-site-through-mf2-catalogs.md) records:
+UI strings in `messages/<locale>/<area>.json`, and How it works and Repo
+Canon's introduction in `prose/<locale>/<name>.md`. Product names, URLs, code,
+the agent prompts and sources' own descriptions stay outside them.
+`src/i18n/locales.ts` lists the locales, English first.
+
+To add or change a string, edit its English catalog. A key `<key>` in
+`messages/en/<area>.json` is the message ID `<area>.<key>`, and its value is
+an MF2 message: write a variable as `{$name}`, and a plural as
+`.input {$count :integer} .match $count one {{…}} * {{…}}`, passing the count
+for selection and the number to show as separate variables. Format dates,
+numbers and lists with `src/lib/format.ts` before passing them. A page calls
+`format(locale, id, values)` from `src/i18n/format.ts`, or `rich()` when the
+message holds an element, such as a link; an island gets its messages as
+finished text from `strings(locale, ids)`, using the ID list its component
+exports. Change prose in `prose/en/`. An ID missing from the English
+catalogs fails `pnpm --dir site check`, and a missing variable fails the
+build.
+
+Every other locale has the same files. A translated message is
+`{ "message": "…", "source": "…" }`, and translated prose starts with front
+matter holding `source:`. Each `source` is the hash of the English text it
+translates, so changing English makes `pnpm --dir site test` fail for each of
+its translations until they are updated. After updating a translation, record
+it by naming exactly the entries you updated:
+
+```sh
+pnpm --dir site i18n:source es home.search.label prose/how-it-works
+```
+
+The command never updates everything at once. A new locale goes in
+`locales.ts` with all of its catalogs and prose files. `pnpm --dir site dev`
+also serves the pseudo-locale at `/en-xa/`, generated from English: any text
+outside `⟦ ⟧` there bypasses the catalogs.
+
 ## Release sources
 
 The CLI pins `@lutzseverino/postern` 1.x as an exact runtime dependency.
