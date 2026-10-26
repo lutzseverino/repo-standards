@@ -876,6 +876,14 @@ reader would reject, such as a new enumerated status, counts as a change.
 Changed values under the same keys, such as embedded content or digests, keep
 the version.
 
+The `platform` field is a narrow exception for persisted records and public
+reports while `github` remains the only supported platform
+([ADR 0027](../adr/0027-choose-the-platform-inside-each-profile.md)). Its addition
+keeps their existing format versions: a recorded selection without the field
+is read as `github`, and the next committed run records it. Adding a second
+supported platform raises the record formats. Other record and report key
+changes still follow the general rule above.
+
 An author-facing input format may gain an optional key without a version rise
 when existing inputs remain valid with the same meaning. This covers operation
 and discovery input, which the CLI sends to author scripts, and scope proposals,
