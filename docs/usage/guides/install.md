@@ -136,7 +136,7 @@ reports a medium supply-chain and instruction-delegation alert: the entry runs
 an unpinned external CLI, follows its printed instructions, and accepts
 user-selected remote standards sources. The [Snyk detail](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards/security/snyk)
 reports medium W012 for external dependency provenance and runtime instructions
-it cannot verify. See the [recorded audit evidence and owner decision](https://github.com/lutzseverino/repo-standards/issues/428#issuecomment-6418210417)
+it cannot verify. See the [recorded audit evidence](https://github.com/lutzseverino/repo-standards/issues/428#issuecomment-6418210417)
 for the dated observations and comparison with the authoring skill.
 
 These warnings are expected consequences of the adoption design. The entry
