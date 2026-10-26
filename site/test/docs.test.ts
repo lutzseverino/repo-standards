@@ -405,8 +405,13 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     )
     .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
     .replace('<link rel="manifest" href="/site.webmanifest">', "")
-    // Shared font aliases change the base stylesheet hash, not homepage markup.
+    // Shared font aliases change the base stylesheet hash, and the sign's
+    // styles the adoption dialog's stylesheet hash, not homepage markup.
     .replace(/\/_astro\/base\.[\w-]+\.css/g, "/_astro/base.HASH.css")
+    .replace(
+      /\/_astro\/adoption-dialog\.[\w-]+\.css/g,
+      "/_astro/adoption-dialog.HASH.css",
+    )
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
     .replace(/\/_astro\/client\.[\w-]+\.js/g, "/_astro/client.HASH.js")
     .replace(/(<astro-island )uid="[^"]+"/g, '$1uid="HASH"')
@@ -430,7 +435,7 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "9862b3afc61b39c7bbe68c06d5ce0fe88b6d6e631071d54671d01434b058060e",
+    "9eb0f51f1c8ee4b1d9f369c23583ab0a41a3ca96ddcd7dc4ff9c73b5ae91d296",
   );
 });
 

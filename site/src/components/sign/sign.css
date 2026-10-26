@@ -791,10 +791,11 @@
    with two tabs standing up from it: the exit number and the version
    shield. Plates in a row share one height. Entries span four rows of the grid and
    line them up with their neighbours (subgrid): the plate, the copy control,
-   the text, the profiles. A shorter plate sits down on its card. */
+   the text, the profiles. A shorter plate sits down on its card. On a phone
+   narrower than one column, the column takes the width there is. */
   .signpost-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     column-gap: 40px;
   }
   .signpost-grid > li.signpost-entry {
@@ -807,7 +808,11 @@
     grid-template-rows: auto 1fr;
     align-self: stretch;
   }
+  /* The plate and its lit copy share one column. Its minimum is 0: otherwise,
+   when the page narrows, the lit copy's name, still on one line, holds the
+   plate wider than the card, and fit-name.ts never sees it overflow. */
   .signpost-sign > .sign-face-wrap {
+    grid-template-columns: minmax(0, 1fr);
     align-self: stretch;
   }
   .signpost-sign > .sign-face-wrap > a.signpost-plate {
