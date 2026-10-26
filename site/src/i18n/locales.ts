@@ -4,7 +4,7 @@
 
 /** The locales the site serves, the default first. The default is served at
  * the root, every other locale under `/<tag>/` with the same paths. */
-export const LOCALES = ["en"] as const;
+export const LOCALES = ["en", "es", "ca"] as const;
 
 export const DEFAULT_LOCALE = LOCALES[0];
 
@@ -12,7 +12,22 @@ export const DEFAULT_LOCALE = LOCALES[0];
  * development server, never deployed. */
 export const PSEUDO_LOCALE = "en-XA";
 
-export type Locale = (typeof LOCALES)[number] | typeof PSEUDO_LOCALE;
+/** A locale the site is built and deployed in. */
+export type SiteLocale = (typeof LOCALES)[number];
+
+export type Locale = SiteLocale | typeof PSEUDO_LOCALE;
+
+/** Each locale's name in its own language, for the language menu. */
+export const LOCALE_NAMES: Record<SiteLocale, string> = {
+  en: "English",
+  es: "Español",
+  ca: "Català",
+};
+
+/** The locale's own name; the pseudo-locale goes by its tag. */
+export function localeName(locale: Locale): string {
+  return locale === PSEUDO_LOCALE ? locale : LOCALE_NAMES[locale];
+}
 
 /** Whether this runs in Astro's development server. Plain Node, as in the
  * site's tests, has no `import.meta.env`. */
@@ -44,4 +59,12 @@ export function localeRoutes(): {
 export function localePath(locale: Locale, path: string): string {
   const prefix = segment(locale);
   return prefix ? `/${prefix}${path}` : path;
+}
+
+/** A page's version in every site locale, by locale: `path`, a site path
+ * such as `/how-it-works/`, under each locale's prefix. */
+export function localeAlternates(path: string): Record<SiteLocale, string> {
+  return Object.fromEntries(
+    LOCALES.map((locale) => [locale, localePath(locale, path)]),
+  ) as Record<SiteLocale, string>;
 }

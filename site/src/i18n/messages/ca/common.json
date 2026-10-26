@@ -1,0 +1,50 @@
+{
+  "nav.documentation": {
+    "message": "Documentació",
+    "source": "c205924d"
+  },
+  "nav.in-english": {
+    "message": "en anglès",
+    "source": "ab5f028a"
+  },
+  "nav.how-it-works": {
+    "message": "Com funciona",
+    "source": "9c870aa6"
+  },
+  "nav.sources": {
+    "message": "Totes les fonts d'estàndards",
+    "source": "d77a5325"
+  },
+  "notice": {
+    "message": "Qualsevol pot afegir-hi una font. Revisa-la abans d'adoptar-la.",
+    "source": "7e8919b7"
+  },
+  "social-image.alt": {
+    "message": "Un senyal de trànsit blau que diu Repo Standards: Escriu la teva configuració un cop. El teu agent l'aplica a cada repositori.",
+    "source": "0c2958b3"
+  },
+  "support.button": {
+    "message": "Dona suport",
+    "source": "be91940b"
+  },
+  "support.footer": {
+    "message": "Dona suport a Repo Standards:",
+    "source": "0b6b2087"
+  },
+  "support.menu": {
+    "message": "Dona suport a Repo Standards",
+    "source": "6ef8c3f2"
+  },
+  "theme.toggle": {
+    "message": "Canvia entre el tema clar i el fosc",
+    "source": "b9265208"
+  },
+  "language.label": {
+    "message": "Llengua",
+    "source": "a4fe6526"
+  },
+  "language.current": {
+    "message": "Llengua: {$language}",
+    "source": "86ec9565"
+  }
+}

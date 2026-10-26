@@ -1,0 +1,42 @@
+{
+  "title": {
+    "message": "Repo Standards: una configuración para todos tus repositorios",
+    "source": "3e893531"
+  },
+  "description": {
+    "message": "Escribe tu configuración una vez: instrucciones para agentes, docs, plantillas y comprobaciones. Tu agente la aplica en cada repositorio y los mantiene al día.",
+    "source": "500f501f"
+  },
+  "search.label": {
+    "message": "Buscar fuentes de estándares",
+    "source": "0359d71e"
+  },
+  "search.no-match": {
+    "message": "Ninguna fuente de estándares coincide con «{$query}»",
+    "source": "d2fb4ab1"
+  },
+  "search.clear": {
+    "message": "Borra la búsqueda para ver las {$number}.",
+    "source": "c7976d46"
+  },
+  "listing.details": {
+    "message": "{$repository}, {$date}, requiere la CLI {$requirement}",
+    "source": "f4a53e7e"
+  },
+  "sources.origin": {
+    "message": "Las fuentes proceden del tema público de GitHub {$topic}, validadas con la CLI {$version}.",
+    "source": "a543e275"
+  },
+  "sources.left-out": {
+    "message": ".input {$count :integer} .match $count one {{{$number} repositorio más tiene el tema, pero queda fuera porque no tiene una versión estable que esta CLI pueda usar.}} * {{{$number} repositorios más tienen el tema, pero quedan fuera porque no tienen una versión estable que esta CLI pueda usar.}}",
+    "source": "84b9022f"
+  },
+  "sources.list-yours": {
+    "message": "Para que aparezca tu propia fuente, añádele el tema y publica una versión estable.",
+    "source": "011dc577"
+  },
+  "support.invitation": {
+    "message": "Si Repo Standards mantiene tus repositorios al día, puedes apoyar su trabajo en {$first} o {$second}.",
+    "source": "252a7b2c"
+  }
+}

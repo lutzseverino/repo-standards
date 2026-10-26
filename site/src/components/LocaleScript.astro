@@ -1,0 +1,15 @@
+---
+// The head's first script: it opens the page in the visitor's saved or
+// first-visit language before anything is drawn (i18n/choice.ts). The
+// pseudo-locale's pages, served only in development, stay where they are.
+import { localeScript } from "../i18n/choice";
+import { PSEUDO_LOCALE, type Locale } from "../i18n/locales";
+
+type Props = { locale: Locale };
+---
+
+<!-- opens the page in the visitor's saved or first-visit language before
+     anything is drawn -->
+{Astro.props.locale !== PSEUDO_LOCALE && (
+  <script is:inline set:html={localeScript()} />
+)}

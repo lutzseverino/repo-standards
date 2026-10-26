@@ -1,0 +1,158 @@
+{
+  "mode.label": {
+    "message": "Què copiar",
+    "source": "96696ebb"
+  },
+  "mode.prompt": {
+    "message": "Prompt de l'agent",
+    "source": "92b6d2fe"
+  },
+  "mode.terminal": {
+    "message": "Terminal",
+    "source": "e0926fda"
+  },
+  "field.prompt": {
+    "message": "Prompt de l'agent",
+    "source": "92b6d2fe"
+  },
+  "field.terminal": {
+    "message": "Ordre de terminal",
+    "source": "20afb901"
+  },
+  "copy": {
+    "message": "Copia",
+    "source": "e21f935f"
+  },
+  "copied": {
+    "message": "Copiat",
+    "source": "8d525e5f"
+  },
+  "copy-by-hand": {
+    "message": "Copia-ho",
+    "source": "d4db8766"
+  },
+  "dialog.prompt-copied": {
+    "message": "Prompt copiat",
+    "source": "c5539477"
+  },
+  "dialog.command-copied": {
+    "message": "Ordre copiada",
+    "source": "e5c02424"
+  },
+  "dialog.description": {
+    "message": "Què passa ara",
+    "source": "8f9b77e6"
+  },
+  "dialog.guide": {
+    "message": "Llegeix la guia d'adopció",
+    "source": "55669b73"
+  },
+  "dialog.done": {
+    "message": "Entesos",
+    "source": "5ad3dbd1"
+  },
+  "dialog.close": {
+    "message": "Tanca",
+    "source": "7d9eb7ac"
+  },
+  "prompt.start.title": {
+    "message": "Enganxa'l al teu agent",
+    "source": "d20119e2"
+  },
+  "prompt.start.body": {
+    "message": "Obre l'agent al repositori que vols configurar, amb almenys un commit i sense canvis pendents. Serveix qualsevol agent que pugui executar ordres.",
+    "source": "b680c7da"
+  },
+  "prompt.apply.title": {
+    "message": "L'agent adopta la configuració",
+    "source": "054ae161"
+  },
+  "prompt.apply.body": {
+    "message": "Tria una versió i un perfil i revisa els canvis proposats. Després instal·la els fitxers de la font, adapta el contingut propi del teu projecte i executa les comprovacions de la font.",
+    "source": "efe19f0d"
+  },
+  "prompt.review.title": {
+    "message": "Tu revises i fas commit",
+    "source": "2bf1d27e"
+  },
+  "prompt.review.body": {
+    "message": "Ningú no fa commit per tu. Revisa els canvis, inclòs qualsevol fitxer que la font hagi substituït, i fes commit com sempre. Per actualitzar més endavant, torna a donar el mateix prompt a l'agent.",
+    "source": "443d1ada"
+  },
+  "terminal.start.title": {
+    "message": "Executa-la al teu repositori",
+    "source": "18dc930c"
+  },
+  "terminal.start.body": {
+    "message": "Al repositori que vols configurar, amb almenys un commit i sense canvis pendents, amb Node.js 24 o 26.",
+    "source": "c320cf86"
+  },
+  "terminal.apply.title": {
+    "message": "Respon les seves preguntes",
+    "source": "1c80d290"
+  },
+  "terminal.apply.body": {
+    "message": "Et demana una versió i un perfil i et mostra els canvis proposats. Després instal·la els fitxers de la font, et guia per adaptar el teu propi contingut i executa les comprovacions de la font.",
+    "source": "f08c1831"
+  },
+  "terminal.review.title": {
+    "message": "Revisa i fes commit",
+    "source": "96f097b7"
+  },
+  "terminal.review.body": {
+    "message": "Ningú no fa commit per tu. Revisa els canvis, inclòs qualsevol fitxer que la font hagi substituït, i fes commit com sempre. Per actualitzar més endavant, torna a executar la mateixa ordre.",
+    "source": "0c3c1936"
+  },
+  "art.repository": {
+    "message": "el-teu-repositori",
+    "source": "c6c5d504"
+  },
+  "art.agent": {
+    "message": "Agent · el-teu-repositori",
+    "source": "94a0b4f2"
+  },
+  "art.source": {
+    "message": "font",
+    "source": "41cf6794"
+  },
+  "art.tree.instructions": {
+    "message": "instruccions per a agents",
+    "source": "4e5e1a5f"
+  },
+  "art.tree.skills": {
+    "message": "skills",
+    "source": "32c1cf49"
+  },
+  "art.tree.guide": {
+    "message": "guia de contribució",
+    "source": "f57cf08b"
+  },
+  "art.tree.github": {
+    "message": "plantilles i comprovacions",
+    "source": "4c2bc4e9"
+  },
+  "art.tree.adapted": {
+    "message": "el teu contingut, adaptat",
+    "source": "fa4e2fea"
+  },
+  "art.review.changes": {
+    "message": "Canvis sense commit",
+    "source": "a388bd2d"
+  },
+  "art.review.installed": {
+    "message": "+ instal·lat",
+    "source": "2b4fcec0"
+  },
+  "art.review.adapted": {
+    "message": "~ adaptat",
+    "source": "368f4cdc"
+  },
+  "art.review.hint": {
+    "message": "Revisa i fes commit com sempre",
+    "source": "0c689a52"
+  },
+  "art.review.commit": {
+    "message": "Commit",
+    "source": "82a9c46f"
+  }
+}

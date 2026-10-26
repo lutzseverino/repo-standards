@@ -128,11 +128,36 @@ through `format()`; the [development guide](../docs/development/README.md#site-t
 says how to change it and its translations, and
 [ADR 0030](../docs/adr/0030-localize-the-site-through-mf2-catalogs.md) records
 the design. The pages live under `src/pages/[...locale]/`, built once for each
-locale in `src/i18n/locales.ts`: the default, English, at the root and any
-other under `/<tag>/`. The development server also serves the pseudo-locale
-at `/en-xa/`, which `test/pseudo-locale.test.ts` checks there; the build
-never includes it. The docs, `llms.txt`, `sources.json`, the prompts and the
-Markdown versions stay in English.
+locale in `src/i18n/locales.ts`: the default, English, at the root, and
+Spanish and Catalan under `/es/` and `/ca/`, with the same paths. The
+development server also serves the pseudo-locale at `/en-xa/`, which
+`test/pseudo-locale.test.ts` checks there; the build never includes it. The
+docs, `llms.txt`, `sources.json`, the prompts and the Markdown versions stay in
+English: a page in another locale advertises its English version's Markdown,
+and `src/lib/agent-pages.ts` writes Markdown for English pages only.
+
+The nav's language menu, `src/components/language-menu.tsx`, is the site's
+shadcn Dropdown Menu, beside the theme toggle, listing English, Español and
+Català, each in its own language. Picking one saves it in `localStorage` under
+`locale`, or `sessionStorage` where that fails, and opens the same page and
+section in that language, with `?locale=<tag>` in the address, which the head
+script honours, saves and removes, so a browser that can store nothing still
+gets the language it picked. The layout's first head
+script, `src/components/LocaleScript.astro`, generated from
+`src/i18n/choice.ts` like the theme's, runs before the first paint: a saved
+locale opens its version of the page, and with none saved, an English page
+opens the version in the browser's first supported language, if that is
+Spanish or Catalan. The browser's language never leads away from `/es/` or
+`/ca/`, the docs never redirect, and `test/locale-choice.test.ts` checks each
+case. A redirect keeps the fragment: How it works gives each translated
+heading the English heading's ID (`src/lib/section-ids.ts`), so
+`#who-does-what` opens the same section in every locale, and a translation
+whose headings don't match English's one for one fails the build. The docs have no menu; on a Spanish or Catalan page the nav's Docs link
+carries a small "EN" badge (`docs-link.tsx`). On a phone the nav's controls
+wrap onto a line of their own. The layout imports `LocaleScript.astro` after
+its stylesheets: Astro orders a page's stylesheets by where they are imported,
+and the layout's must come first, since it declares the cascade layers' order
+that the sign's stylesheets use.
 
 `src/pages/[...locale]/index.astro` loads the data and renders the homepage,
 `src/components/home.tsx`. `src/pages/[...locale]/how-it-works.astro` renders

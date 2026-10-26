@@ -1,0 +1,50 @@
+{
+  "nav.documentation": {
+    "message": "Documentación",
+    "source": "c205924d"
+  },
+  "nav.in-english": {
+    "message": "en inglés",
+    "source": "ab5f028a"
+  },
+  "nav.how-it-works": {
+    "message": "Cómo funciona",
+    "source": "9c870aa6"
+  },
+  "nav.sources": {
+    "message": "Todas las fuentes de estándares",
+    "source": "d77a5325"
+  },
+  "notice": {
+    "message": "Cualquiera puede añadir aquí una fuente. Revísala antes de adoptarla.",
+    "source": "7e8919b7"
+  },
+  "social-image.alt": {
+    "message": "Una señal de tráfico azul que dice Repo Standards: Escribe tu configuración una vez. Tu agente la aplica en cada repositorio.",
+    "source": "0c2958b3"
+  },
+  "support.button": {
+    "message": "Apoyar",
+    "source": "be91940b"
+  },
+  "support.footer": {
+    "message": "Apoya Repo Standards:",
+    "source": "0b6b2087"
+  },
+  "support.menu": {
+    "message": "Apoya Repo Standards",
+    "source": "6ef8c3f2"
+  },
+  "theme.toggle": {
+    "message": "Cambiar entre el tema claro y el oscuro",
+    "source": "b9265208"
+  },
+  "language.label": {
+    "message": "Idioma",
+    "source": "a4fe6526"
+  },
+  "language.current": {
+    "message": "Idioma: {$language}",
+    "source": "86ec9565"
+  }
+}

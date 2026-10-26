@@ -1,0 +1,106 @@
+{
+  "title": {
+    "message": "{$name}: {$summary} | Repo Standards",
+    "source": "93f64740"
+  },
+  "description.installs": {
+    "message": "{$description} Instal·la {$installs}.",
+    "source": "75ecb4b5"
+  },
+  "description.skills": {
+    "message": ".input {$count :integer} .match $count one {{{$number} skill per a agents}} * {{{$number} skills per a agents}}",
+    "source": "fd27b6e6"
+  },
+  "description.checks": {
+    "message": ".input {$count :integer} .match $count one {{{$number} comprovació}} * {{{$number} comprovacions}}",
+    "source": "5f895ecd"
+  },
+  "repo-canon.summary": {
+    "message": "plantilla d'AGENTS.md, skills per a agents i guia de contribució",
+    "source": "4765215e"
+  },
+  "repo-canon.description": {
+    "message": "Una configuració a punt per començar: AGENTS.md, skills per a agents, guia de contribució, plantilles d'issues i de PR, i comprovacions que el teu agent instal·la per tu.",
+    "source": "86454060"
+  },
+  "release.label": {
+    "message": "Última versió",
+    "source": "4abf09ee"
+  },
+  "release.value": {
+    "message": "{$version}, {$date}",
+    "source": "fdcc98aa"
+  },
+  "requires.label": {
+    "message": "Requereix",
+    "source": "5f9bbdd1"
+  },
+  "requires.value": {
+    "message": "CLI de Repo Standards {$requirement}",
+    "source": "a6661f8a"
+  },
+  "repository.label": {
+    "message": "Repositori",
+    "source": "13d6ff07"
+  },
+  "introduction.heading": {
+    "message": "Una configuració a punt per començar",
+    "source": "c88df95f"
+  },
+  "adopt.heading": {
+    "message": "Adopta {$name}",
+    "source": "435a7bd4"
+  },
+  "adopt.text": {
+    "message": "Dona el prompt al teu agent al repositori que vols configurar, o executa-hi tu mateix l'ordre. En tots dos casos tries una versió i un perfil, i no es fa cap commit fins que revises els canvis.",
+    "source": "dacaf6d7"
+  },
+  "profiles.heading": {
+    "message": "Perfils",
+    "source": "535e52e4"
+  },
+  "installs.heading": {
+    "message": "Què instal·la",
+    "source": "fd59750d"
+  },
+  "installs.text": {
+    "message": "Cada declaració del seu {$file} a {$version}, amb els camins que instal·la o gestiona i les comprovacions que executa.",
+    "source": "90987ef1"
+  },
+  "installs.declaration": {
+    "message": "Declaració",
+    "source": "7609342d"
+  },
+  "installs.targets": {
+    "message": "Instal·la o gestiona",
+    "source": "7c34a1ec"
+  },
+  "installs.checks": {
+    "message": "Comprovacions",
+    "source": "de07d072"
+  },
+  "installs.profiles": {
+    "message": "Perfils",
+    "source": "535e52e4"
+  },
+  "installs.discovered": {
+    "message": "Camins que troba a cada projecte",
+    "source": "4975f52f"
+  },
+  "installs.every-profile": {
+    "message": "Tots",
+    "source": "a52ace42"
+  },
+  "kind.file": {
+    "message": "Fitxer",
+    "source": "50009ce1"
+  },
+  "kind.skill": {
+    "message": "Skill",
+    "source": "6df1bb18"
+  },
+  "kind.repository": {
+    "message": "Pautes del repositori",
+    "source": "b733b3ee"
+  }
+}

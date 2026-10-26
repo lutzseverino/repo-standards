@@ -1,5 +1,6 @@
 {
   "nav.documentation": "Documentation",
+  "nav.in-english": "in English",
   "nav.how-it-works": "How it works",
   "nav.sources": "All standards sources",
   "notice": "Anyone can list a source here. Review one before you adopt it.",
@@ -7,5 +8,7 @@
   "support.button": "Support",
   "support.footer": "Support Repo Standards:",
   "support.menu": "Support Repo Standards",
-  "theme.toggle": "Switch between the light and dark theme"
+  "theme.toggle": "Switch between the light and dark theme",
+  "language.label": "Language",
+  "language.current": "Language: {$language}"
 }

@@ -10,7 +10,12 @@ import {
 } from "@/components/source-adoption";
 import { format, rich, strings } from "@/i18n/format";
 import type { MessageId } from "@/i18n/ids";
-import { localeRoutes, type Locale } from "@/i18n/locales";
+import {
+  localeAlternates,
+  localeName,
+  localeRoutes,
+  type Locale,
+} from "@/i18n/locales";
 import BaseLayout from "@/layouts/base.astro";
 import {
   listing,
@@ -92,6 +97,10 @@ const installed = rich(
     <SiteNav
       client:load
       locale={locale}
+      alternates={localeAlternates(sourcePath(source))}
+      language={format(locale, "common.language.current", {
+        language: localeName(locale),
+      })}
       strings={strings(locale, SITE_NAV_STRINGS)}
     />
 

@@ -1,0 +1,66 @@
+{
+  "tagline": {
+    "message": "Escriu la teva configuració un cop. El teu agent l'aplica a cada repositori.",
+    "source": "a767af98"
+  },
+  "start.label": {
+    "message": "Repo Canon {$version}. Una configuració a punt per començar",
+    "source": "94408a19"
+  },
+  "start.tagline": {
+    "message": "Una configuració a punt per començar",
+    "source": "c88df95f"
+  },
+  "story.tab": {
+    "message": "Com funciona",
+    "source": "9c870aa6"
+  },
+  "story.play": {
+    "message": "Com funciona: mira una història breu",
+    "source": "e0d8bc15"
+  },
+  "story.read": {
+    "message": "Llegeix com funciona",
+    "source": "12331ec9"
+  },
+  "story.caption.own-way": {
+    "message": "Cada repositori, configurat a la seva manera",
+    "source": "e06a7dd0"
+  },
+  "story.caption.write-once": {
+    "message": "Escriu la configuració un cop",
+    "source": "acd5810b"
+  },
+  "story.caption.agent-applies": {
+    "message": "El teu agent l'aplica",
+    "source": "6be92abf"
+  },
+  "story.caption.kept-alike": {
+    "message": "Tots iguals, i així es mantenen",
+    "source": "07f0e725"
+  },
+  "story.plate": {
+    "message": "Estàndards comuns",
+    "source": "f8545779"
+  },
+  "story.no-docs": {
+    "message": "sense docs",
+    "source": "1b64c39e"
+  },
+  "story.checks-pass": {
+    "message": "✓ Comprovacions OK",
+    "source": "bbdce14b"
+  },
+  "story.controls": {
+    "message": "Com funciona",
+    "source": "9c870aa6"
+  },
+  "story.play-again": {
+    "message": "Repeteix",
+    "source": "5ef30d27"
+  },
+  "story.go-back": {
+    "message": "Torna",
+    "source": "6aadac2f"
+  }
+}

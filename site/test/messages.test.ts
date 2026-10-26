@@ -35,8 +35,8 @@ test("format() selects plural variants on the raw count and shows the formatted 
 
 test("format() throws for a locale the site does not serve", () => {
   assert.throws(
-    () => format("es" as Locale, "common.notice"),
-    /The site has no locale es\./,
+    () => format("fr" as Locale, "common.notice"),
+    /The site has no locale fr\./,
   );
 });
 
