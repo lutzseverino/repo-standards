@@ -62,10 +62,15 @@ variant or trigger, and a GitHub adopter's installed content is unchanged.
 Adding a platform means an adapter in Postern and an entry in the supported
 constant; tests supply a second identifier through that one constant.
 
-Reports and records gain the field without a format change: the lock reads
-without it, and reports, summaries, `status` and `check` show it. The answers
-file gains a `platform` question only for a profile that supports several
-platforms.
+Reports and records gain the `platform` field without a format change as a
+narrow exception to the [general key-change rule](../development/architecture.md#format-versions)
+while `github` remains the only supported platform. A recorded selection
+without the field is read as `github`, and the next committed run records it;
+reports, summaries, `status` and `check` show it. Adding a second supported
+platform raises the record formats. This exception does not extend to other
+record or report key changes or alter the separate optional author-input rule.
+The answers file gains a `platform` question only for a profile that supports
+several platforms.
 
 ## Considered options
 
