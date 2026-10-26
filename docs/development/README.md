@@ -108,22 +108,40 @@ terminal timeouts, or a stale snapshot, come from load alone and say nothing
 about the change. The product's limits stay sized for an adopter's machine; do
 not raise them to suit the test suite.
 
-To run the full suite with limited concurrency, build first, then run Node's
-test runner directly:
+To limit test-file concurrency through the normal root commands, set
+`REPO_STANDARDS_TEST_CONCURRENCY` to a positive safe integer written in decimal
+without whitespace or leading zeros:
 
 ```sh
-pnpm build
+REPO_STANDARDS_TEST_CONCURRENCY=2 pnpm test
+REPO_STANDARDS_TEST_CONCURRENCY=2 pnpm validate
+```
+
+Build first when running `pnpm test`; `pnpm validate` includes the build.
+Both commands reject invalid settings (including an empty value, zero,
+fractions and nonnumeric text) before starting test files. With the setting
+unset, Node's default scheduling stays in effect. The setting applies only to
+the root test stage, not the site's tests or fixture build, and does not change
+Linux CI's direct Node invocations or any product or harness deadline.
+
+The direct Node workaround also remains available after building:
+
+```sh
 node --test --test-concurrency=<n> test/*.test.ts
 ```
 
-`pnpm test` and `pnpm validate` offer no way to set the concurrency, because
-Node rejects `--test-concurrency` in `NODE_OPTIONS` and ignores it after the
-file pattern, which is where `pnpm test --test-concurrency=<n>` puts it. With
-`n` set to `1`, test files run one at a time. Choose `n` so the host stays well
-below saturation while the suite runs: start at half the available
+Node rejects `--test-concurrency` in `NODE_OPTIONS`. Use the supported environment
+setting for normal commands; runner filters can be passed directly, for example
+`pnpm test --test-name-pattern='description'`.
+With `n` set to `1`, test files run one at a time. Choose `n` so the host stays
+well below saturation while the suite runs: start at half the available
 parallelism, and lower it until runs stop failing with the load symptoms above.
 A standard GitHub-hosted Linux runner runs each CI part at the default
 concurrency, which is the reference point for a host that needs no limit.
+Controlled concurrency reduces competing fixture work; it cannot guarantee
+completion on an arbitrarily starved host. The harness's finite 60-second
+prompt wait is distinct from product acquisition and operation limits, and
+still fails when a prompt never arrives or a command stalls.
 
 A test that fails only in a full local run is a load symptom, not a finding,
 when its focused rerun and the three Linux parts pass. Treat it as a finding
