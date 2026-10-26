@@ -183,7 +183,9 @@ pnpm --dir site i18n:source es home.search.label prose/how-it-works
 The command never updates everything at once. A new locale goes in
 `locales.ts` with all of its catalogs and prose files. `pnpm --dir site dev`
 also serves the pseudo-locale at `/en-xa/`, generated from English: any text
-outside `⟦ ⟧` there bypasses the catalogs.
+outside `⟦ ⟧` there bypasses the catalogs. Its padding can wrap every five
+dots, like the words of a longer translation, so text that still overflows its
+box there overflows for real.
 
 ## Release sources
 

@@ -77,7 +77,7 @@ test("format() throws for a malformed entry", () => {
 test("the pseudo-locale wraps and pads each message and keeps its placeholders", () => {
   assert.equal(
     format("en-XA", "home.search.no-match", { query: "x" }),
-    "⟦No standards source matches “x”·········⟧",
+    "⟦No standards source matches “x”·····\u200B····⟧",
   );
   assert.match(
     messageSource("en-XA", "home.sources.left-out"),
@@ -85,7 +85,7 @@ test("the pseudo-locale wraps and pads each message and keeps its placeholders",
   );
   assert.match(
     prose("en-XA", "how-it-works"),
-    /^# ⟦How Repo Standards works·+⟧$/m,
+    /^# ⟦How Repo Standards works·····\u200B···⟧$/m,
   );
 });
 

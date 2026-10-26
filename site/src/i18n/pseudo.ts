@@ -1,6 +1,9 @@
 // The pseudo-locale, generated from the source locale: every text is wrapped
 // in ⟦ ⟧ and padded by about 30%, so text that skipped the catalogs, text
 // cut off by its box, and text built by joining messages show at a glance.
+// The padding lengthens the last word by up to five dots, and the rest follows
+// in runs of up to five, each after a zero-width space, so it wraps like the
+// words of a longer translation instead of widening the page.
 // MF2 syntax, placeholders, Markdown structure, code and URLs stay intact.
 import type { Text } from "mdast";
 import { fromMarkdown } from "mdast-util-from-markdown";
@@ -15,7 +18,8 @@ import {
   type LocaleTranslations,
 } from "./translations.ts";
 
-const padding = (text: string) => "·".repeat(Math.ceil(text.length * 0.3));
+const padding = (text: string) =>
+  "·".repeat(Math.ceil(text.length * 0.3)).replace(/·{5}(?=·)/g, "$&\u200B");
 
 /** One MF2 message, each variant's pattern wrapped and padded. */
 function pseudoMessage(source: string): string {
