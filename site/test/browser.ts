@@ -43,7 +43,7 @@ type Message = {
 /** A phone-sized view of a page: its width in CSS pixels and its theme. */
 export type View = { width: number; theme: "light" | "dark" };
 
-export const PHONE_HEIGHT = 800;
+const PHONE_HEIGHT = 800;
 
 export class Browser {
   #process: ChildProcess;
@@ -156,17 +156,28 @@ export class Browser {
     });
   }
 
-  /** Resolves with the next event `method` in `sessionId`. */
-  event(method: string, sessionId: string): Promise<Record<string, unknown>> {
-    return new Promise((resolve) => {
+  /** The next event `method` in `sessionId`, which fails after a minute
+   * without one; `stop` stops waiting for it. */
+  event(method: string, sessionId: string) {
+    let stop = () => {};
+    const next = new Promise<Record<string, unknown>>((resolve, reject) => {
       const listener = (message: Message) => {
         if (message.method === method && message.sessionId === sessionId) {
-          this.#listeners.delete(listener);
+          stop();
           resolve(message.params ?? {});
         }
       };
+      const timer = setTimeout(() => {
+        stop();
+        reject(new Error(`no ${method} within 60 seconds`));
+      }, 60_000);
+      stop = () => {
+        clearTimeout(timer);
+        this.#listeners.delete(listener);
+      };
       this.#listeners.add(listener);
     });
+    return { next, stop };
   }
 
   /** A new tab showing `url` as a touch-first phone in `view`, with
@@ -237,8 +248,11 @@ export class Tab {
     const { errorText } = (await this.send("Page.navigate", { url })) as {
       errorText?: string;
     };
-    if (errorText) throw new Error(`${url}: ${errorText}`);
-    await loaded;
+    if (errorText) {
+      loaded.stop();
+      throw new Error(`${url}: ${errorText}`);
+    }
+    await loaded.next;
     await this.settle();
   }
 
@@ -253,9 +267,10 @@ export class Tab {
   }
 
   /** Waits for the fonts, every island's hydration and two frames, so
-   * fitted text and hydrated controls have their final size. */
+   * fitted text and hydrated controls have their final size. An island
+   * that has not hydrated within 15 seconds fails. */
   async settle() {
-    await this.evaluate(async () => {
+    const unhydrated = await this.evaluate(async () => {
       await document.fonts.ready;
       const deadline = Date.now() + 15_000;
       while (
@@ -264,7 +279,12 @@ export class Tab {
       )
         await new Promise((resolve) => setTimeout(resolve, 50));
       for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+      return [...document.querySelectorAll("astro-island[ssr]")].map((island) =>
+        island.getAttribute("component-export"),
+      );
     });
+    if (unhydrated.length)
+      throw new Error(`islands not hydrated: ${unhydrated.join(", ")}`);
   }
 
   /** Runs `fn(arg)` in the page and returns its result, which must survive

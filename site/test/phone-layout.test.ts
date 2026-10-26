@@ -32,7 +32,7 @@ const executable = findBrowser();
 const skip = executable
   ? false
   : "no Chrome, Chromium or Edge found; set SITE_BROWSER to one";
-const report = process.env.SITE_LAYOUT_REPORT;
+const reportTo = process.env.SITE_LAYOUT_REPORT;
 
 process.env.SITE_SEARCH_RECORDING = path.join(site, "fixtures/search");
 const families = [
@@ -66,10 +66,10 @@ const pages: Page[] = [
   })),
 ];
 
-let browser: Browser;
+let browser: Browser | undefined;
 let output = "";
-let production: Awaited<ReturnType<typeof preview>>;
-let development: Awaited<ReturnType<typeof dev>>;
+let production: Awaited<ReturnType<typeof preview>> | undefined;
+let development: Awaited<ReturnType<typeof dev>> | undefined;
 const base = { production: "", development: "" };
 const measurements: Record<string, unknown>[] = [];
 
@@ -102,18 +102,18 @@ before(async () => {
   });
   base.development = `http://127.0.0.1:${development.address.port}`;
   browser = await Browser.launch(executable);
-  if (report) mkdirSync(report, { recursive: true });
+  if (reportTo) mkdirSync(reportTo, { recursive: true });
 });
 
+// whatever `before` reached before it failed
 after(async () => {
-  if (!executable) return;
-  await browser.close();
-  await production.stop();
-  await development.stop();
-  rmSync(output, { recursive: true, force: true });
-  if (report)
+  await browser?.close();
+  await production?.stop();
+  await development?.stop();
+  if (output) rmSync(output, { recursive: true, force: true });
+  if (reportTo)
     writeFileSync(
-      path.join(report, "layout.json"),
+      path.join(reportTo, "layout.json"),
       `${JSON.stringify(measurements, null, 2)}\n`,
     );
 });
@@ -135,8 +135,9 @@ const still = (tab: Tab) =>
     for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
   });
 
-/** What the page opens on a tap: each nav menu, the adoption dialog after a
- * copy, and the docs' menu and table of contents. */
+/** What the page opens on a tap: each nav menu, the adoption dialog after
+ * each copy, as the prompt or the command, and the docs' menu and table of
+ * contents. */
 const STATES = [
   {
     controls: "[data-slot=dropdown-menu-trigger]",
@@ -145,7 +146,6 @@ const STATES = [
   {
     controls: "[data-slot=input-group-addon] button",
     shows: "[data-slot=dialog-content]",
-    first: true,
   },
   {
     controls: "starlight-menu-button button",
@@ -163,17 +163,15 @@ type State = { name: string; control: string; index: number; shows: string };
 const statesOf = (tab: Tab) =>
   tab.evaluate((states: typeof STATES) => {
     const found: State[] = [];
-    for (const { controls, shows, first } of states)
-      [...document.querySelectorAll(controls)]
-        .slice(0, first ? 1 : undefined)
-        .forEach((control, index) =>
-          found.push({
-            name: `open: ${(control.getAttribute("aria-label") || control.textContent || controls).replace(/\s+/g, " ").trim()}`,
-            control: controls,
-            index,
-            shows,
-          }),
-        );
+    for (const { controls, shows } of states)
+      [...document.querySelectorAll(controls)].forEach((control, index) =>
+        found.push({
+          name: `open: ${(control.getAttribute("aria-label") || control.textContent || controls).replace(/\s+/g, " ").trim()}`,
+          control: controls,
+          index,
+          shows,
+        }),
+      );
     return found;
   }, STATES);
 
@@ -212,9 +210,9 @@ async function measure(
 ): Promise<Layout> {
   await still(tab);
   const layout = await tab.evaluate(measureLayout, view.width);
-  if (report) {
+  if (reportTo) {
     const shot = `${slug(url)}-${view.width}-${view.theme}-${slug(state)}.png`;
-    await tab.screenshot(path.join(report, shot), state === "loaded");
+    await tab.screenshot(path.join(reportTo, shot), state === "loaded");
     measurements.push({ url, ...view, state, ...layout, screenshot: shot });
   }
   return layout;
@@ -225,6 +223,10 @@ const describe = (layout: Layout) =>
     (v) =>
       `${v.kind}: ${v.element}${v.text ? ` "${v.text}"` : ""}: ${v.detail}`,
   );
+const report = (layout: Layout) => describe(layout).join("\n");
+
+/** A tab in the browser `before` launched, as a returning visitor. */
+const openTab = (url: string, view: View) => browser!.open(url, view, STORAGE);
 
 for (const page of pages)
   test(
@@ -244,7 +246,7 @@ for (const page of pages)
       for (const theme of THEMES) {
         // loaded wide, then narrowed: fitted names refit on a resize
         const wide = { width: Math.max(...WIDTHS), theme };
-        const tab = await browser.open(url, wide, STORAGE);
+        const tab = await openTab(url, wide);
         assert.equal(
           await tab.evaluate(() => document.documentElement.lang),
           page.lang,
@@ -264,7 +266,7 @@ for (const page of pages)
 
         for (const width of WIDTHS) {
           const view = { width, theme };
-          const tab = await browser.open(url, view, STORAGE);
+          const tab = await openTab(url, view);
           if (width !== wide.width)
             record(
               view,
@@ -301,11 +303,7 @@ async function changed(
   width: number,
   change: () => void,
 ) {
-  const tab = await browser.open(
-    base[server] + pathname,
-    { width, theme: "light" },
-    STORAGE,
-  );
+  const tab = await openTab(base[server] + pathname, { width, theme: "light" });
   await tab.evaluate(change);
   await tab.settle();
   await still(tab);
@@ -340,7 +338,7 @@ test(
           (v.kind === "screen" || v.kind === "clipped") &&
           v.element.includes("signpost-entry"),
       ),
-      describe(narrow).join("\n"),
+      report(narrow),
     );
     // at 360 px the cards still pass the list's edge, inside the screen
     const wide = await changed("production", "/", 360, wider);
@@ -349,7 +347,7 @@ test(
       wide.violations.some(
         (v) => v.kind === "box" && v.element.includes("signpost-entry"),
       ),
-      describe(wide).join("\n"),
+      report(wide),
     );
   },
 );
@@ -372,9 +370,9 @@ test(
         document.head.append(style);
       },
     );
-    assert.ok(layout.scrollWidth > 320, describe(layout).join("\n"));
+    assert.ok(layout.scrollWidth > 320, report(layout));
     assert.deepEqual(kinds(layout).slice(0, 1), ["page"]);
-    const lines = describe(layout).join("\n");
+    const lines = report(layout);
     assert.match(
       lines,
       /screen: .*dd > a.*"github\.com\/lutzseverino\/repo-canon"/,
@@ -399,22 +397,22 @@ test(
           NodeFilter.SHOW_TEXT,
         );
         for (let node = walker.nextNode(); node; node = walker.nextNode())
-          node.textContent = node.textContent!.replaceAll("​", "");
+          node.textContent = node.textContent!.replaceAll("\u200B", "");
       },
     );
-    assert.ok(layout.scrollWidth > 390, describe(layout).join("\n"));
-    assert.match(describe(layout).join("\n"), /(screen|box): .*p.*"⟦/);
+    assert.ok(layout.scrollWidth > 390, report(layout));
+    assert.match(report(layout), /(screen|box): .*p.*"⟦/);
   },
 );
 
 // What a phone may show only in part, on a page of its own.
-const page = (body: string) =>
+const standalone = (body: string) =>
   `data:text/html;charset=utf-8,${encodeURIComponent(
     `<!doctype html><meta name="viewport" content="width=device-width"><style>body { margin: 0; padding: 24px; font: 16px/1.4 sans-serif } .clip { overflow-x: clip }</style>${body}`,
   )}`;
 
 async function measured(html: string) {
-  const tab = await browser.open(page(html), { width: 320, theme: "light" });
+  const tab = await openTab(standalone(html), { width: 320, theme: "light" });
   const layout = await tab.evaluate(measureLayout, 320);
   await tab.close();
   return layout;
@@ -457,7 +455,7 @@ test(
     assert.deepEqual(
       layout.violations.map((v) => v.kind),
       ["clipped", "scroll", "clipped"],
-      describe(layout).join("\n"),
+      report(layout),
     );
   },
 );

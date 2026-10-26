@@ -80,8 +80,8 @@ Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checkin
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. The site's
 tests use Node's built-in test runner; no site test framework is installed.
-Their phone-layout check uses the Google Chrome that GitHub's Linux and macOS
-runners carry. The CLI's tests pack and
+Their phone-layout check uses the Google Chrome that GitHub's runners carry,
+in these jobs and in the macOS validation after merge. The CLI's tests pack and
 install the npm package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.
@@ -248,7 +248,10 @@ each theme: once loaded, after narrowing from 390 px, and with each nav menu,
 the adoption dialog and the docs' menu and table of contents open, after the
 fonts, hydration and animations settle. A failure names the page, its locale,
 width, theme and state, and the element with its text and position. The file
-also puts the failures #421, #422 and #425 fixed back into today's pages and
+also puts back into the current pages the failures that
+[#421](https://github.com/lutzseverino/repo-standards/issues/421),
+[#422](https://github.com/lutzseverino/repo-standards/issues/422) and
+[#425](https://github.com/lutzseverino/repo-standards/issues/425) fixed, and
 shows that the check finds each one, #425's in a page exactly as wide as the
 screen.
 
