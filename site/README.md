@@ -82,10 +82,13 @@ the npm package's `funding` give them. The header's one Support control,
 variant, opening a shadcn Dropdown Menu whose items link to both. The
 homepage and source pages render it in their React navs; How it works and
 Starlight's header, through the supported `Header` override, render it as its
-own island, hydrated with `client:idle`. The override keeps it visible below
-50rem, where Starlight hides its own right-hand group. In the homepage's nav,
-on a phone, it shows its heart alone. Until it hydrates, the control does
-nothing, and the footer carries both links: the layout's footer and the
+own island, hydrated with the site's `client:settled` directive
+(`src/lib/settled.ts`, registered by `src/lib/hydration.ts`). It waits for
+the page's `load`, its fonts and two animation frames, then for the browser
+to be idle, so the island's script stays off the path to the largest paint.
+The override keeps it visible below 50rem, where Starlight hides its own
+right-hand group. In the homepage's nav, on a phone, it shows its heart
+alone. Until it hydrates, the control does nothing, and the footer carries both links: the layout's footer and the
 supported `Footer` override show `SupportLine.astro`, and the homepage ends
 with one line inviting support. `src/styles/support.css` styles the footer's
 line in the sign's palette and type without Tailwind, so the docs' footer

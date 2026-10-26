@@ -487,7 +487,9 @@ test("every page's header has one Support control, which opens a menu", () => {
     );
     assert.equal(
       attribute(island, "client"),
-      attribute(island, "component-export") === "SupportMenu" ? "idle" : "load",
+      attribute(island, "component-export") === "SupportMenu"
+        ? "settled"
+        : "load",
       file,
     );
   }

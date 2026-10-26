@@ -1,8 +1,8 @@
 ---
 // The supported Starlight override for the header: Starlight's own, then the
-// site's one Support control, an island that hydrates when the browser is
-// idle. Starlight hides its right-hand group below 50rem; the control stays
-// at every width.
+// site's one Support control, an island that hydrates once the page has
+// settled (lib/settled.ts). Starlight hides its right-hand group below 50rem;
+// the control stays at every width.
 import Default from "@astrojs/starlight/components/Header.astro";
 import { SupportMenu } from "../support";
 import "../../styles/docs-components.css";
@@ -12,7 +12,7 @@ import "../../styles/docs-components.css";
   <div class="docs-header__stock">
     <Default />
   </div>
-  <SupportMenu client:idle />
+  <SupportMenu client:settled />
 </div>
 
 <style>
