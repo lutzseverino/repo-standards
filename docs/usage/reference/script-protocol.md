@@ -259,7 +259,7 @@ unfamiliar additive request fields, matching the
 onward; it does not establish that previously authored strict readers violated
 the earlier contract. The CLI may add compatible optional fields to
 `repo-standards/discovery/v1` without a new format version, under the
-[input format-version policy](../../development/architecture.md#format-versions).
+[input format-version policy](https://github.com/lutzseverino/repo-standards/blob/main/docs/development/architecture.md#format-versions).
 This input-field tolerance does not change discovery output validation below.
 
 It prints a `repo-standards/scope/v2` proposal holding exactly one entry, for
