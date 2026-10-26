@@ -6,7 +6,22 @@ import {
   InputGroupInput,
 } from "@/components/app/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/app/toggle-group";
+import type { Strings } from "@/i18n/ids";
 import { installText, type InstallMode, type Source } from "@/lib/catalogue";
+
+export const INSTALL_MODE_STRINGS = [
+  "adoption.mode.label",
+  "adoption.mode.prompt",
+  "adoption.mode.terminal",
+] as const;
+
+export const INSTALL_STRINGS = [
+  "adoption.field.prompt",
+  "adoption.field.terminal",
+  "adoption.copy",
+  "adoption.copied",
+  "adoption.copy-by-hand",
+] as const;
 
 const MODE_KEY = "install-mode";
 
@@ -42,13 +57,15 @@ export function useInstallMode(): [InstallMode, (mode: InstallMode) => void] {
 export function InstallModeSwitch({
   mode,
   onChange,
+  strings,
 }: {
   mode: InstallMode;
   onChange: (mode: InstallMode) => void;
+  strings: Strings<(typeof INSTALL_MODE_STRINGS)[number]>;
 }) {
   return (
     <ToggleGroup
-      aria-label="What to copy"
+      aria-label={strings["adoption.mode.label"]}
       variant="outline"
       size="lg"
       spacing={1.5}
@@ -62,13 +79,13 @@ export function InstallModeSwitch({
         value="prompt"
         className="px-3 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
       >
-        Agent prompt
+        {strings["adoption.mode.prompt"]}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="terminal"
         className="px-3 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
       >
-        Terminal
+        {strings["adoption.mode.terminal"]}
       </ToggleGroupItem>
     </ToggleGroup>
   );
@@ -78,11 +95,13 @@ export function Install({
   source,
   mode,
   onCopied,
+  strings,
 }: {
   source: Source;
   mode: InstallMode;
   /** Something was copied, or offered to copy by hand. */
   onCopied: () => void;
+  strings: Strings<(typeof INSTALL_STRINGS)[number]>;
 }) {
   const [copied, setCopied] = useState(false);
   const text = installText(source, mode);
@@ -92,7 +111,7 @@ export function Install({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
-      window.prompt("Copy this", text);
+      window.prompt(strings["adoption.copy-by-hand"], text);
     }
     onCopied();
   };
@@ -102,7 +121,13 @@ export function Install({
         readOnly
         value={text}
         title={text}
-        aria-label={mode === "prompt" ? "Agent prompt" : "Terminal command"}
+        aria-label={
+          strings[
+            mode === "prompt"
+              ? "adoption.field.prompt"
+              : "adoption.field.terminal"
+          ]
+        }
         onFocus={(e) => e.currentTarget.select()}
         className="text-[14px] text-ellipsis"
       />
@@ -113,7 +138,7 @@ export function Install({
           className="h-7 px-3"
           onClick={() => void copy()}
         >
-          {copied ? "Copied" : "Copy"}
+          {strings[copied ? "adoption.copied" : "adoption.copy"]}
         </InputGroupButton>
       </InputGroupAddon>
     </InputGroup>

@@ -11,9 +11,11 @@ import { Kbd } from "@/components/app/kbd";
 export function Search({
   value,
   onChange,
+  label,
 }: {
   value: string;
   onChange: (value: string) => void;
+  label: string;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -34,8 +36,8 @@ export function Search({
       <InputGroupInput
         ref={ref}
         type="search"
-        placeholder="Search standards sources"
-        aria-label="Search standards sources"
+        placeholder={label}
+        aria-label={label}
         aria-keyshortcuts="/"
         value={value}
         onChange={(e) => onChange(e.target.value)}

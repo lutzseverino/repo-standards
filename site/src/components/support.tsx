@@ -12,22 +12,36 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/app/dropdown-menu";
-import { SUPPORT, SUPPORT_LABEL } from "@/lib/support";
+import type { Strings } from "@/i18n/ids";
+import { SUPPORT } from "@/lib/support";
+
+export const SUPPORT_STRINGS = [
+  "common.support.button",
+  "common.support.menu",
+] as const;
 
 /** `compact` shows the heart alone on a phone, for a nav with no room to
  * spare; the word stays the control's name. */
-export function SupportMenu({ compact = false }: { compact?: boolean }) {
+export function SupportMenu({
+  strings,
+  compact = false,
+}: {
+  strings: Strings<(typeof SUPPORT_STRINGS)[number]>;
+  compact?: boolean;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
         <HeartIcon aria-hidden="true" />
         <span className={compact ? "max-[30rem]:sr-only" : undefined}>
-          Support
+          {strings["common.support.button"]}
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>{SUPPORT_LABEL}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {strings["common.support.menu"]}
+          </DropdownMenuLabel>
           {SUPPORT.map(({ name, url }) => (
             <DropdownMenuItem key={url} render={<a href={url} />}>
               {name}

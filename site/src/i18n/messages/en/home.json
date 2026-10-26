@@ -1,0 +1,12 @@
+{
+  "title": "Repo Standards: one setup for every repository",
+  "description": "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.",
+  "search.label": "Search standards sources",
+  "search.no-match": "No standards source matches “{$query}”",
+  "search.clear": "Clear the search to see all {$number}.",
+  "listing.details": "{$repository}, {$date}, needs CLI {$requirement}",
+  "sources.origin": "Sources come from the public GitHub topic {$topic}, validated with CLI {$version}.",
+  "sources.left-out": ".input {$count :integer} .match $count one {{{$number} more repository carries the topic but is left out, without a stable release this CLI can use.}} * {{{$number} more repositories carry the topic but are left out, without a stable release this CLI can use.}}",
+  "sources.list-yours": "To list your own source, add the topic and publish a stable release.",
+  "support.invitation": "If Repo Standards keeps your repositories in step, you can support its work on {$first} or {$second}."
+}

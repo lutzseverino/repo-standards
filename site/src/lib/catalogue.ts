@@ -46,11 +46,6 @@ export type Catalogue<S extends Source = Source> = {
 /** The source the sign at the top of the page points to. */
 export const STARTING_POINT = "lutzseverino/repo-canon";
 
-/** The site's notice. It says why a listing is no endorsement: any
- * repository with the topic and a stable release is listed. */
-export const NOTICE =
-  "Anyone can list a source here. Review one before you adopt it.";
-
 export function repositoryUrl(source: Source): string {
   return `https://github.com/${source.repository}`;
 }

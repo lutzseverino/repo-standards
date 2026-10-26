@@ -1,0 +1,105 @@
+---
+// "How it works" in words: the homepage story, one section per caption,
+// then who does what, when another tool fits better, and the current limits,
+// from the locale's i18n/prose/<locale>/how-it-works.md. Every claim follows
+// the usage documents and the ADRs.
+import { unified } from "@astrojs/markdown-remark";
+import { SUPPORT_STRINGS, SupportMenu } from "@/components/support";
+import { format, prose, strings } from "@/i18n/format";
+import { localePath, localeRoutes, type Locale } from "@/i18n/locales";
+import BaseLayout from "@/layouts/base.astro";
+
+export function getStaticPaths() {
+  return localeRoutes();
+}
+
+type Props = { locale: Locale };
+
+const { locale } = Astro.props;
+const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
+
+// the prose's own characters, without typographic substitutions or code
+// highlighting
+const markdown = await unified({ smartypants: false }).createRenderer({
+  syntaxHighlight: false,
+});
+const { code: article } = await markdown.render(prose(locale, "how-it-works"));
+---
+
+<BaseLayout
+  locale={locale}
+  title={format(locale, "how-it-works.title")}
+  description={format(locale, "how-it-works.description")}
+>
+  <main class="mx-auto max-w-2xl px-6 pt-10 pb-32">
+    <nav class="mb-12 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
+      <a class="font-bold" href={localePath(locale, "/")}>
+        Repo Standards
+      </a>
+      <a href="/docs/">{format(locale, "common.nav.documentation")}</a>
+      <a href={REPOSITORY}>GitHub</a>
+      <SupportMenu client:settled strings={strings(locale, SUPPORT_STRINGS)} />
+    </nav>
+
+    <article set:html={article} />
+  </main>
+</BaseLayout>
+
+<style>
+  /* the article is rendered Markdown, outside this page's scope */
+  a,
+  article :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  nav a {
+    text-decoration: none;
+  }
+  nav a:hover {
+    text-decoration: underline;
+  }
+  article :global(h1) {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  article :global(h1 + p) {
+    margin-top: 20px;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  article :global(h2) {
+    margin-top: 48px;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  article :global(h3) {
+    margin-top: 28px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  article :global(:is(p, ul, pre)) {
+    margin-top: 14px;
+  }
+  article :global(ul) {
+    padding-left: 1.25em;
+    list-style: disc;
+  }
+  article :global(li + li) {
+    margin-top: 10px;
+  }
+  article :global(code) {
+    font-size: 0.9em;
+  }
+  article :global(pre) {
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--muted);
+    font-size: 15px;
+  }
+  article :global(:is(h2, h3)) {
+    scroll-margin-top: 24px;
+  }
+</style>

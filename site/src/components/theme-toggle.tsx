@@ -7,15 +7,17 @@ import type { Theme } from "@/lib/theme";
 export function ThemeToggle({
   theme,
   onChange,
+  label,
 }: {
   theme: Theme | null;
   onChange: (theme: Theme) => void;
+  label: string;
 }) {
   return (
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Switch between the light and dark theme"
+      aria-label={label}
       onClick={() => onChange(theme === "dark" ? "light" : "dark")}
     >
       <SunIcon className="hidden dark:block" />

@@ -110,3 +110,8 @@ alternatives.
 - [Leave archived run/v6 reports unread](0029-leave-archived-run-v6-reports-unread.md):
   run reports CLI 9.0.0 archived in Git's directory are skipped by every reader,
   never moved or converted, so they no longer block an update.
+- [Localize the website through MessageFormat 2 catalogs](0030-localize-the-site-through-mf2-catalogs.md):
+  the site's strings are MF2 messages in per-area catalogs and per-locale prose
+  behind one `format()`, with no runtime fallback, a parity and staleness check,
+  English at the root and other locales under their own prefix, while agent
+  surfaces, the CLI and `/docs/` stay English.

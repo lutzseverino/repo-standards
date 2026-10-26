@@ -1,14 +1,17 @@
 ---
 // The supported Starlight override for the footer: Starlight's own, then the
-// ways to support Repo Standards, as under every other page.
+// ways to support Repo Standards, as under every other page. The docs are in
+// English only.
 import Default from "@astrojs/starlight/components/Footer.astro";
+import { format } from "../../i18n/format";
+import { DEFAULT_LOCALE } from "../../i18n/locales";
 import SupportLine from "../SupportLine.astro";
 import "../../styles/support.css";
 ---
 
 <Default />
 <footer class="support-footer docs-support">
-  <SupportLine />
+  <SupportLine label={format(DEFAULT_LOCALE, "common.support.footer")} />
 </footer>
 
 <style>
