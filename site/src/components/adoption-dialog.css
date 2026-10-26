@@ -185,6 +185,22 @@
     font-size: 12px;
     text-align: right;
   }
+  /* on a phone, a note too long for the room beside its file goes on its
+   own line, still at the right */
+  @media (max-width: 620px) {
+    .adoption-art-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 6px;
+    }
+    .adoption-art-row > .adoption-art-mark {
+      flex: none;
+      width: 12px;
+    }
+    .adoption-art-note {
+      margin-left: auto;
+    }
+  }
   .adoption-art-mark {
     font-family: ui-monospace, monospace;
     font-weight: 700;
