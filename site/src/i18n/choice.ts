@@ -67,34 +67,36 @@ export function localeChoice(locales: readonly string[]) {
   const choosing = (path: string, locale: string) =>
     `${path}?${KEY}=${encodeURIComponent(locale)}`;
 
-  // storage can be unavailable, as in some private windows, or throw on
-  // writing only: the session's storage stands in for the lasting one
-  const stores = (): (() => Storage)[] => [
-    () => window.localStorage,
-    () => window.sessionStorage,
-  ];
+  // Storage can be unavailable, as in some private windows, or refuse
+  // writes only. The session's storage then holds the choice, and since it
+  // only ever holds a choice the lasting one couldn't keep, it is read
+  // first: the most recent choice wins over an older one stuck in
+  // `localStorage`. A choice the lasting storage keeps clears the session's.
+  const attempt = <T>(run: () => T): T | null => {
+    try {
+      return run();
+    } catch {
+      return null;
+    }
+  };
 
   /** The saved choice, or `null`. */
-  const saved = (): string | null => {
-    for (const store of stores()) {
-      try {
-        const value = store().getItem(KEY);
-        if (value !== null) return value;
-      } catch {
-        // try the next store
-      }
-    }
-    return null;
-  };
+  const saved = (): string | null =>
+    attempt(() => window.sessionStorage.getItem(KEY)) ??
+    attempt(() => window.localStorage.getItem(KEY));
+
   const save = (locale: string) => {
-    for (const store of stores()) {
-      try {
-        store().setItem(KEY, locale);
-        return;
-      } catch {
-        // try the next store; with none, the address carries the choice
-      }
+    const kept = attempt(() => {
+      window.localStorage.setItem(KEY, locale);
+      return true;
+    });
+    if (kept) {
+      attempt(() => window.sessionStorage.removeItem(KEY));
+      return;
     }
+    // with neither, the address carries the choice to the next page
+    attempt(() => window.sessionStorage.setItem(KEY, locale));
+    attempt(() => window.localStorage.removeItem(KEY));
   };
   return { KEY, page, redirect, query, choosing, saved, save };
 }

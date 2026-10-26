@@ -120,23 +120,41 @@ test("a redirect lands on a page that stays: it can't loop", () => {
         }
 });
 
-/** A browser storage holding `entries`, or one that throws on every call
- * when `entries` is `"blocked"`, or only on writing when `"read-only"`. */
-function storage(entries: Record<string, string> | "blocked" | "read-only") {
-  const map = new Map(
-    typeof entries === "object" ? Object.entries(entries) : [],
+type Entries = Record<string, string>;
+/** What a stub storage holds and allows: its entries; `"blocked"`, which
+ * throws on every call; or `{ readOnly }`, which reads its entries but
+ * throws on every write, removal included (`"read-only"` when empty). */
+type StoreSetup = Entries | "blocked" | "read-only" | { readOnly: Entries };
+
+/** A browser storage stub, set up by `setup`; `writable` changes whether it
+ * accepts writes from then on. */
+function storage(setup: StoreSetup) {
+  const readOnly =
+    setup === "read-only" || (typeof setup === "object" && "readOnly" in setup);
+  const map = new Map<string, string>(
+    typeof setup !== "object"
+      ? []
+      : Object.entries("readOnly" in setup ? setup.readOnly : setup),
   );
+  const state = { writes: !readOnly && setup !== "blocked" };
   const fail = () => {
     throw new Error("The storage is unavailable.");
   };
   return {
     map,
+    writable: (writes: boolean) => void (state.writes = writes),
     getItem: (key: string) =>
-      entries === "blocked" ? fail() : (map.get(key) ?? null),
+      setup === "blocked" ? fail() : (map.get(key) ?? null),
     setItem: (key: string, value: string) =>
-      typeof entries === "object" ? void map.set(key, value) : fail(),
+      state.writes ? void map.set(key, value) : fail(),
+    removeItem: (key: string) => (state.writes ? void map.delete(key) : fail()),
   };
 }
+type Store = ReturnType<typeof storage>;
+const isStore = (setup: StoreSetup | Store): setup is Store =>
+  typeof setup === "object" && "removeItem" in setup;
+const store = (setup: StoreSetup | Store): Store =>
+  isStore(setup) ? setup : storage(setup);
 
 /** Runs the head's script on `href` with the browser's `languages` and its
  * two storages, as the page runs it. */
@@ -150,14 +168,14 @@ function runScript(
   }: {
     languages?: string[];
     language?: string;
-    local?: Parameters<typeof storage>[0];
-    session?: Parameters<typeof storage>[0];
+    local?: StoreSetup | Store;
+    session?: StoreSetup | Store;
   },
 ) {
   const url = new URL(href, "https://repo-standards.com");
   const replaced: string[] = [];
   const addressed: string[] = [];
-  const stores = { local: storage(local), session: storage(session) };
+  const stores = { local: store(local), session: store(session) };
   const window: Record<string, unknown> = {
     location: {
       pathname: url.pathname,
@@ -272,6 +290,72 @@ test("a choice falls back to the session's storage when the lasting one fails", 
   const lasting = runScript("/es/?locale=es", { languages: ["en"] });
   assert.deepEqual([...lasting.local], [["locale", "es"]]);
   assert.deepEqual([...lasting.session], []);
+});
+
+/** Runs the language menu's `save(locale)` against the two storages. */
+function menuSaves(locale: string, local: Store, session: Store) {
+  vm.runInNewContext(
+    `(${localeChoice.toString()})(${JSON.stringify(LOCALES)}).save(${JSON.stringify(locale)})`,
+    { window: { localStorage: local, sessionStorage: session } },
+  );
+}
+
+test("a choice the lasting storage can't take wins over the older one it holds", () => {
+  // localStorage holds Spanish and refuses every write, removal included
+  const local = storage({ readOnly: { locale: "es" } });
+  const session = storage({});
+  // on a Spanish page, the visitor picks English in the menu
+  menuSaves("en", local, session);
+  const opened = runScript("/how-it-works/?locale=en", {
+    local,
+    session,
+    languages: ["es"],
+  });
+  assert.deepEqual(opened.replaced, []);
+  // then follows an internal link: the page stays English
+  for (const pathname of [
+    "/",
+    "/how-it-works/",
+    "/sources/lutzseverino/repo-canon/",
+  ])
+    assert.deepEqual(
+      runScript(pathname, { local, session, languages: ["es"] }).replaced,
+      [],
+      pathname,
+    );
+  assert.deepEqual([...local.map], [["locale", "es"]]);
+  assert.deepEqual([...session.map], [["locale", "en"]]);
+});
+
+test("where the lasting storage can remove but not write, its stale choice goes", () => {
+  const local = storage({ locale: "es" });
+  const session = storage({});
+  local.setItem = () => {
+    throw new Error("The storage is full.");
+  };
+  menuSaves("en", local, session);
+  assert.deepEqual([...local.map], []);
+  assert.deepEqual([...session.map], [["locale", "en"]]);
+  assert.deepEqual(
+    runScript("/", { local, session, languages: ["es"] }).replaced,
+    [],
+  );
+});
+
+test("once the lasting storage keeps a choice, no session choice overrides it", () => {
+  const local = storage("read-only");
+  const session = storage({});
+  menuSaves("en", local, session);
+  assert.deepEqual([...session.map], [["locale", "en"]]);
+  // the lasting storage accepts writes again, and the visitor picks Catalan
+  local.writable(true);
+  menuSaves("ca", local, session);
+  assert.deepEqual([...local.map], [["locale", "ca"]]);
+  assert.deepEqual([...session.map], []);
+  assert.deepEqual(
+    runScript("/", { local, session, languages: ["en"] }).replaced,
+    ["/ca/"],
+  );
 });
 
 test("the language menu saves one key, and storage that throws loses only the choice", () => {
