@@ -95,10 +95,12 @@ before(async () => {
   if (mode === undefined) delete process.env.NODE_ENV;
   else process.env.NODE_ENV = mode;
   base.production = `http://127.0.0.1:${production.port}`;
+  // without the toolbar, which development alone draws over the page
   development = await dev({
     root: site,
     logLevel: "error",
     server: { host: "127.0.0.1", port: 0 },
+    devToolbar: { enabled: false },
   });
   base.development = `http://127.0.0.1:${development.address.port}`;
   browser = await Browser.launch(executable);
