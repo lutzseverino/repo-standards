@@ -29,8 +29,12 @@ The development server listens on `http://localhost:4321`. The build writes
 static files to `site/dist/`; preview serves that output locally. Root
 `pnpm lint`, `pnpm format:check` and `pnpm validate` cover this project. The
 tests in `test/` use Node's built-in test runner, with no test framework
-installed. `pages.test.ts` builds the fixture site with a page only it builds,
-and runs the pages' inline scripts in `node:vm`.
+installed. `pnpm --dir site test` runs their files one at a time: several of
+them build the site or start its development server from this directory, with
+the same Astro and Vite caches, and run together their builds can outlast the
+120-second limit on each build command. `pages.test.ts` builds the fixture
+site with a page only it builds, and runs the pages' inline scripts in
+`node:vm`.
 
 `src/content.config.ts` loads `../docs/usage/**/*.md` and `../docs/adr/**/*.md`
 in place. `src/lib/docs-content.ts` supplies each file's H1 as its title before

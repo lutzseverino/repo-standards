@@ -23,7 +23,8 @@ the static site to `site/dist/`. The build reads its list of standards sources
 from GitHub with the CLI built at the root, so run `pnpm build` first; `pnpm
 --dir site build:fixture` builds from the recorded search in
 `site/fixtures/search/` without the network. `pnpm --dir site test` runs the
-site's data tests with Node's test runner. `pnpm --dir site preview` serves
+site's data tests with Node's test runner, one file at a time, as the
+[site README](../../site/README.md) explains. `pnpm --dir site preview` serves
 that build.
 Run `pnpm validate` to validate the entire repository, including the site
 check, tests and fixture build. The site uses a compatible TypeScript compiler for Astro checking;

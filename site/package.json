@@ -13,7 +13,7 @@
     "ui:check": "node scripts/registry.mjs check",
     "social-image": "node scripts/social-image.mjs",
     "i18n:source": "node scripts/translation-source.ts",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "7.2.0",
