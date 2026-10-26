@@ -32,6 +32,7 @@ export const GET: APIRoute = async ({ site }) => {
       "# Repo Standards",
       "> Write your setup down once. Your coding agent applies it to every repository.",
       "Repo Standards is the scoped npm package `@lutzseverino/repo-standards`, maintained at https://github.com/lutzseverino/repo-standards and published at https://repo-standards.com/. Repo Canon (https://github.com/lutzseverino/repo-canon) is the ready-made setup to start from.",
+      "The site is also available in Spanish under /es/ and in Catalan under /ca/.",
       installText(startingPoint, "prompt"),
       `## Overview\n\n${link("Repo Standards", "/index.md")}\n${link("Documentation", "/docs.md")}\n${link("Sources (JSON)", "/sources.json")}`,
       ...sections,

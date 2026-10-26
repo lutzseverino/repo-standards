@@ -21,6 +21,9 @@ import "@/styles/support.css";
 // page's own, and with it the order of the cascade layers
 import LocaleScript from "@/components/LocaleScript.astro";
 import SupportLine from "@/components/SupportLine.astro";
+import { localeChoice } from "@/i18n/choice";
+import { DEFAULT_LOCALE, LOCALES, localeAlternates } from "@/i18n/locales";
+import { serializeStructuredData } from "@/lib/structured-data";
 import { defaultSocialImage, type SocialImage } from "@/lib/social-image";
 
 type Props = {
@@ -37,6 +40,11 @@ const {
   image = defaultSocialImage(locale),
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const { path } = localeChoice(LOCALES).page(Astro.url.pathname);
+const alternates = localeAlternates(path);
+// Open Graph requires language_TERRITORY rather than the site's plain tags.
+const ogLocales = { en: "en_US", es: "es_ES", ca: "ca_ES" };
+const ogLocale = ogLocales[locale === "en-XA" ? DEFAULT_LOCALE : locale];
 ---
 
 <!doctype html>
@@ -48,11 +56,27 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
+    {Object.entries(alternates).map(([language, path]) => (
+      <link
+        rel="alternate"
+        hreflang={language}
+        href={new URL(path, Astro.site)}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL(alternates[DEFAULT_LOCALE], Astro.site)}
+    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Repo Standards" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={ogLocale} />
+    {LOCALES.filter((other) => other !== locale).map((other) => (
+      <meta property="og:locale:alternate" content={ogLocales[other]} />
+    ))}
     <meta property="og:image" content={new URL(image.src, Astro.site)} />
     <meta property="og:image:width" content={String(image.width)} />
     <meta property="og:image:height" content={String(image.height)} />
@@ -64,6 +88,18 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <AgentLinks />
     <link rel="manifest" href="/site.webmanifest" />
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={serializeStructuredData({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: title,
+        description,
+        url: canonical.href,
+        inLanguage: locale,
+      })}
+    />
     <slot name="head" />
     <!-- applies the stored or system theme before anything is drawn -->
     <script is:inline set:html={themeScript()} />

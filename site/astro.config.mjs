@@ -9,6 +9,7 @@ import { agentPages } from "./src/lib/agent-pages.ts";
 import { analyticsBeacon } from "./src/lib/analytics.ts";
 import { settledHydration } from "./src/lib/hydration.ts";
 import { remarkDocs } from "./src/lib/docs-content.ts";
+import { DEFAULT_LOCALE, LOCALES } from "./src/i18n/locales.ts";
 
 const agentUrls = [];
 
@@ -19,7 +20,13 @@ export default defineConfig({
     react(),
     settledHydration(),
     agentPages(agentUrls),
-    sitemap({ customPages: agentUrls }),
+    sitemap({
+      customPages: agentUrls,
+      i18n: {
+        defaultLocale: DEFAULT_LOCALE,
+        locales: Object.fromEntries(LOCALES.map((locale) => [locale, locale])),
+      },
+    }),
     starlight({
       title: "Repo Standards",
       components: {

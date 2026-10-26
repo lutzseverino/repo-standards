@@ -46,6 +46,146 @@ before(async () => {
 
 after(() => rmSync(output, { recursive: true, force: true }));
 
+const sitePageFiles = () =>
+  readdirSync(output, { recursive: true, encoding: "utf8" })
+    .filter((file) => file.endsWith("index.html"))
+    .filter(
+      (file) => !file.startsWith("docs/") && file !== "layout-test/index.html",
+    );
+
+test("every site page links its English, Spanish and Catalan versions reciprocally", () => {
+  for (const file of sitePageFiles()) {
+    const pathname = `/${file.replace(/index\.html$/, "")}`.replace(
+      /^\/(?:es|ca)\//,
+      "/",
+    );
+    const alternates = [
+      ...read(file).matchAll(
+        /<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g,
+      ),
+    ].map((match) => [match[1], match[2]]);
+    assert.deepEqual(
+      alternates,
+      [
+        ["en", `https://repo-standards.com${pathname}`],
+        ["es", `https://repo-standards.com/es${pathname}`],
+        ["ca", `https://repo-standards.com/ca${pathname}`],
+        ["x-default", `https://repo-standards.com${pathname}`],
+      ],
+      file,
+    );
+    for (const [, href] of alternates) {
+      assert.ok(
+        read(`${new URL(href).pathname.slice(1)}index.html`),
+        `${file} → ${href}`,
+      );
+    }
+  }
+});
+
+test("every site page declares its language in Open Graph and JSON-LD", () => {
+  const ogLocales = { en: "en_US", es: "es_ES", ca: "ca_ES" };
+  for (const file of sitePageFiles()) {
+    const locale = /^(es|ca)\//.exec(file)?.[1] ?? "en";
+    const html = read(file);
+    const meta = metaTags(html);
+    assert.equal(
+      meta["og:locale"],
+      ogLocales[locale as keyof typeof ogLocales],
+      file,
+    );
+    const alternates = [
+      ...html.matchAll(
+        /<meta property="og:locale:alternate" content="([^"]+)"/g,
+      ),
+    ].map((match) => match[1]);
+    assert.deepEqual(
+      alternates,
+      Object.entries(ogLocales)
+        .filter(([key]) => key !== locale)
+        .map(([, value]) => value),
+      file,
+    );
+    const data = [
+      ...html.matchAll(
+        /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
+      ),
+    ].map((match) => JSON.parse(match[1]) as Record<string, unknown>);
+    const page = data.find((entry) => entry["@type"] === "WebPage");
+    assert.ok(page, file);
+    assert.equal(page.inLanguage, locale, file);
+    assert.equal(page.url, meta["og:url"], file);
+  }
+});
+
+test("the sitemap groups site translations and leaves English docs without alternates", () => {
+  const entries = [
+    ...read("sitemap-0.xml").matchAll(/<url>([\s\S]*?)<\/url>/g),
+  ].map((match) => match[1]);
+  for (const { file } of localePages()) {
+    const pathname = `/${file.replace(/index\.html$/, "")}`;
+    const english = pathname.replace(/^\/(?:es|ca)\//, "/");
+    const entry = entries.find((item) =>
+      item.includes(`<loc>https://repo-standards.com${pathname}</loc>`),
+    );
+    assert.ok(entry, pathname);
+    const links = [
+      ...entry.matchAll(
+        /<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"\s*\/>/g,
+      ),
+    ]
+      .map((match) => [match[1], match[2]])
+      .sort((a, b) => a[0].localeCompare(b[0], "en"));
+    assert.deepEqual(
+      links,
+      [
+        ["ca", `https://repo-standards.com/ca${english}`],
+        ["en", `https://repo-standards.com${english}`],
+        ["es", `https://repo-standards.com/es${english}`],
+      ],
+      pathname,
+    );
+  }
+  const docs = entries.filter((item) =>
+    item.includes("<loc>https://repo-standards.com/docs/"),
+  );
+  assert.ok(docs.length > 0);
+  for (const entry of docs) assert.doesNotMatch(entry, /xhtml:link/);
+  for (const file of readdirSync(path.join(output, "docs"), {
+    recursive: true,
+    encoding: "utf8",
+  }).filter((file) => file.endsWith(".html")))
+    assert.doesNotMatch(read(`docs/${file}`), /hreflang=/, file);
+});
+
+test("every locale's pages use its own social card and translated alt text", () => {
+  const cards = {
+    en: ["social.png", "A blue road sign reading Repo Standards:"],
+    es: ["social-es.png", "Una señal de tráfico azul que dice Repo Standards:"],
+    ca: ["social-ca.png", "Un senyal de trànsit blau que diu Repo Standards:"],
+  };
+  for (const { locale, file } of localePages()) {
+    const [image, alt] = cards[locale as keyof typeof cards];
+    const meta = metaTags(read(file));
+    assert.equal(meta["og:image"], `https://repo-standards.com/${image}`, file);
+    assert.ok(meta["og:image:alt"].startsWith(alt), file);
+    assert.ok(readFileSync(path.join(output, image)).length > 0, image);
+  }
+});
+
+test("the English agent surfaces mention the site languages without linking localized pages", () => {
+  const llms = read("llms.txt");
+  assert.match(
+    llms,
+    /^The site is also available in Spanish under \/es\/ and in Catalan under \/ca\/\.$/m,
+  );
+  for (const [, href] of llms.matchAll(/\]\(([^)]+)\)/g)) {
+    assert.doesNotMatch(new URL(href).pathname, /^\/(?:es|ca)\//, href);
+  }
+  const files = readdirSync(output, { recursive: true, encoding: "utf8" });
+  assert.ok(!files.some((file) => /^(?:es|ca)\/.*\.md$/.test(file)));
+});
+
 test("a page built through the layout is canonical at its own URL", () => {
   const html = read("layout-test/index.html");
   assert.match(
@@ -264,8 +404,8 @@ for (const source of SOURCES) {
         /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
       ),
     ];
-    assert.equal(scripts.length, 1);
-    assert.deepEqual(JSON.parse(scripts[0][1]), source.data);
+    assert.equal(scripts.length, 2);
+    assert.deepEqual(JSON.parse(scripts[1][1]), source.data);
     assert.equal(html.match(BEACON)?.length, 1);
   });
 }
@@ -369,6 +509,8 @@ test("the homepage unfurls as itself, with the default social image", () => {
       "og:description":
         "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.",
       "og:url": canonical,
+      "og:locale": "en_US",
+      "og:locale:alternate": "ca_ES",
       "og:image": "https://repo-standards.com/social.png",
       "og:image:width": "1200",
       "og:image:height": "630",

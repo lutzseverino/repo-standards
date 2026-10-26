@@ -182,7 +182,11 @@ Twitter card tags, the favicons, the web manifest and the Cloudflare Web
 Analytics beacon. `og:title`, `og:description` and `og:url` repeat the page's
 title, description and canonical URL, and `og:image` is the page's `image`
 prop, a `SocialImage` from `src/lib/social-image.ts`, as an absolute URL on
-`site`; a page that passes none takes the default, `public/social.png`.
+`site`; a page that passes none takes its locale's card: `public/social.png`
+for English, `public/social-es.png` for Spanish or `public/social-ca.png` for
+Catalan. The layout links every page's language versions with reciprocal
+`hreflang` and English as `x-default`, declares its Open Graph locale and
+alternates, and adds `WebPage` JSON-LD with `inLanguage` set to its locale.
 `public/site.webmanifest` names the site and lists the 192 and 512 pixel
 icons, in the sign palette's colours. The beacon is `src/lib/analytics.ts`, a
 tag in the shape Starlight's `head` option takes, so the docs can include it
@@ -231,12 +235,13 @@ names fitted to one line (`fit-name.ts`) and the lights on, and hydration
 changes nothing.
 D-DIN PRO, under the SIL Open Font License in `public/fonts/d-din-pro/`, sets
 the signs and the text.
-`scripts/social-image.mjs` draws the social preview, `public/social.png`: the
+`scripts/social-image.mjs` draws each locale's social preview: the
 homepage's title plate by day, at 1200 by 630 pixels. It outlines the title
 and the positioning line from the WOFF2 fonts, kerned with their GPOS pairs,
 and renders them with sharp, so the image needs no system fonts or browser.
-Run `pnpm --dir site social-image` and commit the image after changing either
-line or the day palette.
+The positioning line comes from each locale's `sign.tagline` message.
+Run `pnpm --dir site social-image` and commit the three images after changing
+either line or the day palette.
 
 The sign is also the way into "How it works" (`story.tsx`, `story.css`). Its
 tab, its title, its notice and the nav's link sink it behind the guardrail
@@ -313,7 +318,10 @@ The site package is private and never published to npm.
 
 `public/robots.txt` allows every crawler and points to the absolute sitemap URL.
 `@astrojs/sitemap` includes the built pages automatically, the source pages
-among them. The homepage also publishes JSON-LD describing the site and the
+among them. Its `i18n` option groups the site's language versions as alternates;
+the English-only docs keep no alternates. `llms.txt` lists English pages and
+notes the Spanish and Catalan site paths; localized pages share their English
+Markdown alternate. The homepage also publishes JSON-LD describing the site and the
 listed standards sources, and each source page describes its own source, using
 the same catalogue as the visible page and escaping third-party metadata for
 the script element.

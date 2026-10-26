@@ -404,6 +404,8 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // visitor's language, the nav has a language menu beside the Support
   // control, its controls are grouped so they wrap together on a phone, and
   // the island's props carry the homepage in each language.
+  // Since #406 the layout adds language alternates and WebPage JSON-LD;
+  // pages.test.ts checks this metadata for every locale.
   const html = read("index.html")
     .replace(
       '<nav class="mb-8 flex flex-wrap items-center justify-end gap-1 text-[15px]">',
@@ -423,6 +425,11 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
       "",
     )
     .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
+    .replace(/<link rel="alternate" hreflang="[^"]+" href="[^"]+">/g, "")
+    .replace(
+      /<script type="application\/ld\+json">\{"@context":"https:\/\/schema.org","@type":"WebPage",[^<]*<\/script>/,
+      "",
+    )
     .replace('<link rel="manifest" href="/site.webmanifest">', "")
     // Shared font aliases change the base stylesheet hash, and the sign's
     // styles the adoption dialog's stylesheet hash, not homepage markup.
