@@ -16,6 +16,11 @@ function input(change: (page: ReturnType<typeof recordedPage>) => void) {
   const page = recordedPage();
   change(page);
   return {
+    counts: () =>
+      Promise.resolve({
+        "lutzseverino/repo-canon": 1,
+        "lutzseverino/repo-standards-example": 2,
+      }),
     page: () => Promise.resolve(page),
     standards: (repository: string) =>
       Promise.resolve(
@@ -150,14 +155,49 @@ test("every source carries its released commit", async () => {
   }
 });
 
-test("the list is alphabetical by display name", async () => {
+test("the list ranks by acquired adopter count rather than name", async () => {
   const catalogue = await buildCatalogue(
     input((page) => page.candidates.reverse()),
   );
   assert.deepEqual(
     catalogue.sources.map((s) => s.name),
+    ["repository-standards-examples", "repo-canon"],
+  );
+  assert.deepEqual(
+    catalogue.sources.map((s) => s.publicAdopters),
+    [2, 1],
+  );
+});
+
+test("equal acquired counts use display names to break ties", async () => {
+  const catalogue = await buildCatalogue({
+    ...input(() => {}),
+    counts: () =>
+      Promise.resolve({
+        "lutzseverino/repo-canon": 0,
+        "lutzseverino/repo-standards-example": 0,
+      }),
+  });
+  assert.deepEqual(
+    catalogue.sources.map((s) => s.name),
     ["repo-canon", "repository-standards-examples"],
   );
+});
+
+test("missing or invalid acquired counts fail the catalogue boundary", async () => {
+  for (const count of [undefined, -1, 0.5, NaN]) {
+    await assert.rejects(
+      buildCatalogue({
+        ...input(() => {}),
+        counts: () =>
+          Promise.resolve({ "lutzseverino/repo-canon": count } as Record<
+            string,
+            number
+          >),
+      }),
+      /Missing or invalid public-adopter count/,
+    );
+  }
 });
 
 test("an incomplete search fails the build", async () => {

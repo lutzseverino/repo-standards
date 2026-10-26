@@ -824,7 +824,8 @@
     align-items: flex-end;
     padding: 0 16px;
   }
-  .signpost-tabs > .sign-face-wrap {
+  .signpost-tabs > .sign-face-wrap,
+  .signpost-tabs > aside {
     align-self: end;
     margin-bottom: -1px;
   }
@@ -832,7 +833,7 @@
     padding: 4px 12px 3px;
     font-size: 15px;
   }
-  .signpost-tabs .signpost-exit-tab,
+  .signpost-tabs .signpost-adopters-tab,
   .signpost-tabs .signpost-shield-tab {
     padding: 3px 10px 2px;
   }

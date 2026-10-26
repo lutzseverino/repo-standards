@@ -79,35 +79,40 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
         "Write your setup down once: agent instructions, docs, templates and checks. Your coding agent applies it to every repository and keeps them in step.",
     });
     assert.equal(data["@graph"][1]["@type"], "ItemList");
-    assert.deepEqual(data["@graph"][1].itemListElement, [
-      {
-        "@type": "ListItem",
-        position: 1,
-        item: {
-          "@type": "SoftwareSourceCode",
-          name: "repo-canon",
-          description:
-            "Repository documentation, contribution, agent workflow, and GitHub validation standards",
-          codeRepository: "https://github.com/lutzseverino/repo-canon",
-          version: "v0.17.0",
-          dateModified: "2026-10-19T15:08:01Z",
+    assert.deepEqual(
+      data["@graph"][1].itemListElement,
+      [
+        {
+          "@type": "ListItem",
+          position: 1,
+          item: {
+            "@type": "SoftwareSourceCode",
+            name: "repo-canon",
+            description:
+              "Repository documentation, contribution, agent workflow, and GitHub validation standards",
+            codeRepository: "https://github.com/lutzseverino/repo-canon",
+            version: "v0.17.0",
+            dateModified: "2026-10-19T15:08:01Z",
+          },
         },
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        item: {
-          "@type": "SoftwareSourceCode",
-          name: "repository-standards-examples",
-          description:
-            "Synthetic service and project-documentation profiles for release acceptance",
-          codeRepository:
-            "https://github.com/lutzseverino/repo-standards-example",
-          version: "v3.0.0",
-          dateModified: "2026-10-22T17:57:17Z",
+        {
+          "@type": "ListItem",
+          position: 2,
+          item: {
+            "@type": "SoftwareSourceCode",
+            name: "repository-standards-examples",
+            description:
+              "Synthetic service and project-documentation profiles for release acceptance",
+            codeRepository:
+              "https://github.com/lutzseverino/repo-standards-example",
+            version: "v3.0.0",
+            dateModified: "2026-10-22T17:57:17Z",
+          },
         },
-      },
-    ]);
+      ]
+        .reverse()
+        .map((item, index) => ({ ...item, position: index + 1 })),
+    );
     assert.match(
       html,
       /<title>Repo Standards: one setup for every repository<\/title>/,

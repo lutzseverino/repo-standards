@@ -89,6 +89,23 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
  * Adoption prompts are readonly input values in the rendered pages. */
 function pageContent(html: string): Root {
   const tree = fromHtml(html);
+  // Human listings rank by adopters. Markdown keeps its established source
+  // order and omits the human count tabs and explanation (asides).
+  visit(tree, "element", (node) => {
+    if (
+      node.tagName !== "ul" ||
+      !Array.isArray(node.properties.className) ||
+      !node.properties.className.includes("signpost-grid")
+    )
+      return;
+    node.children.sort((a, b) => {
+      const name = (child: typeof a) =>
+        child.type === "element"
+          ? String(child.properties.dataSourceName ?? "")
+          : "";
+      return name(a).localeCompare(name(b), "en");
+    });
+  });
   visit(tree, (node, index, parent) => {
     if (
       node.type === "comment" ||

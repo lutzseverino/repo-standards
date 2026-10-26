@@ -45,6 +45,7 @@ export const HOME_STRINGS = [
   "common.theme.toggle",
   "home.search.label",
   "home.sources.list-yours",
+  "home.sources.adopters-explanation",
   ...SUPPORT_STRINGS,
   ...LANGUAGE_STRINGS,
   ...SIGN_STRINGS,
@@ -63,6 +64,8 @@ export type HomeText = {
   /** Each listed source's repository, release date and CLI requirement, by
    * repository. */
   details: Record<string, string>;
+  /** Localized public-adopter counts for the source tabs. */
+  adopters: Record<string, string>;
   /** How to see every source again after a search that matches none. */
   clear: string;
   /** Where the sources come from, with a `topic` slot. */
@@ -182,7 +185,11 @@ export function Home({
             />
           </div>
           <div className="mt-8">
-            <SignpostList locale={locale} sources={visible}>
+            <SignpostList
+              locale={locale}
+              sources={visible}
+              adopters={text.adopters}
+            >
               {(s) => (
                 <>
                   <Install
@@ -231,6 +238,9 @@ export function Home({
             {text.leftOut && `${text.leftOut} `}
             {strings["home.sources.list-yours"]}
           </p>
+          <aside className="mt-4 max-w-2xl text-[15px] leading-snug text-muted-foreground">
+            {strings["home.sources.adopters-explanation"]}
+          </aside>
           {/* for people: the Markdown version leaves asides out */}
           <aside className="mt-4 max-w-2xl text-[15px] leading-snug text-muted-foreground">
             <RichText

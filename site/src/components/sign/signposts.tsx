@@ -1,12 +1,12 @@
 // The list: each standards source is a card headed by its own sign plate,
-// with an exit tab and a version shield standing up from the plate. Entries
+// with an adopter tab and a version shield standing up from the plate. Entries
 // line up with their neighbours (subgrid): plate, copy control, text and
 // profiles each start on one line across a row.
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/app/card";
 import { localePath, type Locale } from "@/i18n/locales";
 import { sourcePath, type Source } from "@/lib/catalogue";
-import { Arrow, ExitArrow } from "./arrow";
+import { Arrow } from "./arrow";
 import { Face } from "./face";
 import { fitName } from "./fit-name";
 import { announceLayout } from "./torch";
@@ -14,10 +14,12 @@ import { announceLayout } from "./torch";
 export function SignpostList({
   locale,
   sources,
+  adopters,
   children,
 }: {
   locale: Locale;
   sources: Source[];
+  adopters: Record<string, string>;
   /** The card body for each source. */
   children: (source: Source) => ReactNode;
 }) {
@@ -29,20 +31,24 @@ export function SignpostList({
 
   return (
     <ul className="signpost-grid">
-      {sources.map((s, i) => (
-        <li key={s.repository} className="signpost-entry">
+      {sources.map((s) => (
+        <li
+          key={s.repository}
+          className="signpost-entry"
+          data-source-name={s.name}
+        >
           <div className="signpost-sign">
             <div className="signpost-tabs">
-              <Face
-                kind="blue"
-                className="sign-tab-face signpost-exit-tab"
-                hidden
-              >
-                <span className="sign-face__inner flex items-center gap-1.5 tabular-nums">
-                  {i + 1}
-                  <ExitArrow />
-                </span>
-              </Face>
+              <aside>
+                <Face
+                  kind="blue"
+                  className="sign-tab-face signpost-adopters-tab"
+                >
+                  <span className="sign-face__inner tabular-nums">
+                    {adopters[s.repository]}
+                  </span>
+                </Face>
+              </aside>
               <Face
                 kind="blue"
                 className="sign-tab-face signpost-shield-tab"

@@ -289,23 +289,67 @@ how [#347](https://github.com/lutzseverino/repo-standards/issues/347)'s
 intermittent search results show, and GitHub Pages keeps serving the last good
 deploy. Another source can still drop out of one day's build.
 
-The list is alphabetical by display name, with Repo Canon unpinned since the
-sign features it. Its ranking key will be the adopter count once
-[#345](https://github.com/lutzseverino/repo-standards/issues/345) provides
-one; the order is one function, `byListOrder`.
+The homepage ranks by observed public-adopter count, descending, with display
+names breaking ties in `byListOrder`. Its tabs explain that this is a lower
+bound: one GitHub code-search query discovers public selection candidates for
+all sources (with pagination when needed), then repository metadata and
+the selection on the current default branch establish adoption. Forks,
+archived repositories and source self-adoption are excluded, and each
+repository counts once. Search indexing can omit public adoption; private
+adoption is not represented. A textual mention, another branch or a historical
+selection does not establish current adoption.
+
+The Pages build step runs `scripts/count-adopters.ts` with its built-in workflow
+token, then consumes that step's JSON through `SITE_ADOPTER_COUNTS`. It creates
+a fresh directory under `RUNNER_TEMP` and deletes it on exit; no count artifact,
+committed production snapshot, cache or cross-run fallback exists. The JSON is
+bound to `GITHUB_RUN_ID` and `GITHUB_RUN_ATTEMPT`, and the catalogue rejects
+missing, invalid or earlier-run counts. Failed or incomplete acquisition stops
+the build before Pages artifact upload, so deployment retains the live site.
+429 and secondary limits get exponential backoff, honoring `Retry-After` and
+exhausted-quota resets within one fifteen-minute total wait budget shared by
+all acquisition reads. The build job has a thirty-minute timeout. This budget
+admits the observed 733-second cooldown; persisting limits still stop deployment.
+The workflow-wide `github-pages` concurrency group serializes counting and
+publishing across daily and main-push runs, so nearby pushes cannot compete
+with each other. Other GitHub activity can still consume quota or trigger
+secondary limits: GitHub documents the built-in token's primary quota as
+[per repository](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api#primary-rate-limit-for-github_token-in-github-actions),
+and response headers remain the authority for code-search limits.
+Two [simultaneous](https://github.com/lutzseverino/repo-standards/actions/runs/40340944224)
+[workflow probes](https://github.com/lutzseverino/repo-standards/actions/runs/40341005739)
+both received 429 with the same `code_search` reset, limit 10, remaining 10,
+and `Retry-After` 86/87 seconds. This is consistent with a shared throttle,
+not proof of isolated per-run capacity; deployment runs therefore serialize.
+The built-in token's public search and cross-repository coverage were verified
+in [the Actions probe for #345](https://github.com/lutzseverino/repo-standards/actions/runs/40333619116),
+including a successful retry after a 733-second cooldown.
+
+Agent surfaces retain their alphabetical source order and omit the human count
+tabs and explanation, keeping `llms.txt`, Markdown and `sources.json` unchanged.
+The regression test builds the current site and documentation again with the
+count UI removed and zero counts restoring alphabetical order, then compares
+every agent output byte for byte. It pins no agent-output hash, so unrelated
+documentation and discovery-copy changes apply equally to both builds.
 
 `SITE_SEARCH_RECORDING` names a recording of those inputs to build from
 instead: `page-<n>.json` holding the CLI's raw output and
-`standards/<owner>/<repo>.yaml`. `build:fixture` builds from the recording in
+`standards/<owner>/<repo>.yaml`, plus `adoptions.json` containing candidate,
+repository and branch-selection inputs. `build:fixture` builds from the recording in
 `fixtures/search/` through the same transform, and the tests change it to
 check each failure. Pull request checks and `pnpm validate` use it, so they
 never depend on GitHub search; only the Deploy site workflow builds from live
 search. Record a fresh search with
 `node dist/cli.js source search --json > site/fixtures/search/page-1.json`
 from the root, and each candidate's `standards.yaml` from
-`https://raw.githubusercontent.com/<owner>/<repo>/<commit>/standards.yaml`. The adopters count stays off the page
-until there is a real one
-([#345](https://github.com/lutzseverino/repo-standards/issues/345)).
+`https://raw.githubusercontent.com/<owner>/<repo>/<commit>/standards.yaml`.
+For local development without live acquisition, run
+`SITE_SEARCH_RECORDING=fixtures/search pnpm --dir site dev` from the root.
+Fixture builds derive counts from recorded acquisition inputs rather than a
+saved production count output. `test/adopter-workflow.test.ts` executes the
+workflow's actual counting/build shell step twice with distinct run IDs and
+once with a simulated counting failure, verifying fresh consumption, temporary
+file cleanup and the deployment gate.
 
 ## Deployment
 

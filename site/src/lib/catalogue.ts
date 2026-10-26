@@ -9,6 +9,8 @@ export type Profile = {
 export type Source = {
   /** `owner/repo` on GitHub. */
   repository: string;
+  /** Observed public repositories whose current default branch selects it. */
+  publicAdopters: number;
   name: string;
   description: string;
   /** The released commit, which pages and agents pin to. */
@@ -59,6 +61,7 @@ export function sourcePath(source: Source): string {
  * own page shows, so a page does not ship it to the browser. */
 export function listing({
   repository,
+  publicAdopters,
   name,
   description,
   commit,
@@ -66,7 +69,21 @@ export function listing({
   requires,
   profiles,
 }: Source): Source {
-  return { repository, name, description, commit, release, requires, profiles };
+  return {
+    repository,
+    publicAdopters,
+    name,
+    description,
+    commit,
+    release,
+    requires,
+    profiles,
+  };
+}
+
+/** Agent surfaces retain their established alphabetical source order. */
+export function byName(a: Source, b: Source): number {
+  return a.name.localeCompare(b.name, "en");
 }
 
 /** The catalogue as the homepage's list shows it. */

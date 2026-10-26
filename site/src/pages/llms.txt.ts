@@ -2,7 +2,12 @@ import { fileURLToPath } from "node:url";
 import { root } from "astro:config/server";
 import type { APIRoute } from "astro";
 import { readDocs } from "../lib/docs-content";
-import { installText, STARTING_POINT, sourcePath } from "../lib/catalogue";
+import {
+  byName,
+  installText,
+  STARTING_POINT,
+  sourcePath,
+} from "../lib/catalogue";
 import { markdownPath } from "../lib/agent-paths";
 import { loadCatalogue } from "../lib/load-catalogue";
 
@@ -36,7 +41,10 @@ export const GET: APIRoute = async ({ site }) => {
       installText(startingPoint, "prompt"),
       `## Overview\n\n${link("Repo Standards", "/index.md")}\n${link("Documentation", "/docs.md")}\n${link("Sources (JSON)", "/sources.json")}`,
       ...sections,
-      `## Sources\n\n${catalogue.sources.map((source) => link(source.name, markdownPath(sourcePath(source)))).join("\n")}`,
+      `## Sources\n\n${[...catalogue.sources]
+        .sort(byName)
+        .map((source) => link(source.name, markdownPath(sourcePath(source))))
+        .join("\n")}`,
       `## How it works\n\n${link("How Repo Standards works", "/how-it-works.md")}`,
       "",
     ].join("\n\n"),
