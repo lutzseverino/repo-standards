@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, test } from "node:test";
-import { fileURLToPath } from "node:url";
+import { validateMetadata } from "./pr-metadata.ts";
 import { directoryFixture, installCli } from "./installed-cli.ts";
 import { commit, git, operation } from "./remote-fixture.ts";
 import {
@@ -55,21 +55,12 @@ function validateBody(f: ReuseFixture, body: string) {
     event,
     JSON.stringify({
       pull_request: {
-        title: "chore: adopt repo-canon v1.0.0 with CLI 9.0.0",
+        title: `chore: adopt standards v1.0.0 with CLI ${cli.version}`,
         body,
       },
     }),
   );
-  return spawnSync(
-    process.execPath,
-    [
-      fileURLToPath(
-        new URL("../.github/scripts/validate-pr-metadata.mjs", import.meta.url),
-      ),
-      event,
-    ],
-    { encoding: "utf8", env: { ...process.env, GITHUB_STEP_SUMMARY: "" } },
-  );
+  return validateMetadata(event);
 }
 
 test("an unchanged update reuses the recorded scope, remote setup deferral and assessments, and completes in one run", async (t) => {

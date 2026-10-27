@@ -1,9 +1,8 @@
 import type { Run, Status } from "./json-reports.ts";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { validateMetadata } from "./pr-metadata.ts";
 import { after, test } from "node:test";
 import type { TestContext } from "node:test";
 import { installCli } from "./installed-cli.ts";
@@ -44,16 +43,7 @@ async function fixture(t: TestContext, adopted = true) {
 function validate(f: { root: string }, title: string, body: string) {
   const event = join(f.root, ".git", "event.json");
   writeFileSync(event, JSON.stringify({ pull_request: { title, body } }));
-  return spawnSync(
-    process.execPath,
-    [
-      fileURLToPath(
-        new URL("../.github/scripts/validate-pr-metadata.mjs", import.meta.url),
-      ),
-      event,
-    ],
-    { encoding: "utf8", env: { ...process.env, GITHUB_STEP_SUMMARY: "" } },
-  );
+  return validateMetadata(event);
 }
 
 test("an update skipping a release derives its line and records every release's author-written line", async (t) => {
@@ -136,8 +126,8 @@ Exact update: nothing is needed beyond reviewing and committing the update.
 
   // Both a plain and a breaking title accept the record as the body.
   for (const title of [
-    "chore: adopt repo-canon v1.2.0 with CLI 9.0.0",
-    "chore!: adopt repo-canon v1.2.0 with CLI 9.0.0",
+    `chore: adopt standards v1.2.0 with CLI ${cli.version}`,
+    `chore!: adopt standards v1.2.0 with CLI ${cli.version}`,
   ]) {
     const verdict = validate(f, title, record);
     assert.equal(verdict.status, 0, verdict.stdout + verdict.stderr);
@@ -170,7 +160,10 @@ test("a release the lookup cannot read is reported in the record without failing
     record,
     /1\. Check release v1\.1\.0 for an author-written adopter action: its standards\.yaml could not be read \(SOURCE\\_UNAVAILABLE\)\.\n2\. Release v1\.2\.0: Re-run the label sync\.\n3\. Review and commit the update\.\n$/,
   );
-  for (const title of ["chore: adopt x v1.2.0", "chore!: adopt x v1.2.0"]) {
+  for (const title of [
+    `chore: adopt standards v1.2.0 with CLI ${cli.version}`,
+    `chore!: adopt standards v1.2.0 with CLI ${cli.version}`,
+  ]) {
     const verdict = validate(f, title, record);
     assert.equal(verdict.status, 0, verdict.stdout + verdict.stderr);
   }
@@ -215,7 +208,7 @@ test("an unreadable release list is reported in the record without failing the u
   );
   const verdict = validate(
     f,
-    "chore!: adopt x v1.2.0",
+    `chore!: adopt standards v1.2.0 with CLI ${cli.version}`,
     f.run(["status", "--summary"]).stdout,
   );
   assert.equal(verdict.status, 0, verdict.stdout + verdict.stderr);
