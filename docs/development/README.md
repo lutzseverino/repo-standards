@@ -175,7 +175,7 @@ leaves the tree clean until an actual adoption run starts. To keep the current
 CLI pin, an already restored matching project runtime can launch the update
 directly.
 
-## Site translations
+### Site translations
 
 The website's text lives in `site/src/i18n/`, as
 [ADR 0030](../adr/0030-localize-the-site-through-mf2-catalogs.md) records:
@@ -218,7 +218,7 @@ outside `⟦ ⟧` there bypasses the catalogs. Its padding can wrap every five
 dots, like the words of a longer translation, so text that still overflows its
 box there overflows for real.
 
-## Site on a phone
+### Site on a phone
 
 Check every site change on a phone before review: at 320, 360 and 390 CSS px
 wide, in the light and the dark theme, on every page it affects, with the
@@ -297,7 +297,7 @@ A pull request that changes the site reports this in its Evidence:
 - **Screenshots**: representative ones at 320 px in both themes, the
   pseudo-locale's included, and before and after for a fix.
 
-## Release sources
+### Release sources
 
 The CLI pins `@lutzseverino/postern` 1.x as an exact runtime dependency.
 Postern's `ReleaseSource` reads all pages of published releases for adoption,
