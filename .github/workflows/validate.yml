@@ -56,17 +56,18 @@ jobs:
 
   required-validation:
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: validate
+    needs: [validate, site]
     name: validate (linux, ${{ matrix.part }}/3)
     strategy:
       matrix:
         part: [1, 2, 3]
     runs-on: ubuntu-latest
     steps:
-      - name: Require every Linux part on both supported Node.js majors
+      - name: Require every Linux part and site validation on both supported Node.js majors
         env:
-          RESULT: ${{ needs.validate.result }}
-        run: test "$RESULT" = success
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          SITE_RESULT: ${{ needs.site.result }}
+        run: test "$VALIDATE_RESULT" = success && test "$SITE_RESULT" = success
 
   site:
     if: github.event_name == 'pull_request'

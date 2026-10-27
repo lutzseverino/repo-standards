@@ -71,8 +71,10 @@ the same files as `pnpm test`, with every file in exactly one part. Part 2 runs
 into two shards. All parts use Node's default test concurrency. The six explicit checks name `node 24` or `node 26` and the part. Three aggregate
 gates preserve the existing required-check settings: the required
 checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
-`validate (linux, 3/3)`. Each aggregate requires all six matrix jobs to succeed, including cancelled or
-skipped failures. Each part typechecks, lints, checks formatting, rejects any
+`validate (linux, 3/3)`. Each aggregate requires all six CLI matrix jobs and both site matrix jobs to
+succeed; a failure, cancellation or skip in either matrix fails every aggregate.
+Together these required checks run every step of `pnpm validate` on both supported
+Node.js majors. Each CLI part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
 are exempt), and builds before testing. Separate Linux `site` jobs run
 the generated shadcn source check, `astro check`, the site tests and the fixture site build on both supported majors on every pull request, without path filtering.
@@ -96,12 +98,14 @@ in a new PR. Merges continue; the release workflow blocks publication until
 macOS passes.
 
 `pnpm validate` includes the format check in the full local run. Passing all six Linux
-matrix jobs through the three required gates replaces a local full-suite run, so open the PR once focused checks pass.
+CLI matrix jobs and both site matrix jobs through the three required gates replaces
+a local full-suite run, so open the PR once focused checks pass.
 Run additional local tests to diagnose failures when needed.
 
 #### Running the full suite on a constrained host
 
-The three Linux aggregate checks gate all six matrix jobs. A full local run is sensitive to host load:
+The three Linux aggregate checks gate all six CLI matrix jobs and both site matrix
+jobs. A full local run is sensitive to host load:
 `pnpm test` runs every test file in parallel at Node's default concurrency, one
 fewer than the available parallelism, and most files pack and install the CLI
 and start adoption fixtures, each with its own local registry process and runtime
