@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { test, type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { directoryFixture } from "./installed-cli.ts";
+import { validateMetadata } from "./pr-metadata.ts";
 
 // The update action's scripts run against a fake forge, a local HTTP server
 // for GitHub's REST API backed by a bare Git remote, and a fake CLI that
@@ -15,9 +16,6 @@ import { directoryFixture } from "./installed-cli.ts";
 const actionMain = fileURLToPath(new URL("../action/main.ts", import.meta.url));
 const fakeCli = fileURLToPath(
   new URL("update-action-cli.mjs", import.meta.url),
-);
-const validator = fileURLToPath(
-  new URL("../.github/scripts/validate-pr-metadata.mjs", import.meta.url),
 );
 const source = "https://github.com/alice/standards";
 const token = "test-token";
@@ -322,10 +320,7 @@ function validate(f: Fixture, item: Item) {
     event,
     JSON.stringify({ pull_request: { title: item.title, body: item.body } }),
   );
-  return spawnSync(process.execPath, [validator, event], {
-    encoding: "utf8",
-    env: { ...process.env, GITHUB_STEP_SUMMARY: "" },
-  });
+  return validateMetadata(event);
 }
 
 test("no update opens nothing and closes landed rolling items", async (t) => {

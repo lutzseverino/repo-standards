@@ -210,6 +210,22 @@ function summary() {
     "| --- | --- |",
     `| \`github-settings/apply\` | deferred: ${deferred[0].reason} |`,
     "",
+    "## Changed paths",
+    "",
+    "| Path | Phases |",
+    "| --- | --- |",
+    "| `CONTRIBUTING.md` | installation |",
+    "",
+    "## Scope changes",
+    "",
+    "No scope changes.",
+    "",
+    "## Identities",
+    "",
+    "| Record | Value |",
+    "| --- | --- |",
+    "| Run | `test-update` |",
+    "",
   ].join("\n");
 }
 
