@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:f51264f034d537afdb6e8ea8629b0018c32d90b8f73ef256c928935d2bc6fb95",
-      "after": "sha256:f51264f034d537afdb6e8ea8629b0018c32d90b8f73ef256c928935d2bc6fb95",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:f51264f034d537afdb6e8ea8629b0018c32d90b8f73ef256c928935d2bc6fb95",
-      "after": "sha256:f51264f034d537afdb6e8ea8629b0018c32d90b8f73ef256c928935d2bc6fb95",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -78,6 +78,7 @@
             "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -160,44 +161,9 @@
           "directories": []
         }
       },
-      "before": "sha256:f51264f034d537afdb6e8ea8629b0018c32d90b8f73ef256c928935d2bc6fb95",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "changes": {
-        ".gitattributes": {
-          "before": {
-            "type": "missing"
-          },
-          "after": {
-            "type": "file",
-            "sha256": "19db6077d800c8a558ca551c499fdc78cdd0e1c32c4970cc002baf47d4723ed8",
-            "executable": false
-          }
-        },
-        "README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "0a7bcb39dbacb7fc8d12a3546542498bad66195c9bb59985a48130612f17b48e",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "a73e60e8f9b4b572a59639261767fe92a841b7d30af764b964135e8e51087292",
-            "executable": false
-          }
-        },
-        "docs/development/README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "cf27e32de394de8ba5641d0914be6fdf72eaac60d1f48a7261337b11c6caf490",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "43dbc36d402c9b6c76ad0315633ea3fcd72155dbcfb9ac0d3cb706a1e68b0dff",
-            "executable": false
-          }
-        }
-      },
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "changes": {},
       "boundaryChanges": {},
       "violations": []
     },
@@ -238,6 +204,7 @@
             "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -320,8 +287,8 @@
           "directories": []
         }
       },
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -363,6 +330,7 @@
             "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -401,8 +369,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -421,8 +389,8 @@
         "id": "pull-request-reviewer"
       },
       "operationIndex": 3,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -441,8 +409,8 @@
         "id": "factory-review-policy"
       },
       "operationIndex": 4,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -463,8 +431,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -485,8 +453,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 6,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -507,8 +475,8 @@
         "id": "typescript-node-stack-manifests"
       },
       "operationIndex": 7,
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -550,6 +518,7 @@
             "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -632,8 +601,8 @@
           "directories": []
         }
       },
-      "before": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
-      "after": "sha256:adc88d0152b27710f8e5bb22acacf3bb52386b0825af2669866b2f5b95d1b5ae",
+      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -812,18 +781,6 @@
   "retryHistory": [],
   "changeSet": [
     {
-      "path": ".agents/skills/babysit/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/babysit/merge.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": ".agents/skills/babysit/platform.mjs",
       "phases": [
         "installation"
@@ -836,37 +793,7 @@
       ]
     },
     {
-      "path": ".agents/skills/babysit/request.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/babysit/review-policy.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/babysit/reviewer.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/babysit/trusted-review-config.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": ".agents/skills/babysit/wait.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/orchestrate/CREDITS.md",
       "phases": [
         "installation"
       ]
@@ -878,155 +805,23 @@
       ]
     },
     {
-      "path": ".agents/skills/orchestrate/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/triage/AGENT-BRIEF.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/triage/CREDITS.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/triage/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/triage/ready.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/orchestrate",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".factory/config.json",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".gitattributes",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": ".github/scripts/validate-pr-metadata.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/scripts/validate.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/workflows/issue-contracts.yml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/workflows/pr-metadata.yml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/workflows/standards-update.yml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "AGENTS.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "README.md",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": "docs/agents/README.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "docs/development/README.md",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": "operations/lib/rendered-markdown.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": "scripts/validate-issue-contract.mjs",
       "phases": [
         "installation"
       ]
     },
     {
-      "path": "scripts/validate.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "vendor/postern/LICENSE",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "vendor/postern/README.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "vendor/postern/postern.mjs",
+      "path": "vendor/parse5/README.md",
       "phases": [
         "installation"
       ]
     }
   ],
   "lastComplete": {
-    "run": "56b4c417-cafe-4644-a121-35b5df0bb238",
-    "inspection": "sha256:1de952478af2772379b926896cfa78bbbfb032f6da05e08e7e85f8e60614408c",
-    "completedAt": "2026-10-27T08:11:40.534Z",
-    "head": "50831b7b79db2574c43e3e538ce1b3871e51975d"
+    "run": "f544a3e0-0881-4c72-ab8b-7f0e9a8d8c3b",
+    "inspection": "sha256:0ae67604d4cfe4a49dea2e11128d7321f78df543c5f7626eec8bce4c11ffd1fd",
+    "completedAt": "2026-10-29T14:54:10.601Z",
+    "head": "9510b1a0ca38c352a16f4c5171c93ba739e0028e"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -1074,7 +869,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "725b1494370348a99dc153f6833541014d5f2c70c80688046cc3219fa11a0a64",
+      "sha256": "f5b14e32000fddc95e27f94fc91f9166ceb02b0d3ae15df26d3a656230868939",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -1114,7 +909,7 @@
       "executable": false
     },
     "vendor/parse5/README.md": {
-      "sha256": "8f285afdb9d5eca93648d2ffbea58ea0cea94485f18c3eec6f5825ef1e0446bf",
+      "sha256": "bb5904a74bace3cfbcf0f7f817f2a3f808a21f4d60c1b1b118e1464d6d096855",
       "executable": false
     },
     "vendor/postern/postern.mjs": {
@@ -1154,11 +949,11 @@
       "executable": false
     },
     ".agents/skills/babysit/platform.mjs": {
-      "sha256": "dccb0f3e7c2f89563ed25ca0e4bf1a479af5b65732ad08fbed38304263bc8b47",
+      "sha256": "bd0ad7346873e5bc4de7f33b5b9b1ea682e50606b73a4914b6a6c0941bf5ec2b",
       "executable": false
     },
     ".agents/skills/babysit/pull-request-reviewer.mjs": {
-      "sha256": "77fb9197a4365dde57cba91cd4ff4c3c52eb55a275d9eb6b3fa494bac4cc3809",
+      "sha256": "2d9a9c62876ac00ef87ad820c5dbb2fbcd852aa6590273875d445d99fe21eb49",
       "executable": false
     },
     ".agents/skills/babysit/request.mjs": {
@@ -1178,7 +973,7 @@
       "executable": false
     },
     ".agents/skills/babysit/wait.mjs": {
-      "sha256": "abb938c0df67cb490a92171718fd1131d48c25427f22f2d3ef0be5cd220c3f1d",
+      "sha256": "1da6442ae15f91da3005032c4a53b0ae207de9d6b4bf97e95b5848d508577851",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -1274,7 +1069,7 @@
       "executable": false
     },
     ".agents/skills/orchestrate/SKILL.md": {
-      "sha256": "3c19d4dabec8537b928b380f2fbd5edce565a2dfa0c761592b1eef30677dc83e",
+      "sha256": "3e2ad88cc78105cb19d12166f22b4c70e3fb151e9bf56ad53d5abd7b0f0f231c",
       "executable": false
     },
     ".agents/skills/orchestrate/agents/openai.yaml": {
@@ -1678,50 +1473,42 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:1de952478af2772379b926896cfa78bbbfb032f6da05e08e7e85f8e60614408c",
-        "afterFixes": "sha256:a11bfa478ca331458a8cf607ad3620c689b1f1099c0cb5a73e3cf8d69b63893d"
+        "inspection": "sha256:0ae67604d4cfe4a49dea2e11128d7321f78df543c5f7626eec8bce4c11ffd1fd",
+        "afterFixes": "sha256:2fd2568a436d54286b24b470b22534a89957caf33dc58cfa23023aeadddf2d7c"
       },
-      "run": "56b4c417-cafe-4644-a121-35b5df0bb238",
-      "selection": "sha256:e8bd504a312b8020db7dd68167ba1239a74a3bc8e15e66b0f3f817c004687d41",
-      "snapshot": "sha256:98deb6e0a7b92fbd677c06868a87f898c598048a8b132199866e2a66bb3cd5be",
+      "run": "f544a3e0-0881-4c72-ab8b-7f0e9a8d8c3b",
+      "selection": "sha256:02f1acfe3cd32400858bae85b8ec140d649341c2c4ff3a6ce34ddeee93ed55b6",
+      "snapshot": "sha256:2fd2568a436d54286b24b470b22534a89957caf33dc58cfa23023aeadddf2d7c",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "Reviewed the documentation against its audience and topic. Nested Site translations, Site on a phone and Release sources under Setup and validation so their material and reporting lists are setup guidance before the Documents index. Preserved every instruction and link.",
-          "changedPaths": [
-            "docs/development/README.md"
-          ],
+          "explanation": "Reviewed the current documentation scope and added ADR 0031 from merged PR #449. Existing indexes, developer setup and usage instructions remain suitable; no document edits or moves are needed.",
+          "changedPaths": [],
           "evidence": [
-            "docs/README.md maps usage, development, adr and agents by their purposes; each directory README indexes its entries once.",
-            "docs/development/README.md begins with purpose and Setup and validation, names the actual toolchain and required CI coverage after #445.",
-            "docs/usage/README.md starts with a newcomer purpose, explains the standards-source term before using it, and leads to Getting started, Guides and Reference.",
-            "GLOSSARY.md is the domain glossary; docs/adr/0030-localize-the-site-through-mf2-catalogs.md records the durable localization decision, not a run record.",
-            "Retained prior scope exclusions for acceptance fixtures, examples and packaged skills; site prose is product content, generated component guidance and test fixtures remain excluded.",
-            "docs/development/README.md changes only three heading levels; its Documents index remains after Setup and validation. This resolves the navigation check treating site-reporting checklist items as index entries."
+            "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
+            "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
+            "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves.",
+            "docs/adr/README.md indexes the maintained ADR 0031; its scope entry now includes it explicitly."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Every current docs document not owned by agent declarations and the root glossary is included, including ADR 0030. No move, new path or link repair was needed; exclusions remain appropriate after fixes and contextual work.",
+              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
               "evidence": [
-                "docs/README.md maps usage, development, adr and agents by their purposes; each directory README indexes its entries once.",
-                "docs/development/README.md begins with purpose and Setup and validation, names the actual toolchain and required CI coverage after #445.",
-                "docs/usage/README.md starts with a newcomer purpose, explains the standards-source term before using it, and leads to Getting started, Guides and Reference.",
-                "GLOSSARY.md is the domain glossary; docs/adr/0030-localize-the-site-through-mf2-catalogs.md records the durable localization decision, not a run record.",
-                "Retained prior scope exclusions for acceptance fixtures, examples and packaged skills; site prose is product content, generated component guidance and test fixtures remain excluded."
+                "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
+                "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
+                "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Every current docs document not owned by agent declarations and the root glossary is included, including ADR 0030. No move, new path or link repair was needed; exclusions remain appropriate after fixes and contextual work.",
+              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
               "evidence": [
-                "docs/README.md maps usage, development, adr and agents by their purposes; each directory README indexes its entries once.",
-                "docs/development/README.md begins with purpose and Setup and validation, names the actual toolchain and required CI coverage after #445.",
-                "docs/usage/README.md starts with a newcomer purpose, explains the standards-source term before using it, and leads to Getting started, Guides and Reference.",
-                "GLOSSARY.md is the domain glossary; docs/adr/0030-localize-the-site-through-mf2-catalogs.md records the durable localization decision, not a run record.",
-                "Retained prior scope exclusions for acceptance fixtures, examples and packaged skills; site prose is product content, generated component guidance and test fixtures remain excluded."
+                "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
+                "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
+                "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves."
               ],
               "additionalPaths": []
             }
@@ -1741,34 +1528,31 @@
         {
           "id": "factory-workflow",
           "status": "satisfied",
-          "explanation": "Reviewed the updated repository-wide workflow: triage inference, skip-labelled workflow work, worker handoff and orchestrator merge ownership agree with this task. No tracker relabelling is part of adoption.",
+          "explanation": "Reviewed the new skipped-work recovery and label ownership rules against this direct update. Worker handoff and orchestrator merge ownership agree with the owner request; no issue contract is changed and no tracker mutation is needed.",
           "changedPaths": [],
           "evidence": [
-            "CONTRIBUTING.md now owns shared triage and delivery rules. .factory/config.json installs factory:skip configuration.",
-            "The #326 brief requires separate CI preparation; #445 merged first. This worker implements adoption and hands its PR to the orchestrator as explicitly instructed.",
-            "Neither the accepted brief nor this handoff designates additional owner current-head review. The skip marker alone would not create one.",
-            "Independent internal Standards and Spec reviews precede delivery; the orchestrator owns configured external review, checks and merge."
+            ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
+            "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
+            "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope both after fixes and now: workflow rules govern repository work, while factory configuration is separately exact-owned.",
+              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
               "evidence": [
-                "CONTRIBUTING.md now owns shared triage and delivery rules. .factory/config.json installs factory:skip configuration.",
-                "The #326 brief requires separate CI preparation; #445 merged first. This worker implements adoption and hands its PR to orchestrator f8d0cb1f-518e-479a-8e48-c57b10b193d7 as explicitly instructed.",
-                "Neither the accepted brief nor this handoff designates additional owner current-head review. The skip marker alone would not create one.",
-                "Independent internal Standards and Spec reviews precede delivery; the orchestrator owns configured external review, checks and merge."
+                ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
+                "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
+                "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope both after fixes and now: workflow rules govern repository work, while factory configuration is separately exact-owned.",
+              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
               "evidence": [
-                "CONTRIBUTING.md now owns shared triage and delivery rules. .factory/config.json installs factory:skip configuration.",
-                "The #326 brief requires separate CI preparation; #445 merged first. This worker implements adoption and hands its PR to orchestrator f8d0cb1f-518e-479a-8e48-c57b10b193d7 as explicitly instructed.",
-                "Neither the accepted brief nor this handoff designates additional owner current-head review. The skip marker alone would not create one.",
-                "Independent internal Standards and Spec reviews precede delivery; the orchestrator owns configured external review, checks and merge."
+                ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
+                "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
+                "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
               ],
               "additionalPaths": []
             }
@@ -1778,9 +1562,7 @@
           "id": "git-attributes",
           "status": "satisfied",
           "explanation": "Repo Standards adopts a separate source, so the self-adoption exception does not apply. Added only the bounded Repo Canon block for installed code. No root .gitattributes existed; no repository-owned lines were changed.",
-          "changedPaths": [
-            ".gitattributes"
-          ],
+          "changedPaths": [],
           "evidence": [
             "Resolved lock.json inventory: scripts/validate-issue-contract.mjs, scripts/validate.mjs, operations/lib/rendered-markdown.mjs; installed babysit, triage and diagnosing-bugs skill directories. vendor/ and .github/ are already Linguist vendor paths.",
             "git check-attr reports set for all 21 files in that exact-file and skill inventory, including .agents/skills/triage/ready.mjs.",
@@ -1790,34 +1572,37 @@
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "Both readiness probes were ready and both remote fixes report unchanged in this final run. The owner-authorized label overwrite was confirmed in the earlier local attempt, before the test prerequisite was separated; readback still matches. No fix is deferred and repository-owned review configuration stays unchanged.",
+          "explanation": "Reviewed the updated repository-wide rules and repository identity. Remote fixes completed without changes; the optional reviewer configuration remains valid under standalone Unicode regex compilation. No policy or workflow edit is needed.",
           "changedPaths": [],
           "evidence": [
-            "Owner instruction authorizes needs-info and ready-for-human meanings from repo-canon #596/#603 and #600, approved plan 04 and v0.19.0 migration confirmation. gh label readback matches the new descriptions.",
-            "Remote settings readback: squash only, PR_TITLE/PR_BODY squash defaults. Main rules require PR metadata and all three Linux validation aggregates; #445 preserves both Node majors and requires CLI and site matrices.",
-            "gh repo view reports PUBLIC, personal owner lutzseverino; gh variable list is empty. REPO_CANON_RUNS_ON is absent, classified unset; no organization-level value can be inherited from a personal owner. No variable was changed.",
-            ".github/pull-request-reviewer.json remains version 1 with opening review enabled. No .github/factory-review-policy.json exists; absence needs no owner question. The new standards-update workflow is opt-in and REPO_CANON_UPDATES is unset."
+            "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
+            "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
+            "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
+            ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
+            "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and contextual review: remote settings only; optional policy files remain repository-owned and unchanged.",
+              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
               "evidence": [
-                "Owner instruction authorizes needs-info and ready-for-human meanings from repo-canon #596/#603 and #600, approved plan 04 and v0.19.0 migration confirmation. gh label readback matches the new descriptions.",
-                "Remote settings readback: squash only, PR_TITLE/PR_BODY squash defaults. Main rules require PR metadata and all three Linux validation aggregates; #445 preserves both Node majors and requires CLI and site matrices.",
-                "gh repo view reports PUBLIC, personal owner lutzseverino; gh variable list is empty. REPO_CANON_RUNS_ON is absent, classified unset; no organization-level value can be inherited from a personal owner. No variable was changed.",
-                ".github/pull-request-reviewer.json remains version 1 with opening review enabled. No .github/factory-review-policy.json exists; absence needs no owner question. The new standards-update workflow is opt-in and REPO_CANON_UPDATES is unset."
+                "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
+                "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
+                "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
+                ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
+                "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and contextual review: remote settings only; optional policy files remain repository-owned and unchanged.",
+              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
               "evidence": [
-                "Owner instruction authorizes needs-info and ready-for-human meanings from repo-canon #596/#603 and #600, approved plan 04 and v0.19.0 migration confirmation. gh label readback matches the new descriptions.",
-                "Remote settings readback: squash only, PR_TITLE/PR_BODY squash defaults. Main rules require PR metadata and all three Linux validation aggregates; #445 preserves both Node majors and requires CLI and site matrices.",
-                "gh repo view reports PUBLIC, personal owner lutzseverino; gh variable list is empty. REPO_CANON_RUNS_ON is absent, classified unset; no organization-level value can be inherited from a personal owner. No variable was changed.",
-                ".github/pull-request-reviewer.json remains version 1 with opening review enabled. No .github/factory-review-policy.json exists; absence needs no owner question. The new standards-update workflow is opt-in and REPO_CANON_UPDATES is unset."
+                "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
+                "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
+                "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
+                ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
+                "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
               ],
               "additionalPaths": []
             }
@@ -1836,28 +1621,28 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "The maintained root CLI uses the repository README. The only non-root Project is the private Astro website; its existing README accurately covers its responsibility, commands, configuration and documentation without duplicating shared setup.",
+          "explanation": "Reviewed the maintained site workspace README against its manifest and commands. It gives purpose, commands from the repository root, configuration and shared setup/contribution links; the update requires no changes.",
           "changedPaths": [],
           "evidence": [
-            "pnpm-workspace.yaml lists site; site/package.json and site/src establish its maintained app responsibility. Fixtures and examples are not independent Projects.",
-            "site/README.md has a plain title and developer-facing purpose, states commands run from repository root, describes Astro/configuration/data/deployment, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+            "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
+            "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The reused Project README scope still includes only site/README.md. Acceptance/README.md remains fixture/journey instructions, not a Project. No other Project or README target appeared after fixes or contextual work.",
+              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
               "evidence": [
-                "pnpm-workspace.yaml lists site; site/package.json and site/src establish its maintained app responsibility. Fixtures and examples are not independent Projects.",
-                "site/README.md has a plain title and developer-facing purpose, states commands run from repository root, describes Astro/configuration/data/deployment, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+                "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
+                "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The reused Project README scope still includes only site/README.md. Acceptance/README.md remains fixture/journey instructions, not a Project. No other Project or README target appeared after fixes or contextual work.",
+              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
               "evidence": [
-                "pnpm-workspace.yaml lists site; site/package.json and site/src establish its maintained app responsibility. Fixtures and examples are not independent Projects.",
-                "site/README.md has a plain title and developer-facing purpose, states commands run from repository root, describes Astro/configuration/data/deployment, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+                "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
+                "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
               ],
               "additionalPaths": []
             }
@@ -1877,9 +1662,7 @@
           "id": "repository-readme",
           "status": "satisfied",
           "explanation": "Reviewed the README against current product facts and all contributor prerequisites. Added the missing Python 3 runtime badge for Alice validation; preserved the accurate existing TypeScript and Node.js badges, installation and usage guidance, terminology and pointers.",
-          "changedPaths": [
-            "README.md"
-          ],
+          "changedPaths": [],
           "evidence": [
             "README.md starts with centered title, one-sentence description free of glossary terms, TypeScript and Node.js 24/26 badges. No optional leading image is present.",
             "Installation uses the public unversioned npm command and supported Node/Git prerequisites; terminology is defined before usage. Features begin with verbs.",
@@ -1933,57 +1716,112 @@
   "deferred": [],
   "reused": [
     {
-      "id": "scope:project-readmes",
-      "kind": "scope",
+      "id": "assessment:factory-sandbox-image",
+      "kind": "assessment",
       "evidence": {
-        "discovery": "a2cf9e7206712b7b169ebcf901d40ded7fa655100b3afbcf825296e46291b47a",
-        "rules": "6cc1cbca7a629ab74c4e93b83f400cade77159aeb1bd2502463eafedb63a24fc",
-        "draft": "none",
-        "paths": [
-          "acceptance/README.md",
-          "package.json",
-          "pnpm-workspace.yaml",
-          "site/README.md",
-          "site/package.json",
-          "site/src"
-        ]
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "a9139d625539ef858bb1c23524322ddf7da8127100e923808a839f2dd224a2b5"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:40f5c301d8d2d0c0bd915f37b132b7de323dc2a0b9b0a46c2b0694c403bd6834"
+        }
+      }
+    },
+    {
+      "id": "assessment:git-attributes",
+      "kind": "assessment",
+      "evidence": {
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "42adf209e10b6bb66d4290978d438cd5c26fa9510249147c3e848bcee9e6073a"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:a8914294f6ca6c31d9d90e9f3003c343c87da45a5187c2f50c50d7d7c65c364d"
+        }
+      }
+    },
+    {
+      "id": "assessment:project-agent-guidance",
+      "kind": "assessment",
+      "evidence": {
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "d28524380c291296b805f43440d09b437bc60edd390068bfbf552cdb8b982a25"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:327e8610ee57ea51e4dd9f828185f94b0c2cdcf9f4c903f9e05e97f4cb1a6b78"
+        }
+      }
+    },
+    {
+      "id": "assessment:repository-license",
+      "kind": "assessment",
+      "evidence": {
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "0cae423be028b626f046212c2c7d6432a26ea454fa9917f8b37acdcf8601af2a"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:fb816d84f8490f401fed9da0509dfee09760d5dde05b314b1c9ea7cd706529c4"
+        }
+      }
+    },
+    {
+      "id": "assessment:repository-readme",
+      "kind": "assessment",
+      "evidence": {
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "2965277f0a8436f69dbeb1573dc2c905e519229ab38a26cda2599a0f11233952"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:7dbaa74f334b4637efad17b87d496f5b494c34e283cf271d4e26f68d16b0c4e3"
+        }
+      }
+    },
+    {
+      "id": "assessment:typescript-node-stack",
+      "kind": "assessment",
+      "evidence": {
+        "judgedAgainst": {
+          "kind": "rules",
+          "sha256": "445cd0d96ebcd04d428d19498bf95c5a23447dbb5aade4cfbd61ac07fe2b6799"
+        },
+        "scope": {
+          "basis": "declaration",
+          "snapshot": "sha256:390d00b180904abc02b4480be18bfd41525d51e367f633a76a1400ed2f278ed9"
+        }
       }
     }
   ],
   "assessedScopes": {
-    "documentation": "sha256:3d228a5099722f4aa37904e7723ad34fc477f3208bb3b561d59b8b842ad6f069",
+    "documentation": "sha256:f321d2bcac3d2131b97ec938a68d5208cb616dce3bf913aee3e2296ee5568990",
     "factory-sandbox-image": "sha256:40f5c301d8d2d0c0bd915f37b132b7de323dc2a0b9b0a46c2b0694c403bd6834",
     "factory-workflow": "sha256:f61bb6b747466f440a7bfe1ad8ac8d9c6cc81dd9a69aeeaef10fd61e5e7cfe89",
     "git-attributes": "sha256:a8914294f6ca6c31d9d90e9f3003c343c87da45a5187c2f50c50d7d7c65c364d",
     "github-repository-configuration": "sha256:f61bb6b747466f440a7bfe1ad8ac8d9c6cc81dd9a69aeeaef10fd61e5e7cfe89",
     "project-agent-guidance": "sha256:327e8610ee57ea51e4dd9f828185f94b0c2cdcf9f4c903f9e05e97f4cb1a6b78",
-    "project-readmes": "sha256:1c69fde347c47167966619787896aa9e5fd5dc5a55ba23aefc2348f1d152a4b4",
+    "project-readmes": "sha256:f625fb9935eba92afbcc67caf9df7903b336f1dd6c63208d5f8f5e518605df9c",
     "repository-license": "sha256:fb816d84f8490f401fed9da0509dfee09760d5dde05b314b1c9ea7cd706529c4",
     "repository-readme": "sha256:7dbaa74f334b4637efad17b87d496f5b494c34e283cf271d4e26f68d16b0c4e3",
     "typescript-node-stack": "sha256:390d00b180904abc02b4480be18bfd41525d51e367f633a76a1400ed2f278ed9"
   },
   "impact": {
-    "derived": "Contextual update: the run asks for contextual work on documentation, factory-sandbox-image, factory-workflow, git-attributes, github-repository-configuration, project-agent-guidance, project-readmes, repository-license, repository-readme, typescript-node-stack, which needs review before it is committed.",
+    "derived": "Contextual update: the run asks for contextual work on documentation, factory-workflow, github-repository-configuration, project-readmes, which needs review before it is committed.",
     "releases": [
       {
-        "version": "v0.16.0",
-        "action": null
-      },
-      {
-        "version": "v0.17.0",
-        "action": null
-      },
-      {
-        "version": "v0.18.0",
-        "action": null
-      },
-      {
-        "version": "v0.19.0",
+        "version": "v0.19.1",
         "action": null
       }
     ],
     "steps": [
-      "Review the contextual work on documentation, factory-sandbox-image, factory-workflow, git-attributes, github-repository-configuration, project-agent-guidance, project-readmes, repository-license, repository-readme, typescript-node-stack.",
+      "Review the contextual work on documentation, factory-workflow, github-repository-configuration, project-readmes.",
       "Review and commit the update."
     ]
   }
