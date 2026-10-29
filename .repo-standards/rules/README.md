@@ -1,6 +1,6 @@
 # Installed rules
 
-These rules come from https://github.com/lutzseverino/repo-canon v0.19.0, profile factory.
+These rules come from https://github.com/lutzseverino/repo-canon v0.19.1, profile factory.
 Repository Standards installs and verifies them; adopt again to change them.
 Run `repo-standards rules <path>` to print the rules that cover a path.
 
@@ -37,6 +37,7 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0028-keep-generated-shadcn-source-read-only.md`
   - `docs/adr/0029-leave-archived-run-v6-reports-unread.md`
   - `docs/adr/0030-localize-the-site-through-mf2-catalogs.md`
+  - `docs/adr/0031-give-every-site-page-one-nav.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`

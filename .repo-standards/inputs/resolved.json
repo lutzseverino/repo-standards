@@ -98,6 +98,7 @@
           "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
           "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
           "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+          "docs/adr/0031-give-every-site-page-one-nav.md",
           "docs/adr/README.md",
           "docs/development/README.md",
           "docs/development/architecture.md",
