@@ -11,9 +11,9 @@
     "message": "Cómo funciona",
     "source": "9c870aa6"
   },
-  "nav.sources": {
-    "message": "Todas las fuentes de estándares",
-    "source": "d77a5325"
+  "nav.menu": {
+    "message": "Menú",
+    "source": "99af6606"
   },
   "notice": {
     "message": "Cualquiera puede añadir aquí una fuente. Revísala antes de adoptarla.",

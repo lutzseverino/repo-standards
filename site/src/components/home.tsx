@@ -1,7 +1,6 @@
 // The homepage: the sign assembly over the signposts, lit by a hand torch.
 import { useState } from "react";
 import { ADOPTION_DIALOG_STRINGS, AdoptionDialog } from "./adoption-dialog";
-import { buttonVariants } from "@/components/app/button";
 import {
   Empty,
   EmptyDescription,
@@ -19,17 +18,13 @@ import {
   InstallModeSwitch,
   useInstallMode,
 } from "./install";
-import { DOCS_LINK_STRINGS, DocsLink } from "./docs-link";
-import { LANGUAGE_STRINGS, LanguageMenu } from "./language-menu";
 import { Profiles } from "./profiles";
 import { RichText } from "./rich-text";
 import { Search } from "./search";
 import { SIGN_STRINGS, SignAssembly } from "./sign/assembly";
 import { SignpostList } from "./sign/signposts";
 import { useTorch } from "./sign/torch";
-import { REPOSITORY } from "./site-nav";
-import { SUPPORT_STRINGS, SupportMenu } from "./support";
-import { ThemeToggle } from "./theme-toggle";
+import { SITE_NAV_STRINGS, SiteNav } from "./site-nav";
 import {
   STARTING_POINT,
   matches,
@@ -40,14 +35,10 @@ import { SUPPORT } from "@/lib/support";
 import { useTheme } from "@/lib/theme";
 
 export const HOME_STRINGS = [
-  ...DOCS_LINK_STRINGS,
-  "common.nav.how-it-works",
-  "common.theme.toggle",
+  ...SITE_NAV_STRINGS,
   "home.search.label",
   "home.sources.list-yours",
   "home.sources.adopters-explanation",
-  ...SUPPORT_STRINGS,
-  ...LANGUAGE_STRINGS,
   ...SIGN_STRINGS,
   ...INSTALL_MODE_STRINGS,
   ...INSTALL_STRINGS,
@@ -102,7 +93,7 @@ export function Home({
   strings: Strings<(typeof HOME_STRINGS)[number]>;
   text: HomeText;
 }) {
-  const [theme, setTheme] = useTheme();
+  const [theme] = useTheme();
   const [mode, setMode] = useInstallMode();
   const [query, setQuery] = useState("");
   // the nav asks the sign for its story
@@ -125,44 +116,18 @@ export function Home({
           suppressHydrationWarning
         />
       ))}
+      <SiteNav
+        locale={locale}
+        alternates={alternates}
+        language={text.language}
+        current="home"
+        onHowItWorks={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setPlayRequest((n) => n + 1);
+        }}
+        strings={strings}
+      />
       <main className="sign-page mx-auto max-w-6xl px-6 pt-10 pb-32">
-        {/* on a phone the controls wrap onto a line of their own */}
-        <nav className="mb-8 flex flex-wrap items-center justify-end gap-1 text-[15px]">
-          <DocsLink
-            className={buttonVariants({ variant: "ghost" })}
-            locale={locale}
-            strings={strings}
-          />
-          <button
-            type="button"
-            className={buttonVariants({ variant: "ghost" })}
-            onClick={() => {
-              window.scrollTo({ top: 0, behavior: "smooth" });
-              setPlayRequest((n) => n + 1);
-            }}
-          >
-            {strings["common.nav.how-it-works"]}
-          </button>
-          <a className={buttonVariants({ variant: "ghost" })} href={REPOSITORY}>
-            GitHub
-          </a>
-          <div className="flex items-center gap-1">
-            <SupportMenu compact strings={strings} />
-            <LanguageMenu
-              compact
-              locale={locale}
-              alternates={alternates}
-              current={text.language}
-              strings={strings}
-            />
-            <ThemeToggle
-              theme={theme}
-              onChange={setTheme}
-              label={strings["common.theme.toggle"]}
-            />
-          </div>
-        </nav>
-
         <SignAssembly
           start={start}
           startLabel={text.startLabel}

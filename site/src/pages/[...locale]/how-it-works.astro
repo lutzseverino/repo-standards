@@ -4,15 +4,12 @@
 // from the locale's i18n/prose/<locale>/how-it-works.md. Every claim follows
 // the usage documents and the ADRs.
 import { unified } from "@astrojs/markdown-remark";
-import { DOCS_LINK_STRINGS, DocsLink } from "@/components/docs-link";
-import { LANGUAGE_STRINGS, LanguageMenu } from "@/components/language-menu";
-import { SUPPORT_STRINGS, SupportMenu } from "@/components/support";
+import { SITE_NAV_STRINGS, SiteNav } from "@/components/site-nav";
 import { format, prose, strings } from "@/i18n/format";
 import {
   DEFAULT_LOCALE,
   localeAlternates,
   localeName,
-  localePath,
   localeRoutes,
   type Locale,
 } from "@/i18n/locales";
@@ -26,7 +23,6 @@ export function getStaticPaths() {
 type Props = { locale: Locale };
 
 const { locale } = Astro.props;
-const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
 
 // the prose's own characters, without typographic substitutions or code
 // highlighting
@@ -51,45 +47,26 @@ const article =
   title={format(locale, "how-it-works.title")}
   description={format(locale, "how-it-works.description")}
 >
+  <SiteNav
+    client:load
+    locale={locale}
+    alternates={localeAlternates("/how-it-works/")}
+    language={format(locale, "common.language.current", {
+      language: localeName(locale),
+    })}
+    current="how-it-works"
+    strings={strings(locale, SITE_NAV_STRINGS)}
+  />
   <main class="mx-auto max-w-2xl px-6 pt-10 pb-32">
-    <nav class="mb-12 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
-      <a class="font-bold" href={localePath(locale, "/")}>
-        Repo Standards
-      </a>
-      <DocsLink
-        className="inline-flex items-center gap-1.5"
-        locale={locale}
-        strings={strings(locale, DOCS_LINK_STRINGS)}
-      />
-      <a href={REPOSITORY}>GitHub</a>
-      <SupportMenu client:settled strings={strings(locale, SUPPORT_STRINGS)} />
-      <LanguageMenu
-        client:settled
-        locale={locale}
-        alternates={localeAlternates("/how-it-works/")}
-        current={format(locale, "common.language.current", {
-          language: localeName(locale),
-        })}
-        strings={strings(locale, LANGUAGE_STRINGS)}
-      />
-    </nav>
-
     <article set:html={article} />
   </main>
 </BaseLayout>
 
 <style>
   /* the article is rendered Markdown, outside this page's scope */
-  a,
   article :global(a) {
     text-decoration: underline;
     text-underline-offset: 3px;
-  }
-  nav a {
-    text-decoration: none;
-  }
-  nav a:hover {
-    text-decoration: underline;
   }
   article :global(h1) {
     font-size: 42px;

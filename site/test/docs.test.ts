@@ -408,15 +408,13 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // the island's props carry the homepage in each language.
   // Since #406 the layout adds language alternates and WebPage JSON-LD;
   // pages.test.ts checks this metadata for every locale.
+  // Since #440 the site's shared nav replaces the homepage's own, above the
+  // page's column, and pages.test.ts and phone-layout.test.ts check it. The
+  // baseline leaves out the nav, and the plate's style joins the support
+  // line's inlined styles: without them the homepage is byte for byte what
+  // it was at c40551c.
   const html = read("index.html")
-    .replace(
-      '<nav class="mb-8 flex flex-wrap items-center justify-end gap-1 text-[15px]">',
-      '<nav class="mb-8 flex items-center justify-end gap-1 text-[15px]">',
-    )
-    .replace(
-      /<\/a><div class="flex items-center gap-1">([\s\S]*?<\/button>)<\/div><\/nav>/,
-      "</a>$1</nav>",
-    )
+    .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
     .replace(
       /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
@@ -463,7 +461,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "6bc98aa9a6e9cdcff401491772002ade569fbf305f6448f244c6cbd449c0db71",
+    "d3639af16cfc19e52ddf8072904b47e86ffa12699061e7fa787eb895fe291bf2",
   );
 });
 
@@ -663,12 +661,13 @@ const islandOf = (nodes: HtmlElement[], node: HtmlElement) =>
 test("every page's header has one Support control, which opens a menu", () => {
   for (const file of framedPages()) {
     const { nodes, header } = pageFrame(file);
-    // the site's pages also have the language menu, which the docs don't
+    // the site's pages also have the language menu and, on a phone, the
+    // nav's menu, both named by a label, which the docs don't
     const triggers = nodes.filter(
       (node) =>
         node.tagName === "button" &&
         attribute(node, "aria-haspopup") === "menu" &&
-        !attribute(node, "aria-label")?.startsWith("Language:"),
+        !attribute(node, "aria-label"),
     );
     assert.equal(triggers.length, 1, file);
     const [trigger] = triggers;
@@ -680,15 +679,15 @@ test("every page's header has one Support control, which opens a menu", () => {
       "dropdown-menu-trigger",
       file,
     );
-    // its own island where the page has no React nav, else the nav's
+    // its own island in the docs' header, else the nav's
     const island = islandOf(nodes, trigger)!;
     assert.equal(
       attribute(island, "component-export"),
       file === "index.html"
         ? "Home"
-        : file.startsWith("sources/")
-          ? "SiteNav"
-          : "SupportMenu",
+        : file.startsWith("docs/")
+          ? "SupportMenu"
+          : "SiteNav",
       file,
     );
     assert.equal(
@@ -735,11 +734,10 @@ test("every page's footer links both pages", () => {
 });
 
 test("the homepage invites support once, with both links", () => {
-  const main = elements(parse(read("index.html"))).find(
-    (node) => node.tagName === "main",
-  )!;
+  const nodes = elements(parse(read("index.html")));
+  const main = nodes.find((node) => node.tagName === "main")!;
   // outside the nav's Support control, the one line links each page once
-  const nav = elements(main).find((node) => node.tagName === "nav")!;
+  const nav = nodes.find((node) => node.tagName === "nav")!;
   const outside = elements(main).filter(
     (node) =>
       node.tagName === "a" &&
@@ -800,7 +798,7 @@ test("docs headers carry the plain title plate linking home", () => {
   for (const { url, nodes } of docsPages()) {
     const header = nodes.find((node) => node.tagName === "header")!;
     const plates = elements(header).filter((node) =>
-      attribute(node, "class")?.split(" ").includes("docs-plate"),
+      attribute(node, "class")?.split(" ").includes("site-plate"),
     );
     assert.equal(plates.length, 1, url);
     assert.equal(plates[0].tagName, "a", url);

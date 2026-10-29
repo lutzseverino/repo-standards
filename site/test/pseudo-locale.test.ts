@@ -57,6 +57,11 @@ test("every page renders in the pseudo-locale in development, with no raw messag
   }
 });
 
+test("the nav's menu on a phone is named in the pseudo-locale", async () => {
+  for (const pathname of await pseudoPages())
+    assert.match(await page(pathname), /aria-label="⟦Menu··⟧"/, pathname);
+});
+
 test("the pseudo-locale's pages link to each other, and the default locale stays at the root", async () => {
   const home = await page("/en-xa/");
   assert.match(home, /href="\/en-xa\/how-it-works\/"/);

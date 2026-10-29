@@ -57,8 +57,8 @@ beacon, theme navigation, and a nested-folder fixture. Its homepage fingerprint
 records the fixture build at `e95dba8` with the Documentation link changed and
 the How it works link added, normalizing only the affected Home bundle hash
 and island UID, and omitting the new agent discovery links. It also omits the
-Support control, the homepage's support line, the footer and their inlined
-styles, and normalizes the React ids those additions renumber and the hashes
+nav, the Support control, the homepage's support line, the footer and their
+inlined styles, and normalizes the React ids those additions renumber and the hashes
 of the shared stylesheet and React renderer, so without them the homepage is
 byte for byte what it was.
 
@@ -91,15 +91,15 @@ Ko-fi, listed in `src/lib/support.ts` in the order `.github/FUNDING.yml` and
 the npm package's `funding` give them. The header's one Support control,
 `src/components/support.tsx`, is the site's shadcn `Button` in its `outline`
 variant, opening a shadcn Dropdown Menu whose items link to both. The
-homepage and source pages render it in their React navs; How it works and
-Starlight's header, through the supported `Header` override, render it as its
-own island, hydrated with the site's `client:settled` directive
-(`src/lib/settled.ts`, registered by `src/lib/hydration.ts`). It waits for
-the page's `load`, its fonts and two animation frames, then for the browser
-to be idle, so the island's script stays off the path to the largest paint.
-The override keeps it visible below 50rem, where Starlight hides its own
-right-hand group. In the homepage's nav and the docs' header, on a phone, it
-shows its heart alone, so the docs' title plate keeps its whole name. Until it hydrates, the control does nothing, and the footer carries both links: the layout's footer and the
+site's nav renders it on every page outside the docs; Starlight's header,
+through the supported `Header` override, renders it as its own island,
+hydrated with the site's `client:settled` directive (`src/lib/settled.ts`,
+registered by `src/lib/hydration.ts`). It waits for the page's `load`, its
+fonts and two animation frames, then for the browser to be idle, so the
+island's script stays off the path to the largest paint. The override keeps
+it visible below 50rem, where Starlight hides its own right-hand group, with
+its heart alone below 30rem, so the docs' title plate keeps its whole name;
+the site's nav shows the heart alone below 50rem. Until it hydrates, the control does nothing, and the footer carries both links: the layout's footer and the
 supported `Footer` override show `SupportLine.astro`, and the homepage ends
 with one line inviting support. `src/styles/support.css` styles the footer's
 line in the sign's palette and type without Tailwind, so the docs' footer
@@ -126,8 +126,10 @@ to the night page, and sets D-DIN PRO as its font. It imports
 `src/styles/tokens.css` for the fonts and Verkehrsblau, so the docs bundle
 carries its own copy and the homepage's bundle is unchanged; both declare the
 same `/fonts/` files. The supported `SiteTitle` override,
-`components/docs/SiteTitle.astro`, sets the header's title as a plain
-Verkehrsblau plate in the condensed sign face, linking home.
+`components/docs/SiteTitle.astro`, sets the header's title as the site's
+plate, `src/components/plate.tsx`: a plain Verkehrsblau plate in the
+condensed sign face, linking home, styled by `src/styles/plate.css` without
+Tailwind. The site's nav shows the same plate.
 `test/docs-theme.test.ts` resolves the palette over Starlight's own properties
 in both themes, through `test/docs-palette.ts`, and requires WCAG 2.2 AA
 contrast for text, links and code on every background they are drawn on;
@@ -147,9 +149,25 @@ docs, `llms.txt`, `sources.json`, the prompts and the Markdown versions stay in
 English: a page in another locale advertises its English version's Markdown,
 and `src/lib/agent-pages.ts` writes Markdown for English pages only.
 
+Every page outside the docs shows one nav, `src/components/site-nav.tsx`,
+in the order and weight
+[ADR 0031](../docs/adr/0031-give-every-site-page-one-nav.md) records. It is a
+bar across the window, above the page's column, with the docs' header's
+height, padding and hairline: the plate, Documentation and How it works on
+the left, then GitHub, Support, the language menu and the theme toggle on
+the right. A page passes only its locale, its language versions, the current
+page and the homepage's action. The homepage leaves the plate out, and its
+How it works button plays the sign's story; on How it works its own item
+reads as pressed, with `aria-current="page"`. Below 50rem the bar holds the
+plate, Support's heart and one menu, with the three links, the languages and
+the theme switch. `test/pages.test.ts` checks the nav's items, order and
+weight in every locale, and `test/phone-layout.test.ts` measures the bar
+against the docs' header at 1280 px and uses its menu on a phone.
+
 The nav's language menu, `src/components/language-menu.tsx`, is the site's
-shadcn Dropdown Menu, beside the theme toggle, listing English, Español and
-Català, each in its own language. Picking one saves it in `localStorage` under
+shadcn Dropdown Menu, beside the theme toggle, showing its icon alone and
+named with the page's language, listing English, Español and Català, each in
+its own language; the phone menu lists them the same way. Picking one saves it in `localStorage` under
 `locale`, or `sessionStorage` where that fails, and opens the same page and
 section in that language, with `?locale=<tag>` in the address, which the head
 script honours, saves and removes, so a browser that can store nothing still
@@ -164,8 +182,7 @@ case. A redirect keeps the fragment: How it works gives each translated
 heading the English heading's ID (`src/lib/section-ids.ts`), so
 `#who-does-what` opens the same section in every locale, and a translation
 whose headings don't match English's one for one fails the build. The docs have no menu; on a Spanish or Catalan page the nav's Docs link
-carries a small "EN" badge (`docs-link.tsx`). On a phone the nav's controls
-wrap onto a line of their own. The layout imports `LocaleScript.astro` after
+carries a small "EN" badge (`docs-link.tsx`). The layout imports `LocaleScript.astro` after
 its stylesheets: Astro orders a page's stylesheets by where they are imported,
 and the layout's must come first, since it declares the cascade layers' order
 that the sign's stylesheets use.
@@ -184,8 +201,7 @@ description, and Repo Canon's introduction from
 `src/i18n/prose/<locale>/repo-canon.md`, which names what it provides in the
 words people search for. Each thing the introduction names must be among what
 its release installs, or the build fails until the introduction is updated. A
-source page carries JSON-LD for its source, and its nav (`site-nav.tsx`) leads
-home. Every page outside the docs renders inside
+source page carries JSON-LD for its source. Every page outside the docs renders inside
 `src/layouts/base.astro`, which owns the head: the page's locale as
 `<html lang>`, the theme, the page's title,
 description and canonical URL, its own path on `site`, the Open Graph and

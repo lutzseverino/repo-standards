@@ -5,11 +5,13 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { build } from "astro";
+import { parse, type DefaultTreeAdapterMap } from "parse5";
+import { format } from "../src/i18n/format.ts";
 import {
   parseTranslations,
   readTranslationFiles,
 } from "../src/i18n/translations.ts";
-import { LOCALES } from "../src/i18n/locales.ts";
+import { LOCALES, LOCALE_NAMES, type Locale } from "../src/i18n/locales.ts";
 import { installText } from "../src/lib/catalogue.ts";
 import { formatDate } from "../src/lib/format.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
@@ -874,7 +876,16 @@ test("every site page's nav has a language menu naming the page's language, whic
         /<button [^>]*data-slot="dropdown-menu-trigger"[^>]*aria-label="([^"]*)"/g,
       ),
     ].map((m) => m[1]);
-    assert.deepEqual(triggers, [names[locale as keyof typeof names]], file);
+    // the language menu, then the nav's menu on a phone, which holds the
+    // languages too
+    assert.deepEqual(
+      triggers,
+      [
+        names[locale as keyof typeof names],
+        format(locale as Locale, "common.nav.menu"),
+      ],
+      file,
+    );
     const alternates = Object.entries(PREFIXES)
       .map(
         ([other, prefix]) =>
@@ -885,6 +896,133 @@ test("every site page's nav has a language menu naming the page's language, whic
       html.includes(`&quot;alternates&quot;:[0,{${alternates}}]`),
       `${file} links its own page in every language`,
     );
+  }
+});
+
+type HtmlNode = DefaultTreeAdapterMap["node"];
+type HtmlElement = DefaultTreeAdapterMap["element"];
+const descendants = (node: HtmlNode): HtmlElement[] =>
+  "childNodes" in node
+    ? node.childNodes.flatMap((child) => [
+        ...("tagName" in child ? [child] : []),
+        ...descendants(child),
+      ])
+    : [];
+const attr = (node: HtmlElement, name: string) =>
+  node.attrs.find((a) => a.name === name)?.value;
+const textOf = (node: HtmlNode): string =>
+  "value" in node
+    ? node.value
+    : "childNodes" in node
+      ? node.childNodes.map(textOf).join("")
+      : "";
+
+test("every site page renders the one shared nav, above the page's column, in its order", () => {
+  for (const { locale, page, file } of localePages()) {
+    const nodes = descendants(parse(read(file)));
+    const navs = nodes.filter((node) => node.tagName === "nav");
+    assert.equal(navs.length, 1, file);
+    const [nav] = navs;
+    const island = nodes.find(
+      (node) =>
+        node.tagName === "astro-island" && descendants(node).includes(nav),
+    )!;
+    // the homepage's island holds the nav, which asks its sign for the story
+    assert.equal(
+      attr(island, "component-export"),
+      page === "" ? "Home" : "SiteNav",
+      file,
+    );
+    const main = nodes.find((node) => node.tagName === "main")!;
+    assert.ok(!descendants(main).includes(nav), `${file}: outside <main>`);
+
+    const t = (id: Parameters<typeof format>[1]) =>
+      format(locale as Locale, id);
+    const home = `/${PREFIXES[locale as keyof typeof PREFIXES]}`;
+    const controls = descendants(nav)
+      .filter((node) => node.tagName === "a" || node.tagName === "button")
+      .map((node) => ({
+        name: attr(node, "aria-label") ?? textOf(node).trim(),
+        href: attr(node, "href"),
+        current: attr(node, "aria-current"),
+        variant: attr(node, "class")?.includes("dark:bg-input/30")
+          ? "outline"
+          : attr(node, "class")?.includes("dark:hover:bg-muted/50")
+            ? "ghost"
+            : attr(node, "class"),
+      }));
+    const docs = `${t("common.nav.documentation")}${locale === "en" ? "" : `EN (${t("common.nav.in-english")})`}`;
+    const howItWorks =
+      page === ""
+        ? // the sign's story, on the homepage
+          { name: t("common.nav.how-it-works"), href: undefined }
+        : {
+            name: t("common.nav.how-it-works"),
+            href: `${home}how-it-works/`,
+          };
+    assert.deepEqual(
+      controls,
+      [
+        // the homepage's sign says the same as the plate
+        ...(page === ""
+          ? []
+          : [
+              {
+                name: "Repo Standards",
+                href: home,
+                current: undefined,
+                variant: "site-plate",
+              },
+            ]),
+        { name: docs, href: "/docs/", current: undefined, variant: "ghost" },
+        {
+          ...howItWorks,
+          current: page === "how-it-works/" ? "page" : undefined,
+          variant: "ghost",
+        },
+        {
+          name: "GitHub",
+          href: "https://github.com/lutzseverino/repo-standards",
+          current: undefined,
+          variant: "ghost",
+        },
+        // the one control with emphasis
+        {
+          name: t("common.support.button"),
+          href: undefined,
+          current: undefined,
+          variant: "outline",
+        },
+        {
+          name: format(locale as Locale, "common.language.current", {
+            language: LOCALE_NAMES[locale as keyof typeof LOCALE_NAMES],
+          }),
+          href: undefined,
+          current: undefined,
+          variant: "ghost",
+        },
+        {
+          name: t("common.theme.toggle"),
+          href: undefined,
+          current: undefined,
+          variant: "ghost",
+        },
+        {
+          name: t("common.nav.menu"),
+          href: undefined,
+          current: undefined,
+          variant: "ghost",
+        },
+      ],
+      file,
+    );
+    // the language menu shows its icon alone, at every width
+    const language = descendants(nav).find((node) =>
+      attr(node, "aria-label")?.startsWith(
+        format(locale as Locale, "common.language.label"),
+      ),
+    )!;
+    assert.equal(textOf(language).trim(), "", file);
   }
 });
 

@@ -11,9 +11,9 @@
     "message": "Com funciona",
     "source": "9c870aa6"
   },
-  "nav.sources": {
-    "message": "Totes les fonts d'estàndards",
-    "source": "d77a5325"
+  "nav.menu": {
+    "message": "Menú",
+    "source": "99af6606"
   },
   "notice": {
     "message": "Qualsevol pot afegir-hi una font. Revisa-la abans d'adoptar-la.",
