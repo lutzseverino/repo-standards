@@ -17,29 +17,22 @@ import type { Strings } from "@/i18n/ids";
 import {
   LOCALES,
   LOCALE_NAMES,
-  localeName,
   type Locale,
   type SiteLocale,
 } from "@/i18n/locales";
 
 export const LANGUAGE_STRINGS = ["common.language.label"] as const;
 
-/** `current` names the menu and the page's language; `compact` shows the
- * icon alone on a phone. */
-export function LanguageMenu({
-  locale,
-  alternates,
-  current,
-  strings,
-  compact = false,
-}: {
+type Languages = {
   locale: Locale;
   /** The page in each language. */
   alternates: Record<SiteLocale, string>;
-  current: string;
   strings: Strings<(typeof LANGUAGE_STRINGS)[number]>;
-  compact?: boolean;
-}) {
+};
+
+/** The languages, under their label, with the page's checked: the language
+ * menu's items, and the same in the nav's menu on a phone. */
+export function LanguageItems({ locale, alternates, strings }: Languages) {
   // the address names the choice too, for a browser that can't store it;
   // section IDs are the same in every locale, so the section stays open
   const choose = (next: SiteLocale) => {
@@ -51,34 +44,39 @@ export function LanguageMenu({
       );
   };
   return (
+    <DropdownMenuGroup>
+      <DropdownMenuLabel>{strings["common.language.label"]}</DropdownMenuLabel>
+      <DropdownMenuRadioGroup value={locale}>
+        {LOCALES.map((option) => (
+          <DropdownMenuRadioItem
+            key={option}
+            value={option}
+            lang={option}
+            onClick={() => choose(option)}
+          >
+            {LOCALE_NAMES[option]}
+          </DropdownMenuRadioItem>
+        ))}
+      </DropdownMenuRadioGroup>
+    </DropdownMenuGroup>
+  );
+}
+
+/** The language icon alone; `current` names it with the page's language. */
+export function LanguageMenu({
+  current,
+  ...languages
+}: Languages & { current: string }) {
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="ghost" />}
+        render={<Button variant="ghost" size="icon" />}
         aria-label={current}
       >
         <LanguagesIcon aria-hidden="true" />
-        <span className={compact ? "max-[30rem]:sr-only" : undefined}>
-          {localeName(locale)}
-        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>
-            {strings["common.language.label"]}
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={locale}>
-            {LOCALES.map((option) => (
-              <DropdownMenuRadioItem
-                key={option}
-                value={option}
-                lang={option}
-                onClick={() => choose(option)}
-              >
-                {LOCALE_NAMES[option]}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
+        <LanguageItems {...languages} />
       </DropdownMenuContent>
     </DropdownMenu>
   );

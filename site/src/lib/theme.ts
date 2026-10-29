@@ -12,15 +12,23 @@ export function useTheme(): [Theme | null, (theme: Theme) => void] {
 
   useEffect(() => {
     const t = themes();
-    setTheme(t.current());
+    const sync = () => setTheme(t.current());
+    sync();
+    // a theme another component chose, such as the nav's toggle, which the
+    // homepage's torch follows
+    const root = new MutationObserver(sync);
+    root.observe(document.documentElement, { attributeFilter: ["class"] });
     const scheme = window.matchMedia(t.DARK);
     const onScheme = () => {
       if (t.stored()) return;
       t.apply(t.system());
-      setTheme(t.current());
+      sync();
     };
     scheme.addEventListener("change", onScheme);
-    return () => scheme.removeEventListener("change", onScheme);
+    return () => {
+      root.disconnect();
+      scheme.removeEventListener("change", onScheme);
+    };
   }, []);
 
   const choose = (next: Theme) => {

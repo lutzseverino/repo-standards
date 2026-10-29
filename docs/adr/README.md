@@ -115,3 +115,8 @@ alternatives.
   behind one `format()`, with no runtime fallback, a parity and staleness check,
   English at the root and other locales under their own prefix, while agent
   surfaces, the CLI and `/docs/` stay English.
+- [Give every site page one nav shaped like the docs' header](0031-give-every-site-page-one-nav.md):
+  one shared nav on every page outside the docs, a full-width bar like
+  Starlight's header with the same plate, its items ordered from near to far
+  with Support the one emphasized control, and on a phone the plate, Support
+  and one menu.

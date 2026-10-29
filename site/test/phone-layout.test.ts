@@ -161,13 +161,16 @@ const STATES = [
 
 type State = { name: string; control: string; index: number; shows: string };
 
-/** The states `tab`'s page can open, named by their controls. */
+/** The states `tab`'s page can open, named by their controls, of the
+ * controls a phone shows. */
 const statesOf = (tab: Tab) =>
   tab.evaluate((states: typeof STATES) => {
     const found: State[] = [];
     const seen = new Map<string, number>();
     for (const { controls, shows } of states)
       [...document.querySelectorAll(controls)].forEach((control, index) => {
+        // the nav's wide controls, which its menu holds on a phone
+        if (!control.checkVisibility()) return;
         const label = (
           control.getAttribute("aria-label") ||
           control.textContent ||
@@ -306,6 +309,321 @@ for (const page of pages)
     },
   );
 
+// The nav every page outside the docs shares (ADR 0031): at 1280 px a bar
+// shaped like the docs' header, in its order; on a phone one row, and one
+// menu that does what the bar's controls do.
+
+/** A control the nav shows, by its name: the plate, or its label or text. */
+type NavControl = {
+  name: string;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  /** Its border's colour, transparent but on the one outlined control. */
+  border: string;
+  background: string;
+  current: string | null;
+  /** How wide its word is, if it has one beside an icon. */
+  word: number | null;
+};
+
+/** The nav's box and the controls it shows, left to right. */
+const navOf = (tab: Tab) =>
+  tab.evaluate(() => {
+    const nav = document.querySelector("nav")!;
+    const box = nav.getBoundingClientRect();
+    const style = getComputedStyle(nav);
+    const controls = [...nav.querySelectorAll("a, button")]
+      .filter((el) => el.checkVisibility())
+      .map((el): NavControl => {
+        const rect = el.getBoundingClientRect();
+        const s = getComputedStyle(el);
+        const word = el.querySelector("svg + span");
+        return {
+          name: el.classList.contains("site-plate")
+            ? "plate"
+            : (el.getAttribute("aria-label") ?? el.textContent.trim()),
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+          border: s.borderTopColor,
+          background: s.backgroundColor,
+          current: el.getAttribute("aria-current"),
+          word: word && word.getBoundingClientRect().width,
+        };
+      });
+    return {
+      left: box.left,
+      width: box.width,
+      height: box.height,
+      border: style.borderBottomWidth,
+      padding: style.paddingLeft,
+      controls,
+    };
+  });
+
+/** The plate's box in the nav, or the docs' header. */
+const plateOf = (tab: Tab) =>
+  tab.evaluate(() => {
+    const rect = document.querySelector(".site-plate")!.getBoundingClientRect();
+    return [rect.left, rect.top, rect.width, rect.height].map(
+      (n) => Math.round(n * 10) / 10,
+    );
+  });
+
+const TRANSPARENT = "rgba(0, 0, 0, 0)";
+const NAV_PAGES = ["/", "/how-it-works/", "/sources/lutzseverino/repo-canon/"];
+
+test(
+  "at 1280 px the nav spans the window like the docs' header, its controls in their order",
+  { skip },
+  async () => {
+    const view = { width: 1280, theme: "light" } as const;
+    const docs = await openTab(`${base.production}/docs/`, view);
+    const header = await docs.evaluate(() => {
+      const header = document.querySelector("header.header")!;
+      const style = getComputedStyle(header);
+      return {
+        height: header.getBoundingClientRect().height,
+        border: style.borderBottomWidth,
+        padding: style.paddingLeft,
+      };
+    });
+    const docsPlate = await plateOf(docs);
+    await docs.close();
+    assert.deepEqual(header, { height: 64, border: "1px", padding: "24px" });
+
+    for (const page of NAV_PAGES) {
+      const tab = await openTab(base.production + page, view);
+      const nav = await navOf(tab);
+      assert.deepEqual(
+        {
+          left: nav.left,
+          width: nav.width,
+          height: nav.height,
+          border: nav.border,
+          padding: nav.padding,
+        },
+        { left: 0, width: 1280, ...header },
+        page,
+      );
+      assert.deepEqual(
+        nav.controls.map((c) => c.name),
+        [
+          // the homepage's sign says the same as the plate
+          ...(page === "/" ? [] : ["plate"]),
+          "Documentation",
+          "How it works",
+          "GitHub",
+          "Support",
+          "Language: English",
+          "Switch between the light and dark theme",
+        ],
+        page,
+      );
+      // left to right, the places on this site on the left, the rest on the
+      // right
+      const { controls } = nav;
+      controls.forEach((c, i) =>
+        assert.ok(i === 0 || c.left >= controls[i - 1].right, page),
+      );
+      const github = controls.findIndex((c) => c.name === "GitHub");
+      assert.ok(controls[github - 1].right < 640, page);
+      assert.ok(controls[github].left > 640, page);
+      // Support alone is outlined
+      assert.deepEqual(
+        controls
+          .filter((c) => c.name !== "plate" && c.border !== TRANSPARENT)
+          .map((c) => c.name),
+        ["Support"],
+        page,
+      );
+      // How it works reads as pressed on its own page
+      const howItWorks = controls.find((c) => c.name === "How it works")!;
+      assert.equal(
+        howItWorks.current,
+        page === "/how-it-works/" ? "page" : null,
+        page,
+      );
+      assert.equal(
+        howItWorks.background === TRANSPARENT,
+        page !== "/how-it-works/",
+        page,
+      );
+      // the same plate in the same place as the docs' header's
+      if (page !== "/") assert.deepEqual(await plateOf(tab), docsPlate, page);
+      await tab.close();
+    }
+  },
+);
+
+test(
+  "on a phone the nav holds the plate, Support's heart and one menu in one row",
+  { skip },
+  async () => {
+    for (const page of NAV_PAGES)
+      for (const width of WIDTHS) {
+        const tab = await openTab(base.production + page, {
+          width,
+          theme: "light",
+        });
+        const { controls } = await navOf(tab);
+        await tab.close();
+        assert.deepEqual(
+          controls.map((c) => c.name),
+          [...(page === "/" ? [] : ["plate"]), "Support", "Menu"],
+          `${page} at ${width} px`,
+        );
+        const support = controls.find((c) => c.name === "Support")!;
+        assert.ok(support.word! <= 1, `${page}: the heart alone`);
+        assert.ok(
+          Math.max(...controls.map((c) => c.top)) <
+            Math.min(...controls.map((c) => c.bottom)),
+          `${page} at ${width} px: one row`,
+        );
+      }
+  },
+);
+
+/** Opens the nav's menu on a phone, then clicks the item `name` names, if
+ * any. Returns the menu's items as they were. */
+const navMenu = (tab: Tab, name?: string) =>
+  tab.evaluate(async (name: string | null) => {
+    // the one labelled menu button a phone shows; Support's word names it
+    (
+      [...document.querySelectorAll("nav [data-slot=dropdown-menu-trigger]")]
+        .filter((button) => button.checkVisibility())
+        .find((button) => button.hasAttribute("aria-label")) as HTMLElement
+    ).click();
+    const deadline = Date.now() + 5000;
+    let menu: Element | null = null;
+    while (!menu?.checkVisibility() && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      menu = document.querySelector("[data-slot=dropdown-menu-content]");
+    }
+    const items = [
+      ...menu!.querySelectorAll(
+        "[data-slot=dropdown-menu-item], [data-slot=dropdown-menu-label], [data-slot=dropdown-menu-radio-item], [data-slot=dropdown-menu-separator]",
+      ),
+    ];
+    const listed = items.map((item) =>
+      [
+        item.getAttribute("data-slot")!.replace("dropdown-menu-", ""),
+        item.textContent.trim(),
+        item.getAttribute("aria-current") ?? item.getAttribute("aria-checked"),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    const chosen = items.find((item) => item.textContent.trim() === name);
+    (chosen as HTMLElement | undefined)?.click();
+    return listed;
+  }, name ?? null);
+
+/** Waits until `tab`'s page is at `url` and settled. */
+async function arrival(tab: Tab, url: string) {
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const at = await tab
+      .evaluate(() => document.readyState === "complete" && location.href)
+      .catch(() => false);
+    if (at === url) return tab.settle();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.fail(`never reached ${url}`);
+}
+
+test(
+  "the nav's menu holds the places, the languages and the theme switch, which work as the bar's controls do",
+  { skip },
+  async () => {
+    const view = { width: 320, theme: "light" } as const;
+    const page = `${base.production}/how-it-works/#who-does-what`;
+    const tab = await openTab(page, view);
+    try {
+      assert.deepEqual(await navMenu(tab, "Català"), [
+        "item Documentation",
+        "item How it works page",
+        "item GitHub",
+        "separator",
+        "label Language",
+        "radio-item English true",
+        "radio-item Español false",
+        "radio-item Català false",
+        "separator",
+        "item Switch between the light and dark theme",
+      ]);
+      // the same page and section in the language picked
+      await arrival(tab, `${base.production}/ca/how-it-works/#who-does-what`);
+      assert.ok(
+        (await navMenu(tab)).includes("radio-item Català true"),
+        "Català is checked",
+      );
+    } finally {
+      // the choice is the browser's: later tabs open in English
+      await tab.evaluate(() => localStorage.removeItem("locale"));
+      await tab.close();
+    }
+
+    // the theme switches and is remembered
+    const source = await openTab(
+      `${base.production}/es/sources/lutzseverino/repo-canon/`,
+      view,
+    );
+    const items = await navMenu(
+      source,
+      "Cambiar entre el tema claro y el oscuro",
+    );
+    assert.ok(items.includes("item DocumentaciónEN (en inglés)"), items.join());
+    assert.deepEqual(
+      await source.evaluate(() => [
+        document.documentElement.classList.contains("dark"),
+        localStorage.getItem("theme"),
+      ]),
+      [true, "dark"],
+    );
+    await source.close();
+  },
+);
+
+test(
+  "on the homepage How it works plays the sign's story, from the bar and from the menu",
+  { skip },
+  async () => {
+    const sunk = (tab: Tab) =>
+      tab.evaluate(async () => {
+        const deadline = Date.now() + 5000;
+        while (Date.now() < deadline) {
+          if (document.querySelector(".sign-hero-stage[data-sunk]"))
+            return true;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        return false;
+      });
+    const wide = await openTab(`${base.production}/`, {
+      width: 1280,
+      theme: "light",
+    });
+    await wide.evaluate(() => {
+      const button = [...document.querySelectorAll("nav button")].find(
+        (button) => button.textContent === "How it works",
+      ) as HTMLElement;
+      button.click();
+    });
+    assert.ok(await sunk(wide), "from the bar");
+    await wide.close();
+    const phone = await openTab(`${base.production}/`, {
+      width: 320,
+      theme: "light",
+    });
+    await navMenu(phone, "How it works");
+    assert.ok(await sunk(phone), "from the menu");
+    await phone.close();
+  },
+);
+
 // The failures #421, #422 and #425 fixed, put back into today's pages: each
 // shows, and a page exactly as wide as the screen does not hide #425's.
 
@@ -366,7 +684,7 @@ test(
 );
 
 test(
-  "#421: a repository link that cannot break and a nav row that cannot wrap widen a source page",
+  "#421: a repository link that cannot break and a nav that keeps its wide row widen a source page",
   {
     skip,
   },
@@ -379,7 +697,7 @@ test(
         for (const hint of document.querySelectorAll("dd a wbr")) hint.remove();
         const style = document.createElement("style");
         style.textContent =
-          "dd a { overflow-wrap: normal !important } nav .flex-wrap { flex-wrap: nowrap !important }";
+          "dd a { overflow-wrap: normal !important } nav .hidden { display: flex !important }";
         document.head.append(style);
       },
     );
@@ -390,7 +708,7 @@ test(
       lines,
       /screen: .*dd > a.*"github\.com\/lutzseverino\/repo-canon"/,
     );
-    assert.match(lines, /screen: nav[\w.-]* > div\.flex\.flex-wrap/);
+    assert.match(lines, /screen: nav[\w.-]* > div\.ml-auto/);
   },
 );
 

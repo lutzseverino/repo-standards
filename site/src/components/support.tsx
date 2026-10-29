@@ -20,20 +20,27 @@ export const SUPPORT_STRINGS = [
   "common.support.menu",
 ] as const;
 
-/** `compact` shows the heart alone on a phone, for a nav with no room to
- * spare; the word stays the control's name. */
+// below which width the control shows its heart alone: the docs' header on
+// a phone, or the site's nav wherever it collapses (site-nav.tsx)
+const HEART_ALONE = {
+  "30rem": "max-[30rem]:sr-only",
+  "50rem": "max-[50rem]:sr-only",
+} as const;
+
+/** `heartAlone` shows the heart alone below that width, for a header with
+ * no room to spare; the word stays the control's name. */
 export function SupportMenu({
   strings,
-  compact = false,
+  heartAlone,
 }: {
   strings: Strings<(typeof SUPPORT_STRINGS)[number]>;
-  compact?: boolean;
+  heartAlone?: keyof typeof HEART_ALONE;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
         <HeartIcon aria-hidden="true" />
-        <span className={compact ? "max-[30rem]:sr-only" : undefined}>
+        <span className={heartAlone && HEART_ALONE[heartAlone]}>
           {strings["common.support.button"]}
         </span>
       </DropdownMenuTrigger>

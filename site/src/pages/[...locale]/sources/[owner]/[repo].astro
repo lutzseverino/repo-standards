@@ -93,17 +93,16 @@ const installed = rich(
     is:inline
     set:html={serializeStructuredData(buildSourceStructuredData(source, url))}
   />
+  <SiteNav
+    client:load
+    locale={locale}
+    alternates={localeAlternates(sourcePath(source))}
+    language={format(locale, "common.language.current", {
+      language: localeName(locale),
+    })}
+    strings={strings(locale, SITE_NAV_STRINGS)}
+  />
   <main class="mx-auto max-w-4xl px-6 pt-10 pb-32">
-    <SiteNav
-      client:load
-      locale={locale}
-      alternates={localeAlternates(sourcePath(source))}
-      language={format(locale, "common.language.current", {
-        language: localeName(locale),
-      })}
-      strings={strings(locale, SITE_NAV_STRINGS)}
-    />
-
     <header>
       <!-- a plate like the adoption dialog's: no torch lights this page, so
            by night it is lit already -->
