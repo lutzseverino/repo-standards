@@ -49,6 +49,7 @@ const PHONE_HEIGHT = 800;
  * types, if any. */
 const KEYS = {
   Enter: ["Enter", 13, "\r"],
+  " ": ["Space", 32, " "],
   Escape: ["Escape", 27],
   Tab: ["Tab", 9],
   ArrowDown: ["ArrowDown", 40],
