@@ -1,5 +1,9 @@
 # Give every site page one nav shaped like the docs' header
 
+Amended by [ADR 0032](0032-open-the-phone-nav-as-a-sheet-under-the-header.md):
+on a phone, the menu opens a sheet under the header, whose language selector
+shows the language's name and whose theme toggle is an icon.
+
 The homepage, How it works and the source pages each built their own nav, and
 they drifted apart in alignment, order, controls and phone layout. Every page
 outside the docs now renders one shared nav, `site/src/components/site-nav.tsx`.

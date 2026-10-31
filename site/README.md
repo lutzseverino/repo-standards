@@ -159,15 +159,26 @@ the right. A page passes only its locale, its language versions, the current
 page and the homepage's action. The homepage leaves the plate out, and its
 How it works button plays the sign's story; on How it works its own item
 reads as pressed, with `aria-current="page"`. Below 50rem the bar holds the
-plate, Support's heart and one menu, with the three links, the languages and
-the theme switch. `test/pages.test.ts` checks the nav's items, order and
-weight in every locale, and `test/phone-layout.test.ts` measures the bar
-against the docs' header at 1280 px and uses its menu on a phone.
+plate, Support's heart and one menu button, which opens a sheet under the
+header, as [ADR 0032](../docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md)
+records: the three links as full-width rows, then one row with the language
+selector, showing the page's language by its own name, and the theme toggle's
+icon. The page below is dimmed and doesn't scroll; a tap on it, Escape,
+following a link, focus leaving the sheet or a window wide enough for the bar
+closes it. The sheet is a disclosure of plain links rather than a menu, and
+renders only while open: the arrow keys, Home and End move between its
+controls, before the language selector's Dropdown Menu sees them, so they
+never open its list. `src/styles/global.css` gives every Dropdown Menu item on
+the site's pages the Button's focus ring. `test/pages.test.ts` checks the
+nav's items, order and weight in every locale, and `test/phone-layout.test.ts`
+measures the bar against the docs' header at 1280 px, measures the open sheet
+and its language list on every page, and drives the sheet by touch and by
+keyboard.
 
 The nav's language menu, `src/components/language-menu.tsx`, is the site's
 shadcn Dropdown Menu, beside the theme toggle, showing its icon alone and
 named with the page's language, listing English, Español and Català, each in
-its own language; the phone menu lists them the same way. Picking one saves it in `localStorage` under
+its own language; the sheet's language selector opens the same list. Picking one saves it in `localStorage` under
 `locale`, or `sessionStorage` where that fails, and opens the same page and
 section in that language, with `?locale=<tag>` in the address, which the head
 script honours, saves and removes, so a browser that can store nothing still

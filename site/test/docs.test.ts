@@ -661,8 +661,8 @@ const islandOf = (nodes: HtmlElement[], node: HtmlElement) =>
 test("every page's header has one Support control, which opens a menu", () => {
   for (const file of framedPages()) {
     const { nodes, header } = pageFrame(file);
-    // the site's pages also have the language menu and, on a phone, the
-    // nav's menu, both named by a label, which the docs don't
+    // the site's pages also have the language menu, named by a label, which
+    // the docs don't
     const triggers = nodes.filter(
       (node) =>
         node.tagName === "button" &&

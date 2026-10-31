@@ -45,6 +45,20 @@ export type View = { width: number; theme: "light" | "dark" };
 
 const PHONE_HEIGHT = 800;
 
+/** The keys a test can press: each one's code and key code, and the text it
+ * types, if any. */
+const KEYS = {
+  Enter: ["Enter", 13, "\r"],
+  Escape: ["Escape", 27],
+  Tab: ["Tab", 9],
+  ArrowDown: ["ArrowDown", 40],
+  ArrowUp: ["ArrowUp", 38],
+  Home: ["Home", 36],
+  End: ["End", 35],
+} as const;
+
+export type Key = keyof typeof KEYS;
+
 export class Browser {
   #process: ChildProcess;
   #profile: string;
@@ -303,6 +317,28 @@ export class Tab {
         exceptionDetails.exception?.description ?? exceptionDetails.text,
       );
     return result.value;
+  }
+
+  /** Presses `key` as a keyboard does, with Shift if `shift`, so focus
+   * that follows it is visible as a keyboard's. */
+  async press(key: Key, shift = false) {
+    const [code, keyCode, text] = KEYS[key] as readonly [
+      string,
+      number,
+      string?,
+    ];
+    const event = {
+      key,
+      code,
+      windowsVirtualKeyCode: keyCode,
+      modifiers: shift ? 8 : 0,
+    };
+    await this.send("Input.dispatchKeyEvent", {
+      type: text ? "keyDown" : "rawKeyDown",
+      text,
+      ...event,
+    });
+    await this.send("Input.dispatchKeyEvent", { type: "keyUp", ...event });
   }
 
   /** Writes a PNG of the screen, or of the whole page if `full`, to

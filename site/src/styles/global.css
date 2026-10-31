@@ -30,3 +30,17 @@
     @apply font-sans;
   }
 }
+
+/* A Dropdown Menu's items show keyboard focus with the ring the Button
+   shows, not with a background alone. Only the site's pages load this; the
+   docs' Support menu keeps its own focus style. */
+@layer components {
+  :is(
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="dropdown-menu-sub-trigger"]
+  ):focus-visible {
+    @apply ring-3 ring-ring/50;
+  }
+}

@@ -16,9 +16,22 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { dev, preview } from "astro";
-import { LOCALES, PSEUDO_LOCALE, localePath } from "../src/i18n/locales.ts";
+import { format } from "../src/i18n/format.ts";
+import {
+  LOCALES,
+  PSEUDO_LOCALE,
+  localeName,
+  localePath,
+  type Locale,
+} from "../src/i18n/locales.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
-import { Browser, findBrowser, type Tab, type View } from "./browser.ts";
+import {
+  Browser,
+  findBrowser,
+  type Key,
+  type Tab,
+  type View,
+} from "./browser.ts";
 import { measureLayout, type Layout } from "./layout-probe.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
@@ -137,12 +150,29 @@ const still = (tab: Tab) =>
     for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
   });
 
-/** What the page opens on a tap: each nav menu, the adoption dialog after
- * each copy, as the prompt or the command, and the docs' menu and table of
- * contents. */
-const STATES = [
+/** What the page opens on a tap: each nav menu, the nav's panel on a phone
+ * and the language list inside it, the adoption dialog after each copy, as
+ * the prompt or the command, and the docs' menu and table of contents. A
+ * state `inside` another opens that one first. */
+const NAV_PANEL = {
+  controls: "nav button[aria-controls=nav-menu]",
+  shows: "#nav-menu",
+};
+const STATES: {
+  controls: string;
+  shows: string;
+  inside?: typeof NAV_PANEL;
+  name?: string;
+}[] = [
   {
     controls: "[data-slot=dropdown-menu-trigger]",
+    shows: "[data-slot=dropdown-menu-content]",
+  },
+  NAV_PANEL,
+  {
+    inside: NAV_PANEL,
+    name: "the language list",
+    controls: "#nav-menu [data-slot=dropdown-menu-trigger]",
     shows: "[data-slot=dropdown-menu-content]",
   },
   {
@@ -159,7 +189,9 @@ const STATES = [
   },
 ];
 
-type State = { name: string; control: string; index: number; shows: string };
+/** A tap, and what it shows. */
+type Step = { control: string; index: number; shows: string };
+type State = { name: string; steps: Step[] };
 
 /** The states `tab`'s page can open, named by their controls, of the
  * controls a phone shows. */
@@ -167,48 +199,60 @@ const statesOf = (tab: Tab) =>
   tab.evaluate((states: typeof STATES) => {
     const found: State[] = [];
     const seen = new Map<string, number>();
-    for (const { controls, shows } of states)
-      [...document.querySelectorAll(controls)].forEach((control, index) => {
-        // the nav's wide controls, which its menu holds on a phone
-        if (!control.checkVisibility()) return;
-        const label = (
-          control.getAttribute("aria-label") ||
-          control.textContent ||
-          controls
-        )
-          .replace(/\s+/g, " ")
-          .trim();
-        // the second of two Copy buttons is "Copy 2"
-        const count = (seen.get(label) ?? 0) + 1;
-        seen.set(label, count);
-        found.push({
-          name: `open: ${label}${count > 1 ? ` ${count}` : ""}`,
-          control: controls,
-          index,
-          shows,
-        });
-      });
+    for (const { controls, shows, inside, name } of states) {
+      const outer = inside ?? { controls, shows };
+      [...document.querySelectorAll(outer.controls)].forEach(
+        (control, index) => {
+          // the nav's wide controls, which its panel holds on a phone
+          if (!control.checkVisibility()) return;
+          const label = (
+            control.getAttribute("aria-label") ||
+            control.textContent ||
+            outer.controls
+          )
+            .replace(/\s+/g, " ")
+            .trim();
+          const step = { control: outer.controls, index, shows: outer.shows };
+          if (inside) {
+            found.push({
+              name: `open: ${label}, then ${name}`,
+              steps: [step, { control: controls, index: 0, shows }],
+            });
+            return;
+          }
+          // the second of two Copy buttons is "Copy 2"
+          const count = (seen.get(label) ?? 0) + 1;
+          seen.set(label, count);
+          found.push({
+            name: `open: ${label}${count > 1 ? ` ${count}` : ""}`,
+            steps: [step],
+          });
+        },
+      );
+    }
     return found;
   }, STATES);
 
-/** Taps `state`'s control, with copying always succeeding, and waits for
- * what it opens. */
+/** Taps each of `state`'s controls in turn, with copying always
+ * succeeding, and waits for what each opens. */
 async function open(tab: Tab, state: State) {
-  const shown = await tab.evaluate(async (state: State) => {
-    navigator.clipboard.writeText = () => Promise.resolve();
-    (
-      document.querySelectorAll(state.control)[state.index] as HTMLElement
-    ).click();
-    const deadline = Date.now() + 5000;
-    while (Date.now() < deadline) {
-      const shown = document.querySelector(state.shows);
-      if (shown?.checkVisibility()) return true;
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-    return false;
-  }, state);
-  assert.ok(shown, `${state.name} shows ${state.shows}`);
-  await still(tab);
+  for (const step of state.steps) {
+    const shown = await tab.evaluate(async (step: Step) => {
+      navigator.clipboard.writeText = () => Promise.resolve();
+      (
+        document.querySelectorAll(step.control)[step.index] as HTMLElement
+      ).click();
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        const shown = document.querySelector(step.shows);
+        if (shown?.checkVisibility()) return true;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      return false;
+    }, step);
+    assert.ok(shown, `${state.name} shows ${step.shows}`);
+    await still(tab);
+  }
 }
 
 const slug = (text: string) =>
@@ -487,40 +531,104 @@ test(
   },
 );
 
-/** Opens the nav's menu on a phone, then clicks the item `name` names, if
- * any. Returns the menu's items as they were. */
-const navMenu = (tab: Tab, name?: string) =>
-  tab.evaluate(async (name: string | null) => {
-    // the one labelled menu button a phone shows; Support's word names it
+/** What the nav's panel on a phone shows: its controls in order, each with
+ * its name, visible text, box and current-page state, and its roles. */
+type Panel = {
+  expanded: string | null;
+  roles: string[];
+  text: string;
+  controls: {
+    name: string;
+    text: string;
+    current: string | null;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+  }[];
+};
+
+/** The panel as it is: `expanded` is the menu button's `aria-expanded`,
+ * and `controls` is empty while the panel is closed. */
+const panelOf = (tab: Tab) =>
+  tab.evaluate((): Panel => {
+    const button = document.querySelector(
+      "nav button[aria-controls=nav-menu]",
+    )!;
+    const panel = document.getElementById("nav-menu");
+    return {
+      expanded: button.getAttribute("aria-expanded"),
+      roles: panel
+        ? [...panel.querySelectorAll("[role]")].map((el) =>
+            el.getAttribute("role")!,
+          )
+        : [],
+      text: panel?.innerText ?? "",
+      controls: [...(panel?.querySelectorAll("a, button") ?? [])].map((el) => {
+        const rect = el.getBoundingClientRect();
+        return {
+          name: el.getAttribute("aria-label") ?? el.textContent.trim(),
+          text: (el as HTMLElement).innerText.replace(/\s+/g, " ").trim(),
+          current: el.getAttribute("aria-current"),
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+        };
+      }),
+    };
+  });
+
+/** Taps the nav's menu button on a phone, then waits a frame. */
+const tapMenu = (tab: Tab) =>
+  tab.evaluate(async () => {
     (
-      [...document.querySelectorAll("nav [data-slot=dropdown-menu-trigger]")]
-        .filter((button) => button.checkVisibility())
-        .find((button) => button.hasAttribute("aria-label")) as HTMLElement
+      document.querySelector(
+        "nav button[aria-controls=nav-menu]",
+      ) as HTMLElement
     ).click();
-    const deadline = Date.now() + 5000;
-    let menu: Element | null = null;
-    while (!menu?.checkVisibility() && Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      menu = document.querySelector("[data-slot=dropdown-menu-content]");
-    }
-    const items = [
-      ...menu!.querySelectorAll(
-        "[data-slot=dropdown-menu-item], [data-slot=dropdown-menu-label], [data-slot=dropdown-menu-radio-item], [data-slot=dropdown-menu-separator]",
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+  });
+
+/** Clicks the control in the open panel or list that `name` names, by its
+ * label or text, then waits a frame. */
+const tap = (tab: Tab, name: string) =>
+  tab.evaluate(async (name: string) => {
+    const controls = [
+      ...document.querySelectorAll(
+        "#nav-menu a, #nav-menu button, [data-slot=dropdown-menu-content] [role^=menuitem]",
       ),
     ];
-    const listed = items.map((item) =>
-      [
-        item.getAttribute("data-slot")!.replace("dropdown-menu-", ""),
-        item.textContent.trim(),
-        item.getAttribute("aria-current") ?? item.getAttribute("aria-checked"),
-      ]
+    (
+      controls.find(
+        (el) =>
+          (el.getAttribute("aria-label") ?? el.textContent.trim()) === name,
+      ) as HTMLElement
+    ).click();
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+  }, name);
+
+/** The open language list's label and items, with each item's checked
+ * state, or null with no list open. */
+const languageList = (tab: Tab) =>
+  tab.evaluate(async () => {
+    const deadline = Date.now() + 5000;
+    let list: Element | null = null;
+    while (!list?.checkVisibility() && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      list = document.querySelector("[data-slot=dropdown-menu-content]");
+    }
+    if (!list?.checkVisibility()) return null;
+    return [
+      ...list.querySelectorAll(
+        "[data-slot=dropdown-menu-label], [data-slot=dropdown-menu-radio-item]",
+      ),
+    ].map((item) =>
+      [item.textContent.trim(), item.getAttribute("aria-checked")]
         .filter(Boolean)
         .join(" "),
     );
-    const chosen = items.find((item) => item.textContent.trim() === name);
-    (chosen as HTMLElement | undefined)?.click();
-    return listed;
-  }, name ?? null);
+  });
 
 /** Waits until `tab`'s page is at `url` and settled. */
 async function arrival(tab: Tab, url: string) {
@@ -536,60 +644,510 @@ async function arrival(tab: Tab, url: string) {
 }
 
 test(
-  "the nav's menu holds the places, the languages and the theme switch, which work as the bar's controls do",
+  "on a phone the menu button opens a panel of links, then one language selector and the theme icon",
+  { skip },
+  async () => {
+    for (const locale of [...LOCALES, PSEUDO_LOCALE] as Locale[]) {
+      const t = (id: Parameters<typeof format>[1]) => format(locale, id);
+      const server = locale === PSEUDO_LOCALE ? "development" : "production";
+      const page = localePath(locale, "/how-it-works/");
+      const tab = await openTab(base[server] + page, {
+        width: 320,
+        theme: "light",
+      });
+      const closed = await panelOf(tab);
+      assert.deepEqual([closed.expanded, closed.controls], ["false", []]);
+      await tapMenu(tab);
+      const panel = await panelOf(tab);
+      await tab.close();
+      assert.equal(panel.expanded, "true", page);
+      // a disclosure of links and buttons, not a menu
+      assert.deepEqual(panel.roles, [], page);
+      assert.deepEqual(
+        panel.controls.map((c) => c.name),
+        [
+          `${t("common.nav.documentation")}${locale === "en" ? "" : `EN (${t("common.nav.in-english")})`}`,
+          t("common.nav.how-it-works"),
+          "GitHub",
+          format(locale, "common.language.current", {
+            language: localeName(locale),
+          }),
+          t("common.theme.toggle"),
+        ],
+        page,
+      );
+      // How it works reads as pressed on its own page
+      assert.deepEqual(
+        panel.controls.map((c) => c.current),
+        [null, "page", null, null, null],
+        page,
+      );
+      // the links are full-width rows a finger can tap, one under another
+      const [, , github, selector, toggle] = panel.controls;
+      for (const [i, c] of panel.controls.slice(0, 3).entries()) {
+        assert.ok(c.bottom - c.top >= 44, `${page}: ${c.name} is 44 px tall`);
+        assert.ok(c.right - c.left >= 320 - 32, `${page}: ${c.name} is wide`);
+        if (i) assert.ok(c.top >= panel.controls[i - 1].bottom, page);
+      }
+      // below them one row: the language at its start, the theme at its end
+      assert.ok(selector.top >= github.bottom, page);
+      assert.ok(selector.bottom - selector.top >= 44, page);
+      assert.ok(selector.left < 20 && toggle.right > 300, page);
+      assert.ok(toggle.top < selector.bottom && toggle.bottom > selector.top);
+      assert.equal(selector.text, localeName(locale), page);
+      assert.equal(toggle.text, "", page);
+      // the theme's long name is only its accessible name
+      assert.ok(!panel.text.includes(toggle.name), page);
+    }
+  },
+);
+
+test(
+  "the panel's language selector opens the language list, which leads to the same page and section",
   { skip },
   async () => {
     const view = { width: 320, theme: "light" } as const;
-    const page = `${base.production}/how-it-works/#who-does-what`;
-    const tab = await openTab(page, view);
+    const tab = await openTab(
+      `${base.production}/how-it-works/#who-does-what`,
+      view,
+    );
     try {
-      assert.deepEqual(await navMenu(tab, "Català"), [
-        "item Documentation",
-        "item How it works page",
-        "item GitHub",
-        "separator",
-        "label Language",
-        "radio-item English true",
-        "radio-item Español false",
-        "radio-item Català false",
-        "separator",
-        "item Switch between the light and dark theme",
+      await tapMenu(tab);
+      assert.equal((await panelOf(tab)).controls[3].name, "Language: English");
+      await tap(tab, "Language: English");
+      assert.deepEqual(await languageList(tab), [
+        "Language",
+        "English true",
+        "Español false",
+        "Català false",
       ]);
+      // the list opens from the selector's start edge, over the dimmed page
+      const [selector, list] = await tab.evaluate(() =>
+        [
+          "#nav-menu [data-slot=dropdown-menu-trigger]",
+          "[data-slot=dropdown-menu-content]",
+        ].map((selector) => {
+          const rect = document
+            .querySelector(selector)!
+            .getBoundingClientRect();
+          return { left: rect.left, top: rect.top, bottom: rect.bottom };
+        }),
+      );
+      assert.ok(Math.abs(list.left - selector.left) <= 1, "start edge");
+      assert.ok(list.top >= selector.bottom, "below it");
+      // the panel stays open behind it
+      assert.equal((await panelOf(tab)).expanded, "true");
+      // picking leaves the page, so the click waits for nothing
+      await tab.evaluate(() =>
+        (
+          [
+            ...document.querySelectorAll(
+              "[data-slot=dropdown-menu-content] [role^=menuitem]",
+            ),
+          ].find((item) => item.textContent.trim() === "Català") as HTMLElement
+        ).click(),
+      );
       // the same page and section in the language picked
       await arrival(tab, `${base.production}/ca/how-it-works/#who-does-what`);
-      assert.ok(
-        (await navMenu(tab)).includes("radio-item Català true"),
-        "Català is checked",
-      );
+      await tapMenu(tab);
+      await tap(tab, "Llengua: Català");
+      assert.deepEqual(await languageList(tab), [
+        "Llengua",
+        "English false",
+        "Español false",
+        "Català true",
+      ]);
     } finally {
       // the choice is the browser's: later tabs open in English
       await tab.evaluate(() => localStorage.removeItem("locale"));
       await tab.close();
     }
+  },
+);
 
-    // the theme switches and is remembered
-    const source = await openTab(
+test(
+  "the panel's theme icon switches and remembers the theme, and the panel stays open",
+  { skip },
+  async () => {
+    const tab = await openTab(
       `${base.production}/es/sources/lutzseverino/repo-canon/`,
-      view,
+      { width: 320, theme: "light" },
     );
-    const items = await navMenu(
-      source,
-      "Cambiar entre el tema claro y el oscuro",
-    );
-    assert.ok(items.includes("item DocumentaciónEN (en inglés)"), items.join());
+    await tapMenu(tab);
+    await tap(tab, "Cambiar entre el tema claro y el oscuro");
     assert.deepEqual(
-      await source.evaluate(() => [
+      await tab.evaluate(() => [
         document.documentElement.classList.contains("dark"),
         localStorage.getItem("theme"),
       ]),
       [true, "dark"],
     );
-    await source.close();
+    const panel = await panelOf(tab);
+    await tab.close();
+    assert.equal(panel.expanded, "true");
+    assert.equal(panel.controls[0].name, "DocumentaciónEN (en inglés)");
   },
 );
 
 test(
-  "on the homepage How it works plays the sign's story, from the bar and from the menu",
+  "the open panel dims the page below it, which doesn't scroll until the panel closes",
+  { skip },
+  async () => {
+    for (const [page, theme] of [
+      ["/how-it-works/", "light"],
+      ["/how-it-works/", "dark"],
+      // above the sign's own layers
+      ["/", "dark"],
+    ] as const) {
+      const tab = await openTab(base.production + page, { width: 390, theme });
+      /** What a tap at the top of the header and at the bottom of the
+       * screen would land on, and the dimming's colour. */
+      const covered = () =>
+        tab.evaluate(() => {
+          const panel = document.getElementById("nav-menu");
+          const below = document.elementFromPoint(195, 780)!;
+          const header = document.elementFromPoint(195, 2)!;
+          return {
+            scrim:
+              panel !== null &&
+              below === panel.nextElementSibling &&
+              below.getAttribute("aria-hidden") === "true",
+            header: header.closest("nav") !== null && !panel?.contains(header),
+            dim: getComputedStyle(below).backgroundColor,
+            starts: Math.round(below.getBoundingClientRect().top),
+            ends: Math.round(panel?.getBoundingClientRect().bottom ?? 0),
+          };
+        });
+      /** Scrolls the page down with the mouse wheel; how far it moved. */
+      const wheel = async () => {
+        const before = await tab.evaluate(() => window.scrollY);
+        await tab.send("Input.dispatchMouseEvent", {
+          type: "mouseWheel",
+          x: 195,
+          y: 700,
+          deltaX: 0,
+          deltaY: 400,
+        });
+        await tab.evaluate(async () => {
+          for (let i = 0; i < 10; i++) await new Promise(requestAnimationFrame);
+        });
+        return (await tab.evaluate(() => window.scrollY)) - before;
+      };
+
+      await tapMenu(tab);
+      const open = await covered();
+      assert.ok(open.scrim, `${theme}: the page below is covered`);
+      assert.ok(open.header, `${theme}: the header is not`);
+      assert.equal(open.starts, open.ends, `${theme}: flush under the panel`);
+      // black, 40% by day and 60% by night
+      assert.equal(
+        open.dim,
+        `oklab(0 0 0 / ${theme === "light" ? 0.4 : 0.6})`,
+        theme,
+      );
+      assert.equal(await wheel(), 0, `${theme}: the page stays still`);
+      // a tap on the dimmed page closes the panel
+      await tab.evaluate(async () => {
+        (document.elementFromPoint(195, 780) as HTMLElement).click();
+        for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+      });
+      const closed = await panelOf(tab);
+      assert.equal(closed.expanded, "false", theme);
+      assert.equal((await covered()).scrim, false, theme);
+      assert.ok((await wheel()) > 0, `${theme}: the page scrolls again`);
+
+      // widening to the bar closes the panel too
+      await tab.evaluate(() => window.scrollTo(0, 0));
+      await tapMenu(tab);
+      await tab.resize(1280);
+      await tab.settle();
+      assert.deepEqual(
+        await tab.evaluate(() => [
+          document.getElementById("nav-menu"),
+          getComputedStyle(document.documentElement).overflow,
+        ]),
+        [null, "visible"],
+        theme,
+      );
+      await tab.close();
+    }
+  },
+);
+
+/** Focuses the nav's menu button on a phone. */
+const focusMenu = (tab: Tab) =>
+  tab.evaluate(() =>
+    (
+      document.querySelector(
+        "nav button[aria-controls=nav-menu]",
+      ) as HTMLElement
+    ).focus(),
+  );
+
+/** The focused element, by its label or text, and whether the panel and
+ * the language list are open. */
+const focusOf = (tab: Tab) =>
+  tab.evaluate(async () => {
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+    const el = document.activeElement!;
+    const selector = document.querySelector(
+      "#nav-menu [data-slot=dropdown-menu-trigger]",
+    );
+    return {
+      focus: el.getAttribute("aria-label") ?? el.textContent.trim(),
+      panel: document
+        .querySelector("nav button[aria-controls=nav-menu]")!
+        .getAttribute("aria-expanded"),
+      list:
+        selector === null
+          ? null
+          : [
+              selector.getAttribute("aria-expanded"),
+              document.querySelector("[data-slot=dropdown-menu-content]") !==
+                null,
+            ],
+    };
+  });
+
+test(
+  "the panel follows the disclosure navigation keyboard model, and the arrow keys never open the language list",
+  { skip },
+  async () => {
+    const tab = await openTab(`${base.production}/how-it-works/`, {
+      width: 320,
+      theme: "light",
+    });
+    const THEME = "Switch between the light and dark theme";
+    const LANGUAGE = "Language: English";
+    const closedList = ["false", false];
+    /** A key pressed, then where focus is, the menu button's
+     * `aria-expanded`, and the language selector's `aria-expanded` with
+     * whether its list is rendered, or null with the panel closed. */
+    const steps: {
+      press: Key;
+      shift?: boolean;
+      /** Whether focus leaves for the page's body first. */
+      blur?: boolean;
+      focus: string;
+      panel: string;
+      list: unknown;
+    }[] = [
+      // Enter opens the panel and leaves focus on the button
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      // Down Arrow from the open button reaches the first link
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      {
+        press: "ArrowDown",
+        focus: "How it works",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "ArrowDown", focus: "GitHub", panel: "true", list: closedList },
+      { press: "ArrowDown", focus: LANGUAGE, panel: "true", list: closedList },
+      // from the selector, Down Arrow focuses the theme toggle and Up Arrow
+      // GitHub, with the list closed
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
+      // focus stops at either end
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: LANGUAGE, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: "GitHub", panel: "true", list: closedList },
+      { press: "ArrowDown", focus: LANGUAGE, panel: "true", list: closedList },
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
+      {
+        press: "Home",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      {
+        press: "ArrowUp",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "End", focus: THEME, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: LANGUAGE, panel: "true", list: closedList },
+      // Enter opens the list, whose first item takes focus
+      { press: "Enter", focus: "English", panel: "true", list: ["true", true] },
+      // Escape closes only the list, and the panel stays open
+      { press: "Escape", focus: LANGUAGE, panel: "true", list: closedList },
+      // a second Escape closes the panel
+      { press: "Escape", focus: "Menu", panel: "false", list: null },
+      // with no list open, Escape closes the panel and focuses its button
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "Escape", focus: "Menu", panel: "false", list: null },
+      // Escape with nothing focused, as after a tap in Safari, closes it too
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      {
+        press: "Escape",
+        blur: true,
+        focus: "Menu",
+        panel: "false",
+        list: null,
+      },
+      // Shift+Tab from the first link returns to the button, still open
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      { press: "Tab", focus: "Documentation", panel: "true", list: closedList },
+      {
+        press: "Tab",
+        shift: true,
+        focus: "Menu",
+        panel: "true",
+        list: closedList,
+      },
+      // Tab from the theme toggle leaves the panel, which closes
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "End", focus: THEME, panel: "true", list: closedList },
+    ];
+    try {
+      await focusMenu(tab);
+      for (const { press, shift, blur, ...expected } of steps) {
+        if (blur)
+          await tab.evaluate(() =>
+            (document.activeElement as HTMLElement).blur(),
+          );
+        await tab.press(press, shift);
+        await still(tab);
+        assert.deepEqual(
+          await focusOf(tab),
+          expected,
+          `${press}${shift ? " with Shift" : ""} to ${expected.focus}`,
+        );
+      }
+      await tab.press("Tab");
+      await still(tab);
+      const out = await focusOf(tab);
+      assert.equal(out.panel, "false", "Tab from the theme toggle closes it");
+      assert.notEqual(out.focus, THEME);
+      assert.ok(
+        await tab.evaluate(
+          () =>
+            document.activeElement !== document.body &&
+            document.querySelector("nav")!.contains(document.activeElement) ===
+              false,
+        ),
+        "focus moves on to the page",
+      );
+    } finally {
+      await tab.close();
+    }
+  },
+);
+
+test(
+  "every control in the panel and the language list shows a focus ring, in both themes",
+  { skip },
+  async () => {
+    for (const theme of THEMES) {
+      const tab = await openTab(`${base.production}/how-it-works/`, {
+        width: 320,
+        theme,
+      });
+      /** The focused element's name, ring and pressed background, and the
+       * same of every control in the panel and the list while they are not
+       * focused, by name. */
+      const rings = () =>
+        tab.evaluate(async () => {
+          for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+          const ring = (el: Element) => {
+            const s = getComputedStyle(el);
+            return {
+              shadow: s.boxShadow,
+              outline: s.outlineStyle === "none" ? "none" : s.outline,
+              background: s.backgroundColor,
+            };
+          };
+          const name = (el: Element) =>
+            el.getAttribute("aria-label") ?? el.textContent.trim();
+          const focused = document.activeElement!;
+          return {
+            focused: {
+              name: name(focused),
+              visible: focused.matches(":focus-visible"),
+              ...ring(focused),
+            },
+            others: Object.fromEntries(
+              [
+                ...document.querySelectorAll(
+                  "nav button[aria-controls=nav-menu], #nav-menu a, #nav-menu button, [data-slot=dropdown-menu-content] [role^=menuitem]",
+                ),
+              ]
+                .filter((el) => el !== focused)
+                .map((el) => [name(el), ring(el)]),
+            ),
+          };
+        });
+      const seen: Awaited<ReturnType<typeof rings>>[] = [];
+      await focusMenu(tab);
+      await tab.press("Enter");
+      seen.push(await rings());
+      for (let i = 0; i < 5; i++) {
+        await tab.press("ArrowDown");
+        seen.push(await rings());
+      }
+      await tab.press("ArrowUp");
+      await tab.press("Enter");
+      seen.push(await rings());
+      for (let i = 0; i < 2; i++) {
+        await tab.press("ArrowDown");
+        seen.push(await rings());
+      }
+      await tab.close();
+
+      const names = seen.map((s) => s.focused.name);
+      assert.deepEqual(
+        names,
+        [
+          "Menu",
+          "Documentation",
+          "How it works",
+          "GitHub",
+          "Language: English",
+          "Switch between the light and dark theme",
+          "English",
+          "Español",
+          "Català",
+        ],
+        theme,
+      );
+      for (const { focused } of seen) {
+        assert.ok(focused.visible, `${theme}: ${focused.name} focus-visible`);
+        // its look while another control has focus
+        const unfocused = seen.find((s) => s.others[focused.name])!.others[
+          focused.name
+        ];
+        const shows = (look: typeof unfocused, key: "shadow" | "outline") =>
+          look[key] !== "none" && look[key] !== unfocused[key];
+        assert.ok(
+          shows(focused, "shadow") || shows(focused, "outline"),
+          `${theme}: ${focused.name} has a ring: ${JSON.stringify({ focused, unfocused })}`,
+        );
+      }
+      // the current page's row keeps its pressed background with the ring
+      const current = seen[2].focused;
+      assert.notEqual(current.background, TRANSPARENT, theme);
+    }
+  },
+);
+
+test(
+  "on the homepage How it works plays the sign's story, from the bar and from the panel",
   { skip },
   async () => {
     const sunk = (tab: Tab) =>
@@ -618,8 +1176,10 @@ test(
       width: 320,
       theme: "light",
     });
-    await navMenu(phone, "How it works");
-    assert.ok(await sunk(phone), "from the menu");
+    await tapMenu(phone);
+    await tap(phone, "How it works");
+    assert.ok(await sunk(phone), "from the panel");
+    assert.equal((await panelOf(phone)).expanded, "false", "which closes");
     await phone.close();
   },
 );

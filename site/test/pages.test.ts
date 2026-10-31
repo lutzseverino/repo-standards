@@ -876,16 +876,9 @@ test("every site page's nav has a language menu naming the page's language, whic
         /<button [^>]*data-slot="dropdown-menu-trigger"[^>]*aria-label="([^"]*)"/g,
       ),
     ].map((m) => m[1]);
-    // the language menu, then the nav's menu on a phone, which holds the
-    // languages too
-    assert.deepEqual(
-      triggers,
-      [
-        names[locale as keyof typeof names],
-        format(locale as Locale, "common.nav.menu"),
-      ],
-      file,
-    );
+    // the language menu; the nav's panel on a phone renders its own only
+    // once opened
+    assert.deepEqual(triggers, [names[locale as keyof typeof names]], file);
     const alternates = Object.entries(PREFIXES)
       .map(
         ([other, prefix]) =>

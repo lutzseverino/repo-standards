@@ -119,4 +119,9 @@ alternatives.
   one shared nav on every page outside the docs, a full-width bar like
   Starlight's header with the same plate, its items ordered from near to far
   with Support the one emphasized control, and on a phone the plate, Support
-  and one menu.
+  and one menu; amended by ADR 0032, that menu opens as a sheet under the
+  header.
+- [Open the phone nav as a sheet under the header](0032-open-the-phone-nav-as-a-sheet-under-the-header.md):
+  on a phone, the nav's menu button opens a sheet of links under the header,
+  with one language selector and the theme icon in a row below them, over the
+  dimmed page, as a disclosure navigation rather than a menu.
