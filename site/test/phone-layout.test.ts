@@ -333,7 +333,36 @@ for (const page of pages)
               "loaded",
               await measure(tab, page.url, view, "loaded"),
             );
-          for (const state of await statesOf(tab)) {
+          const states = await statesOf(tab);
+          if (!DOCS.includes(page.url)) {
+            assert.equal(
+              states.filter(
+                (s) =>
+                  s.steps[0].control === NAV_PANEL.controls &&
+                  s.steps.length === 1,
+              ).length,
+              1,
+              "the panel is measured",
+            );
+            assert.equal(
+              states.filter(
+                (s) =>
+                  s.steps[0].control === NAV_PANEL.controls &&
+                  s.steps.length === 2,
+              ).length,
+              1,
+              "the nested language list is measured",
+            );
+            assert.equal(
+              states.filter(
+                (s) =>
+                  s.steps[0].control === "[data-slot=dropdown-menu-trigger]",
+              ).length,
+              1,
+              "the site's Support menu is measured",
+            );
+          }
+          for (const state of states) {
             await tab.goto(url);
             await open(tab, state);
             record(
@@ -341,6 +370,12 @@ for (const page of pages)
               state.name,
               await measure(tab, page.url, view, state.name),
             );
+            if (
+              !DOCS.includes(page.url) &&
+              state.steps[0].control === "[data-slot=dropdown-menu-trigger]"
+            ) {
+              await supportRings(tab, page, view);
+            }
           }
           await tab.close();
         }
@@ -1050,6 +1085,377 @@ test(
   },
 );
 
+/** The original ring probe, shared by the model test and matrix sweep. */
+const ringsOf = (
+  tab: Tab,
+  controls = "nav button[aria-controls=nav-menu], #nav-menu a, #nav-menu button, [data-slot=dropdown-menu-content] [role^=menuitem]",
+) =>
+  tab.evaluate(async (controls: string) => {
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+    const ring = (el: Element) => {
+      const s = getComputedStyle(el);
+      return {
+        shadow: s.boxShadow,
+        outline: s.outlineStyle === "none" ? "none" : s.outline,
+        background: s.backgroundColor,
+      };
+    };
+    const name = (el: Element) =>
+      el.getAttribute("aria-label") ?? el.textContent.trim();
+    const focused = document.activeElement!;
+    return {
+      focused: {
+        name: name(focused),
+        visible: focused.matches(":focus-visible"),
+        ...ring(focused),
+      },
+      others: Object.fromEntries(
+        [...document.querySelectorAll(controls)]
+          .filter((el) => el !== focused && el.checkVisibility())
+          .map((el) => [name(el), ring(el)]),
+      ),
+    };
+  }, controls);
+
+// #451 extends #453's keyboard model and ring probe across the existing
+// site-page matrix. The docs keep their original geometry-only coverage.
+const SITE_FOCUS =
+  "nav a, nav button, [data-slot=dropdown-menu-content] [role^=menuitem]";
+type Rings = Awaited<ReturnType<typeof ringsOf>>;
+
+/** The same focused/unfocused oracle as #453, including controls whose
+ * unfocused shadow is decorative (the plate or an outlined button). */
+function assertRings(seen: Rings[], context: string) {
+  assert.ok(seen.length > 0, `${context}: controls were focused`);
+  for (const { focused } of seen) {
+    assert.ok(focused.visible, `${context}: ${focused.name} focus-visible`);
+    const unfocused = seen.find((s) => s.others[focused.name])?.others[
+      focused.name
+    ];
+    assert.ok(unfocused, `${context}: ${focused.name} unfocused evidence`);
+    const shows = (key: "shadow" | "outline") =>
+      focused[key] !== "none" && focused[key] !== unfocused[key];
+    assert.ok(
+      shows("shadow") || shows("outline"),
+      `${context}: ${focused.name} has a ring: ${JSON.stringify({ focused, unfocused })}`,
+    );
+  }
+}
+
+/** Checks the already-opened site's Support state, never the docs'. */
+async function supportRings(tab: Tab, page: Page, view: View) {
+  const items = await tab.evaluate(() => {
+    const list = document.querySelector(
+      "[data-slot=dropdown-menu-content][role=menu]",
+    );
+    return [...(list?.querySelectorAll("[role=menuitem]") ?? [])].map((el) =>
+      el.textContent.trim(),
+    );
+  });
+  assert.deepEqual(
+    items,
+    ["GitHub Sponsors", "Ko-fi"],
+    `${page.url}: Support items`,
+  );
+  await tab.evaluate(() =>
+    (
+      document.querySelector(
+        "[data-slot=dropdown-menu-content] [role=menuitem]",
+      ) as HTMLElement
+    ).focus(),
+  );
+  const seen: Rings[] = [];
+  for (const [i, name] of items.entries()) {
+    await tab.press(i === 0 ? "Home" : "ArrowDown");
+    const ring = await ringsOf(tab, SITE_FOCUS);
+    assert.equal(ring.focused.name, name, "Support keyboard order");
+    seen.push(ring);
+  }
+  assertRings(seen, `${page.url} ${view.width} px ${view.theme} Support`);
+  if (reportTo)
+    measurements.push({
+      url: page.url,
+      ...view,
+      state: "keyboard: Support",
+      rings: seen,
+    });
+}
+
+async function keyboardNav(tab: Tab, page: Page, view: View) {
+  const locale = page.lang as Locale;
+  const t = (id: Parameters<typeof format>[1]) => format(locale, id);
+  const menu = t("common.nav.menu");
+  const support = t("common.support.button");
+  const language = format(locale, "common.language.current", {
+    language: localeName(locale),
+  });
+  const theme = t("common.theme.toggle");
+  const docs = `${t("common.nav.documentation")}${locale === "en" ? "" : `EN (${t("common.nav.in-english")})`}`;
+  const controls = [
+    docs,
+    t("common.nav.how-it-works"),
+    "GitHub",
+    language,
+    theme,
+  ];
+  const home = page.url === localePath(locale, "/");
+  const header = [...(home ? [] : ["Repo Standards"]), support, menu];
+  const context = `${page.url} ${view.width} px ${view.theme}`;
+  const seen: Rings[] = [];
+  const trace: unknown[] = [];
+  const closedList = ["false", false];
+
+  // Header order is explicit, including the plain plate link, and matches
+  // the painted left-to-right order rather than button discovery alone.
+  const nav = await navOf(tab);
+  assert.deepEqual(
+    nav.controls.map((c) => c.name),
+    [...(home ? [] : ["plate"]), support, menu],
+    context,
+  );
+  nav.controls.forEach((c, i) =>
+    assert.ok(
+      i === 0 || c.left >= nav.controls[i - 1].right,
+      `${context}: header visual order`,
+    ),
+  );
+
+  const press = async (
+    key: Key,
+    focus: string,
+    panel = true,
+    list: unknown = closedList,
+    shift = false,
+  ) => {
+    await tab.press(key, shift);
+    if (key === "Escape" || key === "Enter" || key === " ") await still(tab);
+    const actual = await focusOf(tab);
+    assert.deepEqual(
+      actual,
+      { focus, panel: String(panel), list: panel ? list : null },
+      `${context}: ${shift ? "Shift+" : ""}${key} to ${focus}`,
+    );
+    if (!seen.some((s) => s.focused.name === focus))
+      seen.push(await ringsOf(tab, SITE_FOCUS));
+    trace.push({ key, shift, ...actual });
+  };
+
+  for (const name of header) await press("Tab", name, false);
+  for (const name of header.slice(0, -1).reverse())
+    await press("Tab", name, false, null, true);
+  for (const name of header.slice(1)) await press("Tab", name, false);
+
+  // Both activation keys open and close without moving focus.
+  for (const key of ["Enter", " "] as const) {
+    await press(key, menu);
+    await press(key, menu, false);
+  }
+  await press("Enter", menu);
+  const panel = await panelOf(tab);
+  assert.deepEqual(
+    panel.controls.map((c) => c.name),
+    controls,
+    context,
+  );
+  assert.deepEqual(panel.roles, [], `${context}: disclosure, not an ARIA menu`);
+  const currentPage = page.url === localePath(locale, "/how-it-works/");
+  assert.deepEqual(
+    panel.controls.map((c) => c.current),
+    [null, currentPage ? "page" : null, null, null, null],
+    `${context}: current-page row`,
+  );
+  assert.equal(
+    await tab.evaluate(() =>
+      document.getElementById("nav-menu")!.getAttribute("role"),
+    ),
+    null,
+    "the panel has no menu role",
+  );
+  assert.equal(
+    await tab.evaluate(
+      () => document.getElementById("nav-menu")!.closest("nav") !== null,
+    ),
+    true,
+    "inside the navigation landmark",
+  );
+  panel.controls.forEach((c, i) => {
+    if (!i) return;
+    const previous = panel.controls[i - 1];
+    assert.ok(
+      c.top >= previous.bottom ||
+        (c.top < previous.bottom &&
+          c.bottom > previous.top &&
+          c.left >= previous.right),
+      `${context}: panel visual order`,
+    );
+  });
+
+  await press("ArrowDown", docs);
+  await press("Tab", menu, true, closedList, true);
+  for (const name of controls) await press("Tab", name);
+  for (const name of controls.slice(0, -1).reverse())
+    await press("Tab", name, true, closedList, true);
+  await press("ArrowUp", docs); // stops, never wraps
+  for (const name of controls.slice(1)) await press("ArrowDown", name);
+  await press("ArrowDown", theme); // stops, never wraps
+  for (const name of controls.slice(0, -1).reverse())
+    await press("ArrowUp", name);
+  await press("End", theme);
+  await press("ArrowUp", language);
+  await press("Home", docs); // from the selector, list remains closed
+  await press("End", theme);
+  await press("ArrowUp", language);
+  await press("End", theme); // likewise End on the selector
+  await press("Home", docs);
+  await press("Escape", menu, false);
+
+  for (const key of ["Enter", " "] as const) {
+    await press("Enter", menu);
+    await press("ArrowDown", docs);
+    await press("End", theme);
+    await press("ArrowUp", language);
+    await press(key, "English", true, ["true", true]);
+    assert.deepEqual(
+      await languageList(tab),
+      [
+        t("common.language.label"),
+        ...LOCALES.map((l) => `${localeName(l)} ${l === locale}`),
+      ],
+      `${context}: opened language list and checked row`,
+    );
+    assert.equal(
+      await tab.evaluate(() =>
+        document
+          .querySelector("[data-slot=dropdown-menu-content]")!
+          .getAttribute("role"),
+      ),
+      "menu",
+    );
+    for (const name of LOCALES.slice(1).map(localeName))
+      await press("ArrowDown", name, true, ["true", true]);
+    await press("Home", "English", true, ["true", true]);
+    await press("End", "Català", true, ["true", true]);
+    await press("Escape", language);
+    await press("Escape", menu, false);
+  }
+
+  await press("Enter", menu);
+  await press("ArrowDown", docs);
+  await press("End", theme);
+  await press("Enter", theme);
+  assert.deepEqual(
+    await tab.evaluate(() => [
+      document.documentElement.classList.contains("dark"),
+      localStorage.getItem("theme"),
+    ]),
+    [view.theme !== "dark", view.theme === "dark" ? "light" : "dark"],
+    `${context}: theme operates with panel open`,
+  );
+  await press(" ", theme);
+  assert.equal(
+    await tab.evaluate(() => localStorage.getItem("theme")),
+    view.theme,
+  );
+
+  // Find the next page stop independently of the panel's event handler.
+  const next = await tab.evaluate(() => {
+    const all = [
+      ...document.querySelectorAll<HTMLElement>(
+        "a[href], button, input, select, textarea, summary, [tabindex]",
+      ),
+    ].filter(
+      (el) =>
+        el.tabIndex >= 0 && el.checkVisibility() && !el.closest("[inert]"),
+    );
+    const at = all.indexOf(document.activeElement as HTMLElement);
+    const next = all[at + 1];
+    if (!next || next.closest("nav")) return null;
+    next.setAttribute("data-phone-next", "");
+    return next.getAttribute("aria-label") ?? next.textContent.trim();
+  });
+  assert.ok(next, `${context}: next focusable page element exists`);
+  const ringCount = seen.length;
+  await press("Tab", next, false);
+  // The page target itself is outside this change's focus-ring contract.
+  seen.splice(ringCount);
+  assert.equal(
+    await tab.evaluate(() =>
+      document.activeElement?.hasAttribute("data-phone-next"),
+    ),
+    true,
+    `${context}: Tab leaves for the next page stop`,
+  );
+  await tab.evaluate(() =>
+    document
+      .querySelector("[data-phone-next]")!
+      .removeAttribute("data-phone-next"),
+  );
+  assertRings(seen, context);
+  if (currentPage)
+    assert.notEqual(
+      seen.find((s) => s.focused.name === controls[1])!.focused.background,
+      TRANSPARENT,
+      `${context}: pressed row keeps its background with the ring`,
+    );
+
+  // Select by keyboard too: keep the destination page and saved choice,
+  // then clear that browser-wide preference for the next matrix entry.
+  await focusMenu(tab);
+  for (const key of [
+    "Enter",
+    "ArrowDown",
+    "End",
+    "ArrowUp",
+    "Enter",
+  ] as const) {
+    await tab.press(key);
+    await still(tab);
+  }
+  const chosen = locale === "en" ? "es" : "en";
+  if (chosen === "es") await tab.press("ArrowDown");
+  await tab.press("Enter");
+  const family = families.find(
+    (family) => localePath(locale, family) === page.url,
+  )!;
+  await arrival(tab, base[page.server] + localePath(chosen, family));
+  assert.equal(
+    await tab.evaluate(() => localStorage.getItem("locale")),
+    chosen,
+    `${context}: keyboard selection saves and navigates`,
+  );
+  await tab.evaluate(() => localStorage.removeItem("locale"));
+  if (reportTo)
+    measurements.push({
+      url: page.url,
+      ...view,
+      state: "keyboard: navigation",
+      trace,
+      rings: seen,
+    });
+}
+
+for (const page of pages.filter((p) => !DOCS.includes(p.url)))
+  test(
+    `${page.url} keyboard navigation and rings across the phone matrix`,
+    { skip },
+    async () => {
+      for (const theme of THEMES)
+        for (const width of WIDTHS) {
+          const view = { width, theme };
+          const tab = await openTab(base[page.server] + page.url, view);
+          try {
+            await keyboardNav(tab, page, view);
+          } finally {
+            try {
+              await tab.evaluate(() => localStorage.removeItem("locale"));
+            } finally {
+              await tab.close();
+            }
+          }
+        }
+    },
+  );
+
 test(
   "every control in the panel and the language list shows a focus ring, in both themes",
   { skip },
@@ -1062,37 +1468,7 @@ test(
       /** The focused element's name, ring and pressed background, and the
        * same of every control in the panel and the list while they are not
        * focused, by name. */
-      const rings = () =>
-        tab.evaluate(async () => {
-          for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
-          const ring = (el: Element) => {
-            const s = getComputedStyle(el);
-            return {
-              shadow: s.boxShadow,
-              outline: s.outlineStyle === "none" ? "none" : s.outline,
-              background: s.backgroundColor,
-            };
-          };
-          const name = (el: Element) =>
-            el.getAttribute("aria-label") ?? el.textContent.trim();
-          const focused = document.activeElement!;
-          return {
-            focused: {
-              name: name(focused),
-              visible: focused.matches(":focus-visible"),
-              ...ring(focused),
-            },
-            others: Object.fromEntries(
-              [
-                ...document.querySelectorAll(
-                  "nav button[aria-controls=nav-menu], #nav-menu a, #nav-menu button, [data-slot=dropdown-menu-content] [role^=menuitem]",
-                ),
-              ]
-                .filter((el) => el !== focused)
-                .map((el) => [name(el), ring(el)]),
-            ),
-          };
-        });
+      const rings = () => ringsOf(tab);
       const seen: Awaited<ReturnType<typeof rings>>[] = [];
       await focusMenu(tab);
       await tab.press("Enter");
