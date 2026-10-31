@@ -15,6 +15,10 @@ const agentUrls = [];
 
 export default defineConfig({
   site: "https://repo-standards.com",
+  // Astro 7 defaults to JSX whitespace rules, which drop the space between
+  // inline elements on separate lines, such as the support line's "Repo
+  // Standards:" and its first link; keep Astro 6's HTML-aware compression
+  compressHTML: true,
   prefetch: false,
   integrations: [
     react(),

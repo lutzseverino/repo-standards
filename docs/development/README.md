@@ -19,6 +19,12 @@ check also drives an installed Chrome, Chromium or Edge, as
 [Site on a phone](#site-on-a-phone) describes; the site needs no other system
 tools.
 
+The site is a Site in Repo Canon's `typescript-astro` stack. It uses Astro 7
+with Starlight 0.42, TypeScript 6 checked by `astro check`, React 19,
+Tailwind CSS 4, shadcn CLI 4 with Base UI and lucide, oxlint 1, Prettier 3
+with `prettier-plugin-astro`, `node --test`, pnpm 11 and Node.js 24 or 26;
+the CLI keeps its root TypeScript version.
+
 Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
 `pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes
 the static site to `site/dist/`. The build reads its list of standards sources
@@ -29,9 +35,9 @@ site's tests with Node's test runner, one file at a time, as the
 [site README](../../site/README.md) explains, including the browser check of
 every page on a phone. `pnpm --dir site preview` serves
 that build.
-Run `pnpm validate` to validate the entire repository, including the site
-check, tests and fixture build. The site uses a compatible TypeScript compiler for Astro checking;
-the CLI keeps its root TypeScript version.
+`pnpm --dir site validate` runs the site's generated shadcn source check,
+`astro check`, tests and fixture build. Run `pnpm validate` to validate the
+entire repository; it ends with the site's `validate`.
 
 During development, run `pnpm typecheck`, `pnpm lint` and `pnpm build`, then
 focused tests covering the changed behavior, such as
@@ -77,7 +83,7 @@ Together these required checks run every step of `pnpm validate` on both support
 Node.js majors. Each CLI part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
 are exempt), and builds before testing. Separate Linux `site` jobs run
-the generated shadcn source check, `astro check`, the site tests and the fixture site build on both supported majors on every pull request, without path filtering.
+the site's `validate`, which runs the generated shadcn source check, `astro check`, the site tests and the fixture site build, on both supported majors on every pull request, without path filtering.
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. The site's
@@ -87,6 +93,11 @@ in these jobs and in the macOS validation after merge. The CLI's tests pack and
 install the npm package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.
+
+From the Repo Canon v0.20.0 adoption on, the Repo Canon required PR checks
+ruleset requires a pull request's branch to be up to date with `main` before
+it merges, so a merge to `main` makes every open pull request's checks stale
+until its branch is updated.
 
 The Deploy site workflow builds and publishes to GitHub Pages on every push to
 `main` and daily, separately from Release. Only it builds the site from live

@@ -45,15 +45,19 @@ function fixture(t: TestContext) {
       },
     }),
   );
+  const site = JSON.parse(
+    readFileSync(join(repository, "site/package.json"), "utf8"),
+  ) as { scripts: Record<string, string> };
   writeFileSync(
     join(root, "site/package.json"),
     JSON.stringify({
-      scripts: Object.fromEntries(
-        ["ui:check", "check", "test", "build:fixture"].map((name) => [
-          name,
-          'node -e ""',
-        ]),
-      ),
+      // The site's own validate, with each step it may call inert.
+      scripts: {
+        ...Object.fromEntries(
+          Object.keys(site.scripts).map((name) => [name, 'node -e ""']),
+        ),
+        validate: site.scripts.validate,
+      },
     }),
   );
   writeFileSync(join(root, "scripts/check-import-cycles.ts"), "");
