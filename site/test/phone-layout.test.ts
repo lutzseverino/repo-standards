@@ -111,7 +111,7 @@ before(async () => {
   // without the toolbar, which development alone draws over the page
   development = await dev({
     root: site,
-    logLevel: "error",
+    logLevel: "info",
     server: { host: "127.0.0.1", port: 0 },
     devToolbar: { enabled: false },
   });
