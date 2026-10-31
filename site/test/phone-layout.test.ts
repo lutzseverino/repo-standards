@@ -22,6 +22,7 @@ import {
   PSEUDO_LOCALE,
   localeName,
   localePath,
+  type Locale,
 } from "../src/i18n/locales.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 import { Browser, findBrowser, type Tab, type View } from "./browser.ts";
@@ -640,7 +641,7 @@ test(
   "on a phone the menu button opens a panel of links, then one language selector and the theme icon",
   { skip },
   async () => {
-    for (const locale of [...LOCALES, PSEUDO_LOCALE]) {
+    for (const locale of [...LOCALES, PSEUDO_LOCALE] as Locale[]) {
       const t = (id: Parameters<typeof format>[1]) => format(locale, id);
       const server = locale === PSEUDO_LOCALE ? "development" : "production";
       const page = localePath(locale, "/how-it-works/");
