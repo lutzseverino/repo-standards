@@ -19,7 +19,7 @@ export const tokens = source(
 );
 const starlight = source(
   new URL(
-    "../node_modules/@astrojs/starlight/style/props.css",
+    "../node_modules/@astrojs/starlight/dist/style/props.css",
     import.meta.url,
   ),
 );

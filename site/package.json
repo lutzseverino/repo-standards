@@ -13,16 +13,17 @@
     "ui:check": "node scripts/registry.mjs check",
     "social-image": "node scripts/social-image.mjs",
     "i18n:source": "node scripts/translation-source.ts",
-    "test": "node --test --test-concurrency=1 test/*.test.ts"
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
+    "validate": "pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "7.2.0",
-    "@astrojs/react": "5.0.7",
+    "@astrojs/markdown-remark": "7.3.5",
+    "@astrojs/react": "7.1.2",
     "@astrojs/sitemap": "3.7.4",
-    "@astrojs/starlight": "0.40.0",
+    "@astrojs/starlight": "0.42.8",
     "@base-ui/react": "1.9.0",
     "@tailwindcss/vite": "4.3.3",
-    "astro": "6.4.8",
+    "astro": "7.4.4",
     "class-variance-authority": "0.7.1",
     "cn": "0.5.0",
     "hast-util-from-html": "2.0.3",
@@ -41,7 +42,7 @@
     "yaml": "2.9.0"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.10",
+    "@astrojs/check": "0.9.12",
     "@types/mdast": "4.0.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -50,6 +51,6 @@
     "shadcn": "4.22.1",
     "sharp": "0.34.5",
     "typescript": "6.0.3",
-    "vite": "7.3.7"
+    "vite": "8.3.5"
   }
 }

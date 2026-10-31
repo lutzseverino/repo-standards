@@ -83,10 +83,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install --global pnpm@11.20.0
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --dir site ui:check
-      - run: pnpm --dir site check
-      - run: pnpm --dir site test
-      - run: pnpm --dir site build:fixture
+      - run: pnpm --dir site validate
 
   validate-macos:
     if: github.event_name == 'push'

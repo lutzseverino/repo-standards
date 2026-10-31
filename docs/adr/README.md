@@ -66,7 +66,8 @@ alternatives.
   chosen setting is confirmed through `resume --confirmed`.
 - [Add a private Astro site workspace](0018-add-a-private-astro-site-workspace.md):
   a static website shares repository tooling and deploys independently to
-  GitHub Pages from `main`.
+  GitHub Pages from `main`; amended by ADR 0033, the Astro trial passed for
+  content and static sites.
 - [Run declared discovery scripts read-only during inspection](0019-run-declared-discovery-scripts-read-only.md):
   a discovery declaration may name a script, declared and bounded like a check,
   that inspection runs in a copy of the project to draft a scope proposal and
@@ -125,3 +126,7 @@ alternatives.
   on a phone, the nav's menu button opens a sheet of links under the header,
   with one language selector and the theme icon in a row below them, over the
   dimmed page, as a disclosure navigation rather than a menu.
+- [Keep Astro for content and static sites](0033-keep-astro-for-content-and-static-sites.md):
+  the Astro trial passed for content and static sites, which use Astro, while
+  client-side apps use Vite with React; `site/` is in Repo Canon's
+  `typescript-astro` stack.

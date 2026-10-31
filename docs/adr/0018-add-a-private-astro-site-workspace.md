@@ -1,5 +1,9 @@
 # Add a private Astro site workspace
 
+Amended by [ADR 0033](0033-keep-astro-for-content-and-static-sites.md): the
+trial passed for content and static sites, which use Astro, while client-side
+apps use Vite with React.
+
 Keep the published CLI at the repository root and add the website as a private
 pnpm workspace at `site/`. Astro is a deliberate trial for static pages and for
 reading Markdown from the rest of the repository, such as `docs/usage`; the

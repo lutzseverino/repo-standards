@@ -111,7 +111,7 @@ before(async () => {
   // without the toolbar, which development alone draws over the page
   development = await dev({
     root: site,
-    logLevel: "error",
+    logLevel: "info",
     server: { host: "127.0.0.1", port: 0 },
     devToolbar: { enabled: false },
   });
@@ -180,8 +180,8 @@ const STATES: {
     shows: "[data-slot=dialog-content]",
   },
   {
-    controls: "starlight-menu-button button",
-    shows: "body[data-mobile-menu-expanded] #starlight__sidebar",
+    controls: ".sl-menu-button",
+    shows: "#starlight__sidebar:popover-open",
   },
   {
     controls: "mobile-starlight-toc summary",
