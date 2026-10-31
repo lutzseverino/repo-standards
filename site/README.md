@@ -4,7 +4,7 @@ The private `site/` workspace builds the Repo Standards website with
 Astro, React, Tailwind 4 and shadcn/ui. Its homepage lists the standards
 sources that source search finds, under a road sign pointing to Repo Canon,
 and each source has its own page at `/sources/<owner>/<repo>/`.
-Starlight 0.40.0 serves the usage documentation and design decisions at `/docs/`.
+Starlight 0.42 serves the usage documentation and design decisions at `/docs/`.
 
 ## Development
 
@@ -21,13 +21,16 @@ pnpm --dir site check
 pnpm --dir site build
 pnpm --dir site build:fixture
 pnpm --dir site test
+pnpm --dir site validate
 pnpm --dir site preview
 pnpm --dir site social-image
 ```
 
 The development server listens on `http://localhost:4321`. The build writes
-static files to `site/dist/`; preview serves that output locally. Root
-`pnpm lint`, `pnpm format:check` and `pnpm validate` cover this project. The
+static files to `site/dist/`; preview serves that output locally.
+`validate` runs `ui:check`, `check`, `test` and `build:fixture` in that order;
+the root `pnpm validate` calls it, and root `pnpm lint` and `pnpm format:check`
+cover this project. The
 tests in `test/` use Node's built-in test runner, with no test framework
 installed. `pnpm --dir site test` runs their files one at a time: several of
 them build the site or start its development server from this directory, with
@@ -60,7 +63,13 @@ and island UID, and omitting the new agent discovery links. It also omits the
 nav, the Support control, the homepage's support line, the footer and their
 inlined styles, and normalizes the React ids those additions renumber and the hashes
 of the shared stylesheet and React renderer, so without them the homepage is
-byte for byte what it was.
+byte for byte what it was. Since Astro 7 it also compares each inline script
+as Vite's minifier prints it, leaves out Astro's own island runtime scripts,
+normalizes the page stylesheet's hash and collapses runs of whitespace between
+tags: Vite 8 prints the same scripts and styles differently, and the Astro 6
+build gives the same fingerprint. `astro.config.mjs` keeps Astro 6's HTML-aware
+`compressHTML`, since Astro 7's JSX whitespace rules would drop the space
+between inline elements on separate lines, as in the support line.
 
 Agents can start at `/llms.txt`, which identifies the scoped npm package,
 product repository and domain and links to Markdown versions of the site.

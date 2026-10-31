@@ -180,8 +180,8 @@ const STATES: {
     shows: "[data-slot=dialog-content]",
   },
   {
-    controls: "starlight-menu-button button",
-    shows: "body[data-mobile-menu-expanded] #starlight__sidebar",
+    controls: ".sl-menu-button",
+    shows: "#starlight__sidebar:popover-open",
   },
   {
     controls: "mobile-starlight-toc summary",

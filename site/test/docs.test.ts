@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { parse, type DefaultTreeAdapterMap } from "parse5";
 import { fromMarkdown } from "mdast-util-from-markdown";
+import { minifySync } from "vite";
 import { visit } from "unist-util-visit";
 import { format } from "../src/i18n/format.ts";
 import { byName, installText } from "../src/lib/catalogue.ts";
@@ -413,6 +414,15 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // baseline leaves out the nav, and the plate's style joins the support
   // line's inlined styles: without them the homepage is byte for byte what
   // it was at c40551c.
+  // Since #448 Astro 7 builds with Vite 8. Vite 8 transpiles the TypeScript
+  // that the inline scripts are generated from with Oxc, which prints the
+  // same functions with other whitespace, quotes and braces, so each inline
+  // script is compared as Vite's minifier prints it; Astro's own island
+  // runtime scripts are left out, and the page's stylesheet, minified with
+  // Lightning CSS, keeps its rules under another hash. Astro 7's compiler
+  // also leaves longer runs of whitespace between some tags, which render as
+  // one space, and a space between </body> and </html>. The Astro 6 fixture
+  // build at 2ba1c50 gives the same hash under these rules.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -458,10 +468,18 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     .replace(/<aside\b[\s\S]*?<\/aside>/, "")
     .replace(/<footer class="support-footer">[\s\S]*?<\/footer> /, "")
     .replace(/<style>\.support-line[^<]*<\/style>/, "")
-    .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_");
+    .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_")
+    .replace(/\/_astro\/index\.[\w-]+\.css/g, "/_astro/index.HASH.css")
+    .replace(/>\s+</g, "> <")
+    .replace("</body> </html>", "</body></html>")
+    .replace(/<script>([\s\S]*?)<\/script>/g, (_, code: string) =>
+      /astro:load|["`]astro-island["`]/.test(code)
+        ? "<script></script>"
+        : `<script>${minifySync("inline.js", code, { compress: true, mangle: false }).code}</script>`,
+    );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "d3639af16cfc19e52ddf8072904b47e86ffa12699061e7fa787eb895fe291bf2",
+    "d6a096116c6bd0a4bbe10602001a6fef3c868fd0a178b00d09a10a5205a39905",
   );
 });
 
