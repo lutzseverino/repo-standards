@@ -24,12 +24,12 @@ the sheet is dimmed, 40% black by day and 60% by night, doesn't scroll, and
 closes the sheet when tapped. Nothing animates.
 
 The sheet is a disclosure of plain links and buttons inside the nav, not a
-menu, following the APG disclosure navigation pattern. Up and Down Arrow,
-Home and End move between its controls without wrapping, and never open the
-language list, which only Enter, Space or a tap opens. Escape closes the
-list first, then the sheet. Tab moves through it in order, and focus leaving
-it for the page closes it. Every control in it and in the list shows the Button's focus
-ring.
+menu, following the APG disclosure navigation pattern. Up and Down Arrow, Home
+and End move between its controls without wrapping, and never open the
+language list, which only Enter, Space or a tap opens. Escape closes the list
+first, then the sheet. Tab moves through it in order, and focus leaving it for
+the page closes it. Every control in it and in the list shows the Button's
+focus ring.
 
 On a phone this overrides ADR 0031's sentences that the language menu shows
 its icon alone and that changing the language or the theme takes two taps:

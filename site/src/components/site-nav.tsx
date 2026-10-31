@@ -125,8 +125,9 @@ function NavMenu({
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
 
-  // while open, the page doesn't scroll, and a window wide enough for the
-  // bar closes the panel
+  // while open, the page doesn't scroll, a window wide enough for the bar
+  // closes the panel, and so does Escape with nothing focused, as after a
+  // tap in Safari, which focuses no button
   useEffect(() => {
     if (!open) return;
     const root = document.documentElement;
@@ -136,18 +137,27 @@ function NavMenu({
     const widened = () => {
       if (wide.matches) setOpen(false);
     };
+    const escaped = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && event.target === document.body) {
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
     wide.addEventListener("change", widened);
+    document.addEventListener("keydown", escaped);
     return () => {
       root.style.overflow = overflow;
       wide.removeEventListener("change", widened);
+      document.removeEventListener("keydown", escaped);
     };
   }, [open]);
 
   const controls = () => [
     ...panel.current!.querySelectorAll<HTMLElement>("a, button"),
   ];
+  const dismiss = () => setOpen(false);
   const close = () => {
-    setOpen(false);
+    dismiss();
     button.current?.focus();
   };
   // before the controls' own handlers see them, so the language selector's
@@ -172,14 +182,13 @@ function NavMenu({
   };
   const onButtonKeyDown = (event: KeyboardEvent) => {
     if (!open) return;
-    if (event.key === "Escape") setOpen(false);
+    if (event.key === "Escape") dismiss();
     else if (event.key === "ArrowDown") {
       event.preventDefault();
       controls()[0].focus();
     }
   };
 
-  const followed = () => setOpen(false);
   return (
     <div
       className="min-[50rem]:hidden"
@@ -192,7 +201,7 @@ function NavMenu({
           !event.currentTarget.contains(to) &&
           !to.closest("[data-slot=dropdown-menu-content]")
         )
-          setOpen(false);
+          dismiss();
       }}
     >
       <Button
@@ -221,7 +230,7 @@ function NavMenu({
                   className={cn(ghost, row)}
                   locale={locale}
                   strings={strings}
-                  onClick={followed}
+                  onClick={dismiss}
                 />
               </li>
               <li>
@@ -230,7 +239,7 @@ function NavMenu({
                     type="button"
                     className={cn(ghost, row)}
                     onClick={() => {
-                      setOpen(false);
+                      dismiss();
                       onHowItWorks();
                     }}
                   >
@@ -243,7 +252,7 @@ function NavMenu({
                     aria-current={
                       current === "how-it-works" ? "page" : undefined
                     }
-                    onClick={followed}
+                    onClick={dismiss}
                   >
                     {strings["common.nav.how-it-works"]}
                   </a>
@@ -253,7 +262,7 @@ function NavMenu({
                 <a
                   className={cn(ghost, row)}
                   href={REPOSITORY}
-                  onClick={followed}
+                  onClick={dismiss}
                 >
                   GitHub
                 </a>
@@ -278,7 +287,7 @@ function NavMenu({
           <div
             aria-hidden="true"
             className="h-dvh bg-black/40 dark:bg-black/60"
-            onClick={() => setOpen(false)}
+            onClick={dismiss}
           />
         </div>
       )}

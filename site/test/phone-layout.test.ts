@@ -25,7 +25,13 @@ import {
   type Locale,
 } from "../src/i18n/locales.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
-import { Browser, findBrowser, type Tab, type View } from "./browser.ts";
+import {
+  Browser,
+  findBrowser,
+  type Key,
+  type Tab,
+  type View,
+} from "./browser.ts";
 import { measureLayout, type Layout } from "./layout-probe.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
@@ -787,11 +793,13 @@ test(
   "the open panel dims the page below it, which doesn't scroll until the panel closes",
   { skip },
   async () => {
-    for (const theme of THEMES) {
-      const tab = await openTab(`${base.production}/how-it-works/`, {
-        width: 390,
-        theme,
-      });
+    for (const [page, theme] of [
+      ["/how-it-works/", "light"],
+      ["/how-it-works/", "dark"],
+      // above the sign's own layers
+      ["/", "dark"],
+    ] as const) {
+      const tab = await openTab(base.production + page, { width: 390, theme });
       /** What a tap at the top of the header and at the bottom of the
        * screen would land on, and the dimming's colour. */
       const covered = () =>
@@ -866,6 +874,16 @@ test(
   },
 );
 
+/** Focuses the nav's menu button on a phone. */
+const focusMenu = (tab: Tab) =>
+  tab.evaluate(() =>
+    (
+      document.querySelector(
+        "nav button[aria-controls=nav-menu]",
+      ) as HTMLElement
+    ).focus(),
+  );
+
 /** The focused element, by its label or text, and whether the panel and
  * the language list are open. */
 const focusOf = (tab: Tab) =>
@@ -902,61 +920,114 @@ test(
     const THEME = "Switch between the light and dark theme";
     const LANGUAGE = "Language: English";
     const closedList = ["false", false];
-    const steps: [Parameters<Tab["press"]>, string, string, unknown][] = [
+    /** A key pressed, then where focus is, the menu button's
+     * `aria-expanded`, and the language selector's `aria-expanded` with
+     * whether its list is rendered, or null with the panel closed. */
+    const steps: {
+      press: Key;
+      shift?: boolean;
+      /** Whether focus leaves for the page's body first. */
+      blur?: boolean;
+      focus: string;
+      panel: string;
+      list: unknown;
+    }[] = [
       // Enter opens the panel and leaves focus on the button
-      [["Enter"], "Menu", "true", closedList],
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
       // Down Arrow from the open button reaches the first link
-      [["ArrowDown"], "Documentation", "true", closedList],
-      [["ArrowDown"], "How it works", "true", closedList],
-      [["ArrowDown"], "GitHub", "true", closedList],
-      [["ArrowDown"], LANGUAGE, "true", closedList],
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      {
+        press: "ArrowDown",
+        focus: "How it works",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "ArrowDown", focus: "GitHub", panel: "true", list: closedList },
+      { press: "ArrowDown", focus: LANGUAGE, panel: "true", list: closedList },
       // from the selector, Down Arrow focuses the theme toggle and Up Arrow
       // GitHub, with the list closed
-      [["ArrowDown"], THEME, "true", closedList],
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
       // focus stops at either end
-      [["ArrowDown"], THEME, "true", closedList],
-      [["ArrowUp"], LANGUAGE, "true", closedList],
-      [["ArrowUp"], "GitHub", "true", closedList],
-      [["ArrowDown"], LANGUAGE, "true", closedList],
-      [["ArrowDown"], THEME, "true", closedList],
-      [["Home"], "Documentation", "true", closedList],
-      [["ArrowUp"], "Documentation", "true", closedList],
-      [["End"], THEME, "true", closedList],
-      [["ArrowUp"], LANGUAGE, "true", closedList],
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: LANGUAGE, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: "GitHub", panel: "true", list: closedList },
+      { press: "ArrowDown", focus: LANGUAGE, panel: "true", list: closedList },
+      { press: "ArrowDown", focus: THEME, panel: "true", list: closedList },
+      {
+        press: "Home",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      {
+        press: "ArrowUp",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "End", focus: THEME, panel: "true", list: closedList },
+      { press: "ArrowUp", focus: LANGUAGE, panel: "true", list: closedList },
       // Enter opens the list, whose first item takes focus
-      [["Enter"], "English", "true", ["true", true]],
+      { press: "Enter", focus: "English", panel: "true", list: ["true", true] },
       // Escape closes only the list, and the panel stays open
-      [["Escape"], LANGUAGE, "true", closedList],
+      { press: "Escape", focus: LANGUAGE, panel: "true", list: closedList },
       // a second Escape closes the panel
-      [["Escape"], "Menu", "false", null],
+      { press: "Escape", focus: "Menu", panel: "false", list: null },
       // with no list open, Escape closes the panel and focuses its button
-      [["Enter"], "Menu", "true", closedList],
-      [["ArrowDown"], "Documentation", "true", closedList],
-      [["Escape"], "Menu", "false", null],
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "Escape", focus: "Menu", panel: "false", list: null },
+      // Escape with nothing focused, as after a tap in Safari, closes it too
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      {
+        press: "Escape",
+        blur: true,
+        focus: "Menu",
+        panel: "false",
+        list: null,
+      },
       // Shift+Tab from the first link returns to the button, still open
-      [["Enter"], "Menu", "true", closedList],
-      [["Tab"], "Documentation", "true", closedList],
-      [["Tab", true], "Menu", "true", closedList],
+      { press: "Enter", focus: "Menu", panel: "true", list: closedList },
+      { press: "Tab", focus: "Documentation", panel: "true", list: closedList },
+      {
+        press: "Tab",
+        shift: true,
+        focus: "Menu",
+        panel: "true",
+        list: closedList,
+      },
       // Tab from the theme toggle leaves the panel, which closes
-      [["ArrowDown"], "Documentation", "true", closedList],
-      [["End"], THEME, "true", closedList],
+      {
+        press: "ArrowDown",
+        focus: "Documentation",
+        panel: "true",
+        list: closedList,
+      },
+      { press: "End", focus: THEME, panel: "true", list: closedList },
     ];
     try {
-      await tab.evaluate(() =>
-        (
-          document.querySelector(
-            "nav button[aria-controls=nav-menu]",
-          ) as HTMLElement
-        ).focus(),
-      );
-      for (const [[key, shift], focus, panel, list] of steps) {
-        await tab.press(key, shift);
+      await focusMenu(tab);
+      for (const { press, shift, blur, ...expected } of steps) {
+        if (blur)
+          await tab.evaluate(() =>
+            (document.activeElement as HTMLElement).blur(),
+          );
+        await tab.press(press, shift);
         await still(tab);
-        const state = await focusOf(tab);
         assert.deepEqual(
-          state,
-          { focus, panel, list },
-          `${key}${shift ? " with Shift" : ""} to ${focus}`,
+          await focusOf(tab),
+          expected,
+          `${press}${shift ? " with Shift" : ""} to ${expected.focus}`,
         );
       }
       await tab.press("Tab");
@@ -1023,13 +1094,7 @@ test(
           };
         });
       const seen: Awaited<ReturnType<typeof rings>>[] = [];
-      await tab.evaluate(() =>
-        (
-          document.querySelector(
-            "nav button[aria-controls=nav-menu]",
-          ) as HTMLElement
-        ).focus(),
-      );
+      await focusMenu(tab);
       await tab.press("Enter");
       seen.push(await rings());
       for (let i = 0; i < 5; i++) {
