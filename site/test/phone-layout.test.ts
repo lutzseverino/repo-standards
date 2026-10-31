@@ -117,6 +117,39 @@ before(async () => {
   });
   base.development = `http://127.0.0.1:${development.address.port}`;
   browser = await Browser.launch(executable);
+  // A throwaway page, so no test's page reloads under it. On a fresh
+  // checkout, Astro 7's startup content sync writes `.astro/data-store.json`
+  // and then sends a `full-reload` before any page is connected; Vite buffers
+  // it for the first page that connects. Vite sends a connecting page
+  // `connected`, which its client logs, then the buffered message, and forgets
+  // it, so once this page has logged "[vite] connected." no other page gets
+  // the reload. Remove this once a fixed Astro 7 release ships.
+  const { targetId } = await browser.send("Target.createTarget", {
+    url: "about:blank",
+  });
+  const { sessionId } = (await browser.send("Target.attachToTarget", {
+    targetId,
+    flatten: true,
+  })) as { sessionId: string };
+  await browser.send("Runtime.enable", {}, sessionId);
+  const connected = (async () => {
+    for (;;) {
+      const { args } = (await browser.event(
+        "Runtime.consoleAPICalled",
+        sessionId,
+      ).next) as { args: { value?: unknown }[] };
+      if (args[0]?.value === "[vite] connected.") return;
+    }
+  })();
+  await Promise.all([
+    connected,
+    browser.send(
+      "Page.navigate",
+      { url: base.development + localePath(PSEUDO_LOCALE, "/") },
+      sessionId,
+    ),
+  ]);
+  await browser.send("Target.closeTarget", { targetId });
   if (reportTo) mkdirSync(reportTo, { recursive: true });
 });
 
