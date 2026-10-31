@@ -78,6 +78,10 @@ requiring a new request under the rules.
    re-request, return to step 1.
 5. Before each merge attempt, verify merge ownership and any required owner
    approval against the current head under the applicable installed rules.
+   Read the authoritative implementation contract and any worker handoff and
+   apply the `github-repository-configuration` rules' Designated owner review gate.
+   Read the PR comments carrying designation provenance and current-head approval,
+   and record approval there under that gate.
    When required approval is missing, use the contribution guide's
    owner-question handoff and stop with the PR unmerged. Once the merge
    conditions hold on the latest head, run
@@ -86,11 +90,42 @@ requiring a new request under the rules.
    `2` means the head changed, so return to step 1; `3` means it did not merge
    and needs the owner, so hand off with a question under
    [Comments](../../../CONTRIBUTING.md#comments), without retrying the merge;
+   `4` means the base is stale: follow the branch-update recovery below;
    `1` means follow
    [Credentials](../../../CONTRIBUTING.md#credentials) for a permission refusal;
    otherwise fix the invocation or other platform error and
    run it again.
 6. Stop.
+
+## Branch-update recovery
+
+The merge command confirms GitHub's required-check freshness before merging;
+unavailable, unreadable or unconfirmed enforcement requires the owner handoff,
+even when remote setup was deferred. It never substitutes local ancestry for
+GitHub's final guard. Exit `4` reports a stale base, separately from a changed
+PR head or an owner-only failure; no merge succeeded.
+
+Allow one branch-update recovery per babysit invocation. Preserve committed,
+staged, unstaged and untracked work and the PR's review and handoff context
+before changing history. Fetch origin, resolve its remote default branch again,
+and inspect outgoing history (including each merge parent) and the whole diff.
+Rebase or replay only this PR's work onto the refreshed base; keep unrelated
+work preserved separately. Never merge the default branch into the PR branch.
+Uncertain ownership or reconstruction conflicts require the owner handoff.
+
+Validate the integrated change with the repository's required local checks;
+wait for their final successful status before pushing with an explicit lease
+when history changed. Before the delivery push, refresh origin and its default
+branch again and inspect both `git log --stat --patch -m origin/HEAD..HEAD`
+and `git diff origin/HEAD...HEAD`. Revalidate after any further reconstruction.
+A permission refusal ends recovery under Credentials, without another push.
+
+For the replacement head, repeat applicable internal reviews and owner approval,
+then run request and wait again from step 1, applying the trusted app-author
+policy anew. Pending or failed checks on that head permit no merge; checks from
+the old head never qualify it. Re-establish merge ownership before step 5.
+If another merge attempt reports stale base, record the owner handoff and stop;
+this is not an unbounded update/retry loop.
 
 For exit `7` from either command, follow correction and authorized continuation
 under the `github-repository-configuration` rules' Trusted review configuration

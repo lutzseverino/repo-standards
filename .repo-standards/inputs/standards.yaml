@@ -539,6 +539,46 @@ profiles:
         kind: file
         target: docs/agents/triage-labels.md
         exact: vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md
+      typescript-astro-stack:
+        checks:
+          - id: typescript-astro-stack-manifests
+            run:
+              executable: node
+              script: operations/check-typescript-astro-stack.mjs
+              resources:
+                - operations/lib/typescript-node-stack.mjs
+                - operations/lib/stack-files.mjs
+                - operations/lib/typescript-web-stack.mjs
+                - operations/lib/stack-check.mjs
+                - operations/lib/local-markdown-links.mjs
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: repository
+        guidance: guidance/typescript-astro-stack.md
+        rules: rules/typescript-web-stacks.md
+        discovery: discovery/typescript-astro-stack.md
+        discovery-script:
+          run:
+            executable: node
+            script: discovery/draft-typescript-astro-stack-scope.mjs
+            resources:
+              - operations/lib/typescript-node-stack.mjs
+              - operations/lib/stack-files.mjs
+              - operations/lib/typescript-web-stack.mjs
+              - operations/lib/stack-scope.mjs
+              - operations/lib/local-markdown-links.mjs
+            arguments: []
+          prerequisite:
+            version-arguments:
+              - --version
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 60
+        optional: true
       typescript-node-stack:
         checks:
           - id: typescript-node-stack-manifests
@@ -565,6 +605,49 @@ profiles:
             script: discovery/draft-typescript-node-stack-scope.mjs
             resources:
               - operations/lib/typescript-node-stack.mjs
+              - operations/lib/stack-files.mjs
+              - operations/lib/typescript-web-stack.mjs
+              - operations/lib/stack-scope.mjs
+              - operations/lib/local-markdown-links.mjs
+            arguments: []
+          prerequisite:
+            version-arguments:
+              - --version
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 60
+        optional: true
+      typescript-vite-stack:
+        checks:
+          - id: typescript-vite-stack-manifests
+            run:
+              executable: node
+              script: operations/check-typescript-vite-stack.mjs
+              resources:
+                - operations/lib/typescript-node-stack.mjs
+                - operations/lib/stack-files.mjs
+                - operations/lib/typescript-web-stack.mjs
+                - operations/lib/stack-check.mjs
+                - operations/lib/local-markdown-links.mjs
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: repository
+        guidance: guidance/typescript-vite-stack.md
+        rules: rules/typescript-web-stacks.md
+        discovery: discovery/typescript-vite-stack.md
+        discovery-script:
+          run:
+            executable: node
+            script: discovery/draft-typescript-vite-stack-scope.mjs
+            resources:
+              - operations/lib/typescript-node-stack.mjs
+              - operations/lib/stack-files.mjs
+              - operations/lib/typescript-web-stack.mjs
+              - operations/lib/stack-scope.mjs
               - operations/lib/local-markdown-links.mjs
             arguments: []
           prerequisite:
