@@ -386,6 +386,9 @@ test("one sitemap lists the homepage, How it works and every source page in each
   );
 });
 
+// Astro's own inline scripts: the `load` directive and the island element
+const ASTRO_RUNTIME = /astro:load|["`]astro-island["`]/;
+
 test("the homepage keeps its fixture HTML with acquired counts and ranking", () => {
   // #345 refreshes the baseline for count tabs and descending adopter order;
   // the Markdown and JSON agent surfaces retain their previous bytes.
@@ -421,8 +424,9 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // runtime scripts are left out, and the page's stylesheet, minified with
   // Lightning CSS, keeps its rules under another hash. Astro 7's compiler
   // also leaves longer runs of whitespace between some tags, which render as
-  // one space, and a space between </body> and </html>. The Astro 6 fixture
-  // build at 2ba1c50 gives the same hash under these rules.
+  // one space on a homepage with no <pre> or <textarea>, and a space between
+  // </body> and </html>. The Astro 6 fixture build at 2ba1c50 gives the same
+  // hash under these rules.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -470,10 +474,10 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     .replace(/<style>\.support-line[^<]*<\/style>/, "")
     .replace(/_r\d+R_[0-9a-z]+_/g, "_ID_")
     .replace(/\/_astro\/index\.[\w-]+\.css/g, "/_astro/index.HASH.css")
-    .replace(/>\s+</g, "> <")
+    .replace(/>\s{2,}</g, "> <")
     .replace("</body> </html>", "</body></html>")
     .replace(/<script>([\s\S]*?)<\/script>/g, (_, code: string) =>
-      /astro:load|["`]astro-island["`]/.test(code)
+      ASTRO_RUNTIME.test(code)
         ? "<script></script>"
         : `<script>${minifySync("inline.js", code, { compress: true, mangle: false }).code}</script>`,
     );
@@ -744,7 +748,12 @@ test("every page's footer links both pages", () => {
       footers.some(
         (footer) =>
           links(footer).join() === SUPPORT_URLS.join() &&
-          text(footer).includes(format("en", "common.support.footer")),
+          // the space after the label survives the build's compression
+          text(footer)
+            .replace(/\s+/g, " ")
+            .includes(
+              `${format("en", "common.support.footer")} ${SUPPORT.map(({ name }) => name).join(" · ")}`,
+            ),
       ),
       file,
     );

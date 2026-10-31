@@ -51,12 +51,10 @@ function fixture(t: TestContext) {
   writeFileSync(
     join(root, "site/package.json"),
     JSON.stringify({
+      // The site's own validate, with each step it may call inert.
       scripts: {
         ...Object.fromEntries(
-          ["ui:check", "check", "test", "build:fixture"].map((name) => [
-            name,
-            'node -e ""',
-          ]),
+          Object.keys(site.scripts).map((name) => [name, 'node -e ""']),
         ),
         validate: site.scripts.validate,
       },

@@ -22,9 +22,8 @@ tools.
 The site is a Site in Repo Canon's `typescript-astro` stack. It uses Astro 7
 with Starlight 0.42, TypeScript 6 checked by `astro check`, React 19,
 Tailwind CSS 4, shadcn CLI 4 with Base UI and lucide, oxlint 1, Prettier 3
-with `prettier-plugin-astro`, `node --test`, pnpm 11 and Node.js 24 or 26.
-Root oxlint and Prettier lint and format it; the CLI keeps its root TypeScript
-version.
+with `prettier-plugin-astro`, `node --test`, pnpm 11 and Node.js 24 or 26;
+the CLI keeps its root TypeScript version.
 
 Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
 `pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes
@@ -84,7 +83,7 @@ Together these required checks run every step of `pnpm validate` on both support
 Node.js majors. Each CLI part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
 are exempt), and builds before testing. Separate Linux `site` jobs run
-the site's `validate`, its generated shadcn source check, `astro check`, tests and fixture build, on both supported majors on every pull request, without path filtering.
+the site's `validate`, which runs the generated shadcn source check, `astro check`, the site tests and the fixture site build, on both supported majors on every pull request, without path filtering.
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. The site's

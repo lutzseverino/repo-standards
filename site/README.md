@@ -30,9 +30,8 @@ The development server listens on `http://localhost:4321`. The build writes
 static files to `site/dist/`; preview serves that output locally.
 `validate` runs `ui:check`, `check`, `test` and `build:fixture` in that order;
 the root `pnpm validate` calls it, and root `pnpm lint` and `pnpm format:check`
-cover this project. The
-tests in `test/` use Node's built-in test runner, with no test framework
-installed. `pnpm --dir site test` runs their files one at a time: several of
+cover this project. The tests in `test/` use Node's built-in test runner, with
+no test framework installed. `pnpm --dir site test` runs their files one at a time: several of
 them build the site or start its development server from this directory, with
 the same Astro and Vite caches, and run together their builds can outlast the
 120-second limit on each build command. `pages.test.ts` builds the fixture
