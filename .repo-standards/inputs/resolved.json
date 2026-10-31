@@ -99,6 +99,8 @@
           "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
           "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
           "docs/adr/0031-give-every-site-page-one-nav.md",
+          "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+          "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
           "docs/adr/README.md",
           "docs/development/README.md",
           "docs/development/architecture.md",
@@ -767,6 +769,43 @@
       "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md"
     },
     {
+      "id": "typescript-astro-stack",
+      "checks": [
+        {
+          "id": "typescript-astro-stack-manifests",
+          "run": {
+            "executable": "node",
+            "script": "operations/check-typescript-astro-stack.mjs",
+            "resources": [
+              "operations/lib/typescript-node-stack.mjs",
+              "operations/lib/stack-files.mjs",
+              "operations/lib/typescript-web-stack.mjs",
+              "operations/lib/stack-check.mjs",
+              "operations/lib/local-markdown-links.mjs"
+            ],
+            "arguments": []
+          },
+          "prerequisite": {
+            "version-arguments": [
+              "--version"
+            ],
+            "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          },
+          "timeout-seconds": 30
+        }
+      ],
+      "fixes": [],
+      "kind": "repository",
+      "guidance": "guidance/typescript-astro-stack.md",
+      "rules": "rules/typescript-web-stacks.md",
+      "targets": {
+        "paths": [
+          "site/package.json"
+        ],
+        "directories": []
+      }
+    },
+    {
       "id": "typescript-node-stack",
       "checks": [
         {
@@ -799,6 +838,18 @@
         ],
         "directories": []
       }
+    },
+    {
+      "id": "typescript-vite-stack",
+      "checks": [],
+      "fixes": [],
+      "kind": "repository",
+      "guidance": "guidance/typescript-vite-stack.md",
+      "targets": {
+        "paths": [],
+        "directories": []
+      },
+      "no-scope": true
     },
     {
       "id": "validator-command",

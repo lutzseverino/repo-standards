@@ -452,6 +452,82 @@ defaults:
       target: docs/agents/triage-labels.md
       exact: vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md
 
+    typescript-astro-stack:
+      kind: repository
+      optional: true
+      guidance: guidance/typescript-astro-stack.md
+      rules: rules/typescript-web-stacks.md
+      discovery: discovery/typescript-astro-stack.md
+      discovery-script:
+        run:
+          executable: node
+          script: discovery/draft-typescript-astro-stack-scope.mjs
+          resources:
+            - operations/lib/typescript-node-stack.mjs
+            - operations/lib/stack-files.mjs
+            - operations/lib/typescript-web-stack.mjs
+            - operations/lib/stack-scope.mjs
+            - operations/lib/local-markdown-links.mjs
+          arguments: []
+        prerequisite:
+          version-arguments: ["--version"]
+          version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+        timeout-seconds: 60
+      checks:
+        - id: typescript-astro-stack-manifests
+          run:
+            executable: node
+            script: operations/check-typescript-astro-stack.mjs
+            resources:
+              - operations/lib/typescript-node-stack.mjs
+              - operations/lib/stack-files.mjs
+              - operations/lib/typescript-web-stack.mjs
+              - operations/lib/stack-check.mjs
+              - operations/lib/local-markdown-links.mjs
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 30
+
+    typescript-vite-stack:
+      kind: repository
+      optional: true
+      guidance: guidance/typescript-vite-stack.md
+      rules: rules/typescript-web-stacks.md
+      discovery: discovery/typescript-vite-stack.md
+      discovery-script:
+        run:
+          executable: node
+          script: discovery/draft-typescript-vite-stack-scope.mjs
+          resources:
+            - operations/lib/typescript-node-stack.mjs
+            - operations/lib/stack-files.mjs
+            - operations/lib/typescript-web-stack.mjs
+            - operations/lib/stack-scope.mjs
+            - operations/lib/local-markdown-links.mjs
+          arguments: []
+        prerequisite:
+          version-arguments: ["--version"]
+          version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+        timeout-seconds: 60
+      checks:
+        - id: typescript-vite-stack-manifests
+          run:
+            executable: node
+            script: operations/check-typescript-vite-stack.mjs
+            resources:
+              - operations/lib/typescript-node-stack.mjs
+              - operations/lib/stack-files.mjs
+              - operations/lib/typescript-web-stack.mjs
+              - operations/lib/stack-check.mjs
+              - operations/lib/local-markdown-links.mjs
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 30
+
     typescript-node-stack:
       kind: repository
       optional: true
@@ -464,6 +540,9 @@ defaults:
           script: discovery/draft-typescript-node-stack-scope.mjs
           resources:
             - operations/lib/typescript-node-stack.mjs
+            - operations/lib/stack-files.mjs
+            - operations/lib/typescript-web-stack.mjs
+            - operations/lib/stack-scope.mjs
             - operations/lib/local-markdown-links.mjs
           arguments: []
         prerequisite:
@@ -513,3 +592,34 @@ profiles:
         kind: file
         target: .github/workflows/sandbox-image.yml
         exact: .github/workflows/sandbox-image.yml
+
+  workbench:
+    description: Only the workflow skills, with the files they need to run and their license notices, for the orchestrating agent's workbench
+    declarations:
+      agent-configuration-index: { exclude: true }
+      agent-guidance: { exclude: true }
+      bug-report-template: { exclude: true }
+      contribution-guidance: { exclude: true }
+      documentation: { exclude: true }
+      domain-configuration: { exclude: true }
+      feature-request-template: { exclude: true }
+      git-attributes: { exclude: true }
+      github-repository-configuration: { exclude: true }
+      github-validator-trigger: { exclude: true }
+      implementation-ticket-template: { exclude: true }
+      issue-contract-workflow: { exclude: true }
+      issue-tracker-configuration: { exclude: true }
+      pr-metadata-validator: { exclude: true }
+      pr-metadata-workflow: { exclude: true }
+      project-agent-guidance: { exclude: true }
+      project-readmes: { exclude: true }
+      pull-request-template: { exclude: true }
+      repository-license: { exclude: true }
+      repository-readme: { exclude: true }
+      specification-template: { exclude: true }
+      standards-update-workflow: { exclude: true }
+      triage-label-configuration: { exclude: true }
+      typescript-astro-stack: { exclude: true }
+      typescript-node-stack: { exclude: true }
+      typescript-vite-stack: { exclude: true }
+      validator-command: { exclude: true }

@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "before": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
+      "after": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,28 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "before": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
+      "after": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "fixes",
+      "scope": {
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        }
+      },
+      "operation": {
+        "phase": "fixes",
+        "declaration": "github-repository-configuration",
+        "id": "pull-request-integration"
+      },
+      "operationIndex": 2,
+      "before": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
+      "after": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -79,6 +99,8 @@
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
             "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -154,16 +176,39 @@
           ],
           "directories": []
         },
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        },
         "typescript-node-stack": {
           "paths": [
             "package.json"
           ],
           "directories": []
+        },
+        "typescript-vite-stack": {
+          "paths": [],
+          "directories": []
         }
       },
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "changes": {},
+      "before": "sha256:d2fcba5c7e05b83153f676019c6b71fc1fe934ab8a42f9a065c811632aea8e88",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "changes": {
+        ".gitattributes": {
+          "before": {
+            "type": "file",
+            "sha256": "19db6077d800c8a558ca551c499fdc78cdd0e1c32c4970cc002baf47d4723ed8",
+            "executable": false
+          },
+          "after": {
+            "type": "file",
+            "sha256": "35d0db95edd11811a4e4d762b4ce129a3311c12bf711b0b2fc903d11ac8af50e",
+            "executable": false
+          }
+        }
+      },
       "boundaryChanges": {},
       "violations": []
     },
@@ -205,6 +250,8 @@
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
             "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -280,15 +327,301 @@
           ],
           "directories": []
         },
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        },
         "typescript-node-stack": {
           "paths": [
             "package.json"
           ],
           "directories": []
+        },
+        "typescript-vite-stack": {
+          "paths": [],
+          "directories": []
         }
       },
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+            "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+            "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+            "docs/adr/README.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
+            "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".factory/Dockerfile"
+          ],
+          "directories": []
+        },
+        "factory-workflow": {
+          "paths": [],
+          "directories": []
+        },
+        "git-attributes": {
+          "paths": [
+            ".gitattributes"
+          ],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-agent-guidance": {
+          "paths": [
+            "docs/agents/project.md"
+          ],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        },
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        },
+        "typescript-node-stack": {
+          "paths": [
+            "package.json"
+          ],
+          "directories": []
+        },
+        "typescript-vite-stack": {
+          "paths": [],
+          "directories": []
+        }
+      },
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+            "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+            "docs/adr/0021-let-agents-decide-what-git-can-undo.md",
+            "docs/adr/0022-replace-a-stopped-run-in-place.md",
+            "docs/adr/0023-let-an-optional-discovery-declaration-have-no-scope.md",
+            "docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md",
+            "docs/adr/0025-start-when-nothing-is-open.md",
+            "docs/adr/0026-propose-updates-through-one-rolling-pull-request.md",
+            "docs/adr/0027-choose-the-platform-inside-each-profile.md",
+            "docs/adr/0028-keep-generated-shadcn-source-read-only.md",
+            "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
+            "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
+            "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+            "docs/adr/README.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/development/retained-exact-content.md",
+            "docs/usage/README.md",
+            "docs/usage/getting-started/README.md",
+            "docs/usage/getting-started/adopt-repo-canon.md",
+            "docs/usage/getting-started/keep-it-up-to-date.md",
+            "docs/usage/getting-started/what-repo-standards-does.md",
+            "docs/usage/guides/README.md",
+            "docs/usage/guides/adopt.md",
+            "docs/usage/guides/author-a-source.md",
+            "docs/usage/guides/automated-updates.md",
+            "docs/usage/guides/find-sources.md",
+            "docs/usage/guides/install.md",
+            "docs/usage/guides/run-checks.md",
+            "docs/usage/guides/update.md",
+            "docs/usage/reference/README.md",
+            "docs/usage/reference/adoption-run.md",
+            "docs/usage/reference/assessment-protocol.md",
+            "docs/usage/reference/author-format.md",
+            "docs/usage/reference/available-updates.md",
+            "docs/usage/reference/check.md",
+            "docs/usage/reference/github-requests.md",
+            "docs/usage/reference/inspection.md",
+            "docs/usage/reference/rules.md",
+            "docs/usage/reference/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".factory/Dockerfile"
+          ],
+          "directories": []
+        },
+        "factory-workflow": {
+          "paths": [],
+          "directories": []
+        },
+        "git-attributes": {
+          "paths": [
+            ".gitattributes"
+          ],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-agent-guidance": {
+          "paths": [
+            "docs/agents/project.md"
+          ],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        },
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        },
+        "typescript-node-stack": {
+          "paths": [
+            "package.json"
+          ],
+          "directories": []
+        },
+        "typescript-vite-stack": {
+          "paths": [],
+          "directories": []
+        }
+      },
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -331,6 +664,8 @@
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
             "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -368,9 +703,9 @@
         "declaration": "documentation",
         "id": "documentation-navigation"
       },
-      "operationIndex": 2,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 3,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -388,9 +723,9 @@
         "declaration": "github-repository-configuration",
         "id": "pull-request-reviewer"
       },
-      "operationIndex": 3,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 4,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -408,9 +743,9 @@
         "declaration": "github-repository-configuration",
         "id": "factory-review-policy"
       },
-      "operationIndex": 4,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 5,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -430,9 +765,9 @@
         "declaration": "project-readmes",
         "id": "project-readme-structure"
       },
-      "operationIndex": 5,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 6,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -452,9 +787,31 @@
         "declaration": "repository-readme",
         "id": "repository-readme-structure"
       },
-      "operationIndex": 6,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 7,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "checks",
+      "scope": {
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        }
+      },
+      "operation": {
+        "phase": "checks",
+        "declaration": "typescript-astro-stack",
+        "id": "typescript-astro-stack-manifests"
+      },
+      "operationIndex": 8,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -474,9 +831,9 @@
         "declaration": "typescript-node-stack",
         "id": "typescript-node-stack-manifests"
       },
-      "operationIndex": 7,
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "operationIndex": 9,
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -519,6 +876,8 @@
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
             "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -594,15 +953,25 @@
           ],
           "directories": []
         },
+        "typescript-astro-stack": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        },
         "typescript-node-stack": {
           "paths": [
             "package.json"
           ],
           "directories": []
+        },
+        "typescript-vite-stack": {
+          "paths": [],
+          "directories": []
         }
       },
-      "before": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
-      "after": "sha256:c98d393edb57295825b174d0d5233e424cd7bd3f0e83e040c3a30c9f35df1431",
+      "before": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
+      "after": "sha256:9306220dc06a409a4a3e93af9226289fd136df5b3a1a6de3f9b8ef28a5b42e91",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -644,12 +1013,33 @@
       },
       "result": {
         "format": "repo-standards/result/v2",
-        "status": "unchanged",
-        "message": "GitHub PR integration already matches the canonical configuration for lutzseverino/repo-standards."
+        "status": "confirmation-required",
+        "message": "GitHub PR integration setup requires confirmation: ruleset Repo Canon required PR checks (23476826).rules is [{\"type\":\"required_status_checks\",\"parameters\":{\"strict_required_status_checks_policy\":false,\"do_not_enforce_on_create\":false,\"required_status_checks\":[{\"context\":\"PR metadata\"}]}}]; the standard sets [{\"type\":\"required_status_checks\",\"parameters\":{\"strict_required_status_checks_policy\":true,\"do_not_enforce_on_create\":false,\"required_status_checks\":[{\"context\":\"PR metadata\"}]}}]. No changes were made."
       },
       "error": null,
       "stdout": ".repo-standards/local/operations/1.stdout",
       "stderr": ".repo-standards/local/operations/1.stderr"
+    },
+    {
+      "operation": {
+        "declaration": "github-repository-configuration",
+        "phase": "fixes",
+        "id": "pull-request-integration"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v2",
+        "status": "changed",
+        "message": "GitHub PR integration setup changed lutzseverino/repo-standards: updated required-check ruleset. Final readback confirmed PR metadata with strict freshness, squash-only integration, PR-title subjects, and PR-body messages; unrelated settings and rules were preserved."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/2.stdout",
+      "stderr": ".repo-standards/local/operations/2.stderr"
     },
     {
       "operation": {
@@ -669,8 +1059,8 @@
         "message": "Documentation navigation is valid; content placement and usefulness still require maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/2.stdout",
-      "stderr": ".repo-standards/local/operations/2.stderr"
+      "stdout": ".repo-standards/local/operations/3.stdout",
+      "stderr": ".repo-standards/local/operations/3.stderr"
     },
     {
       "operation": {
@@ -690,8 +1080,8 @@
         "message": ".github/pull-request-reviewer.json is valid."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/3.stdout",
-      "stderr": ".repo-standards/local/operations/3.stderr"
+      "stdout": ".repo-standards/local/operations/4.stdout",
+      "stderr": ".repo-standards/local/operations/4.stderr"
     },
     {
       "operation": {
@@ -711,8 +1101,8 @@
         "message": "No factory review policy is configured."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/4.stdout",
-      "stderr": ".repo-standards/local/operations/4.stderr"
+      "stdout": ".repo-standards/local/operations/5.stdout",
+      "stderr": ".repo-standards/local/operations/5.stderr"
     },
     {
       "operation": {
@@ -732,8 +1122,8 @@
         "message": "Project README structure and shared setup and contribution links are valid for 1 concrete target; Project membership, purpose, commands, configuration, documentation, and duplication of shared instructions still require maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/5.stdout",
-      "stderr": ".repo-standards/local/operations/5.stderr"
+      "stdout": ".repo-standards/local/operations/6.stdout",
+      "stderr": ".repo-standards/local/operations/6.stderr"
     },
     {
       "operation": {
@@ -753,8 +1143,29 @@
         "message": "Repository README structure is valid; factual content still requires maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/6.stdout",
-      "stderr": ".repo-standards/local/operations/6.stderr"
+      "stdout": ".repo-standards/local/operations/7.stdout",
+      "stderr": ".repo-standards/local/operations/7.stderr"
+    },
+    {
+      "operation": {
+        "declaration": "typescript-astro-stack",
+        "phase": "checks",
+        "id": "typescript-astro-stack-manifests"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v2",
+        "status": "passed",
+        "message": "The typescript-astro stack manifest facts are valid for 1 Project; framework, React, Tailwind, TypeScript and test-runner majors, actual astro check/ui:check execution by validate, CI coverage, Setup and validation, integrity, wrappers and theme behavior still require contextual assessment."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/8.stdout",
+      "stderr": ".repo-standards/local/operations/8.stderr"
     },
     {
       "operation": {
@@ -774,12 +1185,24 @@
         "message": "The pnpm, lockfile, Node.js, oxlint, Prettier and validate script facts of the typescript-node stack are valid for 1 Project; TypeScript 7, node --test, required pull request checks running validate, and each Project's Setup and validation section still require the contextual assessment."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/7.stdout",
-      "stderr": ".repo-standards/local/operations/7.stderr"
+      "stdout": ".repo-standards/local/operations/9.stdout",
+      "stderr": ".repo-standards/local/operations/9.stderr"
     }
   ],
   "retryHistory": [],
   "changeSet": [
+    {
+      "path": ".agents/skills/babysit/SKILL.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".agents/skills/babysit/merge.mjs",
+      "phases": [
+        "installation"
+      ]
+    },
     {
       "path": ".agents/skills/babysit/platform.mjs",
       "phases": [
@@ -787,7 +1210,7 @@
       ]
     },
     {
-      "path": ".agents/skills/babysit/pull-request-reviewer.mjs",
+      "path": ".agents/skills/babysit/trusted-review-config.mjs",
       "phases": [
         "installation"
       ]
@@ -805,23 +1228,65 @@
       ]
     },
     {
-      "path": "scripts/validate-issue-contract.mjs",
+      "path": ".agents/skills/orchestrate/wait.mjs",
       "phases": [
         "installation"
       ]
     },
     {
-      "path": "vendor/parse5/README.md",
+      "path": ".agents/skills/triage/AGENT-BRIEF.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".agents/skills/triage/SKILL.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".agents/skills/triage/ready.mjs",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".gitattributes",
+      "phases": [
+        "agent"
+      ]
+    },
+    {
+      "path": ".github/scripts/validate-pr-metadata.mjs",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": "AGENTS.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": "scripts/validate-issue-contract.mjs",
       "phases": [
         "installation"
       ]
     }
   ],
   "lastComplete": {
-    "run": "f544a3e0-0881-4c72-ab8b-7f0e9a8d8c3b",
-    "inspection": "sha256:0ae67604d4cfe4a49dea2e11128d7321f78df543c5f7626eec8bce4c11ffd1fd",
-    "completedAt": "2026-10-29T14:54:10.601Z",
-    "head": "9510b1a0ca38c352a16f4c5171c93ba739e0028e"
+    "run": "e538daa0-0fe2-4ce2-ba51-8b4904894c7c",
+    "inspection": "sha256:7876adc3ca7f08cd568f2c120ec6c0d2d784304ce8fd248edded77a54d8b7c74",
+    "completedAt": "2026-10-31T22:50:16.786Z",
+    "head": "97aaee056574012dc3c390c457ecfa0075df8a20"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -829,7 +1294,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "ce8ce2aab4a2f6895fda86daf17e2e6cb60e25a053ca8329acb167f47718adb0",
+      "sha256": "ddc8a1fecde13610ba656ee98c9d2cb128b15b7fc20e9068beb0eef9eaf4ba1b",
       "executable": false
     },
     ".github/ISSUE_TEMPLATE/bug-report.yml": {
@@ -837,7 +1302,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "a6d00639d75f1ca9c1040be7cd7349bc11715397c71ef8a817e44312191d9226",
+      "sha256": "aba9cc5949f5e78855ddde0b8fa7c9a07cd2da0b05b5b5a674e24e64d28638ed",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -869,7 +1334,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "f5b14e32000fddc95e27f94fc91f9166ceb02b0d3ae15df26d3a656230868939",
+      "sha256": "7d831d293ace7d00e43a11a1cdaafebcd866ce7d4b3d0c85e781e8f0d8d940f3",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -925,7 +1390,7 @@
       "executable": false
     },
     ".github/scripts/validate-pr-metadata.mjs": {
-      "sha256": "1f6eca3d133a6d08b1ed7b56d043218ebf4b159720ae1ae9c6a0707f25a9a71c",
+      "sha256": "386c3a830876da63e16d9e6591d2a0a4c56d57af10f4422c5240c0e3dde71f12",
       "executable": false
     },
     ".github/workflows/pr-metadata.yml": {
@@ -941,15 +1406,15 @@
       "executable": false
     },
     ".agents/skills/babysit/SKILL.md": {
-      "sha256": "8a3d71320daf4d5a681243e13b70075a42062b8e587382fd81dac04aa9c5a8f7",
+      "sha256": "423fa02e5b9af190bead06d2875f53e4b33bce0ac331e7c48696d8d65132890e",
       "executable": false
     },
     ".agents/skills/babysit/merge.mjs": {
-      "sha256": "81daa7d5838e5e9b8854f74d3daf8d2b995b4d14abb2bc173939035c9c28017d",
+      "sha256": "5a85197626db69f130cc45d889b363e89cdd29c655ce9f2edcffd7d90c34f1da",
       "executable": false
     },
     ".agents/skills/babysit/platform.mjs": {
-      "sha256": "bd0ad7346873e5bc4de7f33b5b9b1ea682e50606b73a4914b6a6c0941bf5ec2b",
+      "sha256": "fc6fdbf5129dea3335ea340882806d7e9ee908f8b4dc72d10873c7637efc1fe3",
       "executable": false
     },
     ".agents/skills/babysit/pull-request-reviewer.mjs": {
@@ -969,11 +1434,11 @@
       "executable": false
     },
     ".agents/skills/babysit/trusted-review-config.mjs": {
-      "sha256": "071cfe9e3dfb9bd9acdc8469272a8f859a0e65bef677c6d0f9326c1a9a46aa71",
+      "sha256": "f79d0065bffff1a8f5308cc769a730ff1b875db4e66761161ee16aaf6d6a19d4",
       "executable": false
     },
     ".agents/skills/babysit/wait.mjs": {
-      "sha256": "1da6442ae15f91da3005032c4a53b0ae207de9d6b4bf97e95b5848d508577851",
+      "sha256": "22d2988b5424888821cb54245a3cc7a8a8490dde655a6f756ac73e5d0e07ea93",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -1069,11 +1534,15 @@
       "executable": false
     },
     ".agents/skills/orchestrate/SKILL.md": {
-      "sha256": "3e2ad88cc78105cb19d12166f22b4c70e3fb151e9bf56ad53d5abd7b0f0f231c",
+      "sha256": "6b1fd3940665674ce19352f256054641a1c663b412d88a45dafca3bcd51b1043",
       "executable": false
     },
     ".agents/skills/orchestrate/agents/openai.yaml": {
       "sha256": "8fa9f8f0710336e9e9a32915436647c3f5c3bfa9a2acdbdcaf613daba800bf6c",
+      "executable": false
+    },
+    ".agents/skills/orchestrate/wait.mjs": {
+      "sha256": "3dff1616c2b4ba3dd481584a71852732f9fadf52d31a58ed4223b611e7cf17e9",
       "executable": false
     },
     ".agents/skills/pr/CREDITS.md": {
@@ -1145,7 +1614,7 @@
       "executable": false
     },
     ".agents/skills/triage/AGENT-BRIEF.md": {
-      "sha256": "5bb3ebf5573ad4c6a1b1e96003d6f042e4c7396ec7f57a0a54bfea802bcd6686",
+      "sha256": "846e20148f152a7bba0b32e780bb01532fd88857a3556ce7f0e920b3d64c5349",
       "executable": false
     },
     ".agents/skills/triage/CREDITS.md": {
@@ -1157,7 +1626,7 @@
       "executable": false
     },
     ".agents/skills/triage/SKILL.md": {
-      "sha256": "d65139901abd42d69e981905b46749c0c835abf6e2717ba13ed7c622cf45a551",
+      "sha256": "2e12b157ddc6f2cdd2da182c2c7b7843e88d9942e0795fc010193c60f6bbc2a4",
       "executable": false
     },
     ".agents/skills/triage/agents/openai.yaml": {
@@ -1165,7 +1634,7 @@
       "executable": false
     },
     ".agents/skills/triage/ready.mjs": {
-      "sha256": "24d95b6b4ec650a9abd220ede70dc0086b0c3df261193b0fc79399f8812a5386",
+      "sha256": "a471017ec0a7cf3e5c44753a04f5886e14d22b23667a8b739fc3544ee690dafb",
       "executable": false
     },
     ".agents/skills/wayfinder/SKILL.md": {
@@ -1266,7 +1735,8 @@
     ".agents/skills/orchestrate": [
       "CREDITS.md",
       "SKILL.md",
-      "agents/openai.yaml"
+      "agents/openai.yaml",
+      "wait.mjs"
     ],
     ".agents/skills/pr": [
       "CREDITS.md",
@@ -1360,8 +1830,8 @@
         "message": "Documentation navigation is valid; content placement and usefulness still require maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/2.stdout",
-      "stderr": ".repo-standards/local/operations/2.stderr"
+      "stdout": ".repo-standards/local/operations/3.stdout",
+      "stderr": ".repo-standards/local/operations/3.stderr"
     },
     {
       "operation": {
@@ -1381,8 +1851,8 @@
         "message": ".github/pull-request-reviewer.json is valid."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/3.stdout",
-      "stderr": ".repo-standards/local/operations/3.stderr"
+      "stdout": ".repo-standards/local/operations/4.stdout",
+      "stderr": ".repo-standards/local/operations/4.stderr"
     },
     {
       "operation": {
@@ -1402,8 +1872,8 @@
         "message": "No factory review policy is configured."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/4.stdout",
-      "stderr": ".repo-standards/local/operations/4.stderr"
+      "stdout": ".repo-standards/local/operations/5.stdout",
+      "stderr": ".repo-standards/local/operations/5.stderr"
     },
     {
       "operation": {
@@ -1423,8 +1893,8 @@
         "message": "Project README structure and shared setup and contribution links are valid for 1 concrete target; Project membership, purpose, commands, configuration, documentation, and duplication of shared instructions still require maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/5.stdout",
-      "stderr": ".repo-standards/local/operations/5.stderr"
+      "stdout": ".repo-standards/local/operations/6.stdout",
+      "stderr": ".repo-standards/local/operations/6.stderr"
     },
     {
       "operation": {
@@ -1444,8 +1914,29 @@
         "message": "Repository README structure is valid; factual content still requires maintainer or agent review."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/6.stdout",
-      "stderr": ".repo-standards/local/operations/6.stderr"
+      "stdout": ".repo-standards/local/operations/7.stdout",
+      "stderr": ".repo-standards/local/operations/7.stderr"
+    },
+    {
+      "operation": {
+        "declaration": "typescript-astro-stack",
+        "phase": "checks",
+        "id": "typescript-astro-stack-manifests"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v2",
+        "status": "passed",
+        "message": "The typescript-astro stack manifest facts are valid for 1 Project; framework, React, Tailwind, TypeScript and test-runner majors, actual astro check/ui:check execution by validate, CI coverage, Setup and validation, integrity, wrappers and theme behavior still require contextual assessment."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/8.stdout",
+      "stderr": ".repo-standards/local/operations/8.stderr"
     },
     {
       "operation": {
@@ -1465,50 +1956,52 @@
         "message": "The pnpm, lockfile, Node.js, oxlint, Prettier and validate script facts of the typescript-node stack are valid for 1 Project; TypeScript 7, node --test, required pull request checks running validate, and each Project's Setup and validation section still require the contextual assessment."
       },
       "error": null,
-      "stdout": ".repo-standards/local/operations/7.stdout",
-      "stderr": ".repo-standards/local/operations/7.stderr"
+      "stdout": ".repo-standards/local/operations/9.stdout",
+      "stderr": ".repo-standards/local/operations/9.stderr"
     }
   ],
   "assessments": [
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:0ae67604d4cfe4a49dea2e11128d7321f78df543c5f7626eec8bce4c11ffd1fd",
-        "afterFixes": "sha256:2fd2568a436d54286b24b470b22534a89957caf33dc58cfa23023aeadddf2d7c"
+        "inspection": "sha256:7876adc3ca7f08cd568f2c120ec6c0d2d784304ce8fd248edded77a54d8b7c74",
+        "afterFixes": "sha256:17df2c9ed04addf8a9c3b786f1e7042b168a593c368930126c78275257e6b66b"
       },
-      "run": "f544a3e0-0881-4c72-ab8b-7f0e9a8d8c3b",
-      "selection": "sha256:02f1acfe3cd32400858bae85b8ec140d649341c2c4ff3a6ce34ddeee93ed55b6",
-      "snapshot": "sha256:2fd2568a436d54286b24b470b22534a89957caf33dc58cfa23023aeadddf2d7c",
+      "run": "e538daa0-0fe2-4ce2-ba51-8b4904894c7c",
+      "selection": "sha256:b743bcdd59471b7f19afa9049bba2b1691237f7d9e090695b66e9951b61bd944",
+      "snapshot": "sha256:69131e54dd87de5f553e39cb72eba7f9db236c7549f553b1520b07cb5b1aa7c4",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "Reviewed the current documentation scope and added ADR 0031 from merged PR #449. Existing indexes, developer setup and usage instructions remain suitable; no document edits or moves are needed.",
+          "explanation": "Reviewed the documentation scope after the Astro 7 migration: ADRs 0032 and 0033 join it; the indexes, development guide and usage docs stay suitable, with no moves or link repairs.",
           "changedPaths": [],
           "evidence": [
-            "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
-            "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
-            "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves.",
-            "docs/adr/README.md indexes the maintained ADR 0031; its scope entry now includes it explicitly."
+            "docs/adr/README.md indexes ADR 0032 and ADR 0033, and ADR 0018 carries the 'Amended by ADR 0033' line.",
+            "docs/development/README.md records Setup and validation, naming the site's tools and `pnpm --dir site validate`, before its index.",
+            "docs/README.md keeps the four documentation categories; root GLOSSARY.md and docs/adr hold domain language and decisions.",
+            "Earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose stand."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
-                "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
-                "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves."
+                "docs/adr/README.md indexes ADR 0032 and ADR 0033, and ADR 0018 carries the 'Amended by ADR 0033' line.",
+                "docs/development/README.md records Setup and validation, naming the site's tools and `pnpm --dir site validate`, before its index.",
+                "docs/README.md keeps the four documentation categories; root GLOSSARY.md and docs/adr hold domain language and decisions.",
+                "Earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose stand."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "docs/README.md keeps the four documentation categories; docs/development/README.md records setup and validation before its index.",
-                "docs/usage/README.md introduces the product for newcomers; root GLOSSARY.md and docs/adr hold maintained domain language and decisions.",
-                "Retained earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose; all current docs and the root glossary remain included without moves."
+                "docs/adr/README.md indexes ADR 0032 and ADR 0033, and ADR 0018 carries the 'Amended by ADR 0033' line.",
+                "docs/development/README.md records Setup and validation, naming the site's tools and `pnpm --dir site validate`, before its index.",
+                "docs/README.md keeps the four documentation categories; root GLOSSARY.md and docs/adr hold domain language and decisions.",
+                "Earlier exclusions of acceptance fixtures, executable examples, packaged skills and site product prose stand."
               ],
               "additionalPaths": []
             }
@@ -1517,42 +2010,43 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": "The existing Dockerfile provides the toolchain named by Setup and validation and the supported runtime for babysit, with no agent layer or repository dependency installation.",
+          "explanation": "The Dockerfile still provides the toolchain Setup and validation names and the runtime babysit needs; the site's tools are repository dependencies installed by pnpm.",
           "changedPaths": [],
           "evidence": [
-            ".factory/Dockerfile uses Debian node:24.11.1-bookworm, matching .node-version; bundled npm is retained.",
-            "It installs pnpm@11.20.0 system-wide and python3 via apt-get, as docs/development/README.md requires. TypeScript 7, oxlint and Prettier are repository dependencies installed by pnpm, not host tools.",
-            "The factory adds Git and gh in its agent layer; the Dockerfile has no users, ENTRYPOINT, CMD, COPY or ADD. .agents/skills/babysit/SKILL.md supports stable Node.js 24 or 26."
+            ".factory/Dockerfile uses node:24.11.1-bookworm, matching .node-version, keeps the bundled npm, installs pnpm@11.20.0 system-wide and python3 through apt-get.",
+            "Astro, Starlight, TypeScript 6, oxlint and Prettier are pnpm dependencies, not host tools; the site's browser check uses the runners' Chrome, as the development guide says.",
+            "The Dockerfile has no users, ENTRYPOINT, CMD, COPY or ADD; the factory adds Git and gh in its own layer.",
+            "The rules now link Scriptorium's v2.0.0 sandbox image contract; the Dockerfile meets it: a Debian bookworm Node.js 24 base with apt-get, a system-wide toolchain, and no assumed user or home besides the factory's agent."
           ]
         },
         {
           "id": "factory-workflow",
           "status": "satisfied",
-          "explanation": "Reviewed the new skipped-work recovery and label ownership rules against this direct update. Worker handoff and orchestrator merge ownership agree with the owner request; no issue contract is changed and no tracker mutation is needed.",
+          "explanation": "Reviewed the v0.20.0 delivery, designation and model-label rules against #448's skip-route delivery: a worker on the owner's account hands each PR over open and the orchestrating agent merges; no contract or tracker change is needed.",
           "changedPaths": [],
           "evidence": [
-            ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
-            "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
-            "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
+            "#448 carries ready-for-agent, model:claude-opus-5-5@high and factory:skip together, as the state-label rules require for workflow-editing work.",
+            "The accepted Agent Brief designates no owner review; the orchestrating agent merges each PR and closes #448 by hand.",
+            ".factory/config.json owns the factory configuration separately from these repository-wide rules."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
-                "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
-                "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
+                "#448 carries ready-for-agent, model:claude-opus-5-5@high and factory:skip together, as the state-label rules require for workflow-editing work.",
+                "The accepted Agent Brief designates no owner review; the orchestrating agent merges each PR and closes #448 by hand.",
+                ".factory/config.json owns the factory configuration separately from these repository-wide rules."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                ".factory/config.json owns the factory configuration separately from these repository-wide rules.",
-                "The owner requested this direct update under approved workbench plan 07 on 2026-10-29 and assigned the merge to the orchestrator.",
-                "The new rules require renewed readiness after an owner answer changes a contract; this task changes no contract and requires no additional owner review."
+                "#448 carries ready-for-agent, model:claude-opus-5-5@high and factory:skip together, as the state-label rules require for workflow-editing work.",
+                "The accepted Agent Brief designates no owner review; the orchestrating agent merges each PR and closes #448 by hand.",
+                ".factory/config.json owns the factory configuration separately from these repository-wide rules."
               ],
               "additionalPaths": []
             }
@@ -1561,48 +2055,48 @@
         {
           "id": "git-attributes",
           "status": "satisfied",
-          "explanation": "Repo Standards adopts a separate source, so the self-adoption exception does not apply. Added only the bounded Repo Canon block for installed code. No root .gitattributes existed; no repository-owned lines were changed.",
-          "changedPaths": [],
+          "explanation": "Re-inventoried every installed counted file from lock.json: the new orchestrate skill's wait.mjs is the only installed runtime code without an entry, so the Repo Canon block gains `.agents/skills/orchestrate/**`; repository-owned lines are unchanged.",
+          "changedPaths": [
+            ".gitattributes"
+          ],
           "evidence": [
-            "Resolved lock.json inventory: scripts/validate-issue-contract.mjs, scripts/validate.mjs, operations/lib/rendered-markdown.mjs; installed babysit, triage and diagnosing-bugs skill directories. vendor/ and .github/ are already Linguist vendor paths.",
-            "git check-attr reports set for all 21 files in that exact-file and skill inventory, including .agents/skills/triage/ready.mjs.",
-            "src/cli.ts, scripts/run-tests.ts, action/main.ts, skills/repository-standards/SKILL.md and .agents/skills/research/SKILL.md report unspecified. No shared-parent pattern or .repo-standards entry was added."
+            "lock.json files outside vendor/, .github/ and .repo-standards/ with counted code: scripts/validate-issue-contract.mjs, scripts/validate.mjs, operations/lib/rendered-markdown.mjs, and the babysit, triage, orchestrate (wait.mjs) and diagnosing-bugs (hitl-loop.template.sh) skill directories.",
+            "Every file under .agents/skills/orchestrate/ (SKILL.md, CREDITS.md, agents/openai.yaml, wait.mjs) is installed, so the skill-directory entry matches no repository-owned file.",
+            "git check-attr linguist-vendored reports set for .agents/skills/orchestrate/wait.mjs and .agents/skills/triage/ready.mjs, and unspecified for src/cli.ts and scripts/run-tests.ts.",
+            "git diff .gitattributes adds only `.agents/skills/orchestrate/** linguist-vendored` inside the Repo Canon block; the file holds no repository-owned lines and no entry targets .repo-standards/."
           ]
         },
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "Reviewed the updated repository-wide rules and repository identity. Remote fixes completed without changes; the optional reviewer configuration remains valid under standalone Unicode regex compilation. No policy or workflow edit is needed.",
+          "explanation": "Reviewed the v0.20.0 repository-wide rules, including enforced merge freshness, on the owner's admin account. Canonical-label setup changed nothing; pull-request-integration's only proposed change, strict required checks on ruleset 23476826, was confirmed and applied; no policy, workflow or reviewer edit is needed.",
           "changedPaths": [],
           "evidence": [
-            "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
-            "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
-            "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
-            ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
-            "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
+            "origin names lutzseverino/repo-standards, public and personal-owned; gh is signed in as the owner, lutzseverino, with admin access. gh variable list returns only REPO_CANON_UPDATES=true; REPO_CANON_RUNS_ON is absent.",
+            "Remote setup ran signed in. The pull-request-integration confirmation's rules diff against the live ruleset 23476826 had one change, strict_required_status_checks_policy false to true; it was confirmed and applied. A readback after the fixes shows 23476826 active, requiring exactly PR metadata, strict, with no bypass actors and current_user_can_bypass never; 24492291 still requires exactly validate (linux, 1/3), (linux, 2/3) and (linux, 3/3), non-strict, with current_user_can_bypass never. Labels, including factory:skip (c5def5, 'Ready agent work the factory must not pick up'), and merge settings read back unchanged.",
+            ".github/pull-request-reviewer.json's finished.line compiles with new RegExp(line, \"u\"); no .github/factory-review-policy.json exists.",
+            "Repository-owned callers of installed runtime: test/pr-metadata.ts imports .github/scripts/validate-pr-metadata.mjs through its exported validatePullRequestMetadata, and scripts/validate.mjs imports that function and validate-issue-contract.mjs's exported runIssueContractValidation; no repository test fakes babysit, orchestrate/wait.mjs or triage/ready.mjs."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
-                "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
-                "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
-                ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
-                "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
+                "origin names lutzseverino/repo-standards, public and personal-owned; gh is signed in as the owner, lutzseverino, with admin access. gh variable list returns only REPO_CANON_UPDATES=true; REPO_CANON_RUNS_ON is absent.",
+                "Remote setup ran signed in. The pull-request-integration confirmation's rules diff against the live ruleset 23476826 had one change, strict_required_status_checks_policy false to true; it was confirmed and applied. A readback after the fixes shows 23476826 active, requiring exactly PR metadata, strict, with no bypass actors and current_user_can_bypass never; 24492291 still requires exactly validate (linux, 1/3), (linux, 2/3) and (linux, 3/3), non-strict, with current_user_can_bypass never. Labels, including factory:skip (c5def5, 'Ready agent work the factory must not pick up'), and merge settings read back unchanged.",
+                ".github/pull-request-reviewer.json's finished.line compiles with new RegExp(line, \"u\"); no .github/factory-review-policy.json exists.",
+                "Repository-owned callers of installed runtime: test/pr-metadata.ts imports .github/scripts/validate-pr-metadata.mjs through its exported validatePullRequestMetadata, and scripts/validate.mjs imports that function and validate-issue-contract.mjs's exported runIssueContractValidation; no repository test fakes babysit, orchestrate/wait.mjs or triage/ready.mjs."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Intentionally empty content scope after fixes and after contextual review: these rules govern repository work or remote settings; separately owned configuration stays unchanged.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "Authenticated gh reports lutzseverino/repo-standards as PUBLIC, personal-owned, with ADMIN permission; origin identifies the same repository.",
-                "gh variable list returns no repository variables. REPO_CANON_RUNS_ON is unset; personal ownership precludes an inherited organization variable, so hosted defaults apply.",
-                "The run reports canonical-labels and pull-request-integration unchanged. Both probes were ready; no setup was deferred.",
-                ".github/pull-request-reviewer.json finished.line compiles independently using new RegExp(line, \"u\"). No .github/factory-review-policy.json exists.",
-                "Repository-owned test and script searches found no gh fakes for babysit or triage/ready.mjs and no permission-lookup failure fixture requiring compatibility changes."
+                "origin names lutzseverino/repo-standards, public and personal-owned; gh is signed in as the owner, lutzseverino, with admin access. gh variable list returns only REPO_CANON_UPDATES=true; REPO_CANON_RUNS_ON is absent.",
+                "Remote setup ran signed in. The pull-request-integration confirmation's rules diff against the live ruleset 23476826 had one change, strict_required_status_checks_policy false to true; it was confirmed and applied. A readback after the fixes shows 23476826 active, requiring exactly PR metadata, strict, with no bypass actors and current_user_can_bypass never; 24492291 still requires exactly validate (linux, 1/3), (linux, 2/3) and (linux, 3/3), non-strict, with current_user_can_bypass never. Labels, including factory:skip (c5def5, 'Ready agent work the factory must not pick up'), and merge settings read back unchanged.",
+                ".github/pull-request-reviewer.json's finished.line compiles with new RegExp(line, \"u\"); no .github/factory-review-policy.json exists.",
+                "Repository-owned callers of installed runtime: test/pr-metadata.ts imports .github/scripts/validate-pr-metadata.mjs through its exported validatePullRequestMetadata, and scripts/validate.mjs imports that function and validate-issue-contract.mjs's exported runIssueContractValidation; no repository test fakes babysit, orchestrate/wait.mjs or triage/ready.mjs."
               ],
               "additionalPaths": []
             }
@@ -1611,38 +2105,38 @@
         {
           "id": "project-agent-guidance",
           "status": "satisfied",
-          "explanation": "Read the replaced AGENTS.md from HEAD and existing project.md. Shared instructions remain in installed files; useful product-specific constraints were already preserved. No contextual edit is needed.",
+          "explanation": "The installed AGENTS.md keeps shared instructions; docs/agents/project.md still holds this product's constraints, and nothing from the replaced file needs recovering.",
           "changedPaths": [],
           "evidence": [
-            "HEAD:AGENTS.md contains shared contribution/setup/delivery links and tracker/domain conventions, with no extra product-specific requirement to recover.",
-            "docs/agents/project.md keeps product architecture and author-contract links, standards-neutral product boundaries, main as base and release completion evidence."
+            "docs/agents/project.md keeps the architecture and author-contract links, the standards-neutral product boundary, minimal-intervention adoption guidance, main as base and release completion evidence.",
+            "AGENTS.md points to CONTRIBUTING.md, docs/agents/project.md and docs/development/README.md."
           ]
         },
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "Reviewed the maintained site workspace README against its manifest and commands. It gives purpose, commands from the repository root, configuration and shared setup/contribution links; the update requires no changes.",
+          "explanation": "site/README.md matches the migrated site: Starlight 0.42, the validate command and the fingerprint normalization are documented, with commands from the root and links to the shared guides.",
           "changedPaths": [],
           "evidence": [
-            "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
-            "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+            "site/README.md names Starlight 0.42, lists `pnpm --dir site validate` among its commands and says what validate runs and that the root validate calls it.",
+            "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md; pnpm-workspace.yaml lists only site."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
-                "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+                "site/README.md names Starlight 0.42, lists `pnpm --dir site validate` among its commands and says what validate runs and that the root validate calls it.",
+                "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md; pnpm-workspace.yaml lists only site."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Scope remains complete after fixes and after contextual review; no additional files or changes are needed.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "pnpm-workspace.yaml lists only site; acceptance and examples remain executable fixtures rather than maintained internal Projects.",
-                "site/README.md documents the Astro application, development/build/test/preview commands and configuration, and links ../docs/development/README.md and ../CONTRIBUTING.md."
+                "site/README.md names Starlight 0.42, lists `pnpm --dir site validate` among its commands and says what validate runs and that the root validate calls it.",
+                "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md; pnpm-workspace.yaml lists only site."
               ],
               "additionalPaths": []
             }
@@ -1672,39 +2166,126 @@
           ]
         },
         {
-          "id": "typescript-node-stack",
+          "id": "typescript-astro-stack",
           "status": "satisfied",
-          "explanation": "The maintained root CLI is independently a Project alongside site and satisfies the entire typescript-node stack. The website stays excluded and unchanged until the web-stack decision. No stack differences remain for the root.",
+          "explanation": "site/ is a Site that meets every typescript-astro rule: Astro 7, React 19, Tailwind 4, TypeScript 6 checked by astro check, node --test, oxlint 1 and Prettier 3 with the Astro plugin, pnpm 11 on Node 24 or 26, a validate that really runs astro check and ui:check, CI on both majors, and the six shadcn rules.",
           "changedPaths": [],
           "evidence": [
-            "package.json publishes the CLI with bin dist/cli.js, own src/ and build/test commands; pnpm-workspace.yaml lists site separately. Root uses pnpm 11.20.0 with lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
-            "tsconfig.json and tsconfig.build.json compile/typecheck root TypeScript with tsc. scripts/run-tests.ts invokes process.execPath with --test over test/*.test.ts; no other test runner or stack is used.",
-            "Root validate runs typecheck, lint, format:check, import-cycle check, build, root tests, and site ui:check/check/test/build:fixture. .github/workflows/validate.yml required aggregates depend on all six CLI jobs and both site jobs on Node.js 24 and 26; live main rules require all three aggregate names.",
-            "docs/development/README.md Setup and validation names TypeScript, Node 24/26, pnpm, oxlint, Prettier and node --test; Continuous integration documents complete required coverage after #445.",
-            "site/package.json is excluded: existing Astro 6.4.8 app has TypeScript 6.0.3 and no validate script, awaiting the web stack per #326 and repo-canon#217 decision 11. acceptance/projects/bob/package.json is a synthetic fixture."
+            "site/package.json pins astro 7.4.4 with @astrojs/starlight 0.42.8 and @astrojs/react 7.1.2 (framework major 7), react and react-dom 19.3.0, tailwindcss and @tailwindcss/vite 4.3.3, typescript 6.0.3 with @astrojs/check 0.9.12, and the exact shadcn 4.22.1 devDependency.",
+            "site/astro.config.mjs builds a static site (no adapter) from ../docs/usage and ../docs/adr through Starlight and from build-time catalogue data in src/lib/load-catalogue.ts, with React islands only (SiteNav, Home and SourceAdoption with client:load, the docs SupportMenu with client:settled): a Site, not an App.",
+            "site/package.json validate runs `pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture`; `check` is `astro check` (0 errors, 0 warnings over 123 files on the migration head) and `ui:check` runs scripts/registry.mjs check against registry-manifest.json (passes).",
+            "Root package.json validate ends with `pnpm --dir site validate`; .github/workflows/validate.yml's site job runs `pnpm --dir site validate` on the Node 24/26 matrix, and the three required aggregates need both site shards to succeed.",
+            "Root package.json holds packageManager pnpm@11.20.0, pnpm-lock.yaml, engines node >=24 <25 || >=26 <27, oxlint 1.86.0, Prettier 3.9.9 and prettier-plugin-astro 1.1.1; root lint and format:check cover site.",
+            "Tests use `node --test --test-concurrency=1 test/*.test.ts` with no other runner; no ESLint or Vitest is installed.",
+            "site/components.json sets style base-nova and iconLibrary lucide; ui:add and ui:update run the pinned CLI through scripts/registry.mjs, which records every generated file of src/components/ui/ in registry-manifest.json; Prettier and oxlint ignore that folder.",
+            "src/components/app/ holds ten one-line re-exports (badge, button, card, dialog, dropdown-menu, empty, input-group, kbd, toggle-group, tooltip); no wrapper exists. Custom components such as site-nav.tsx and the sign art live outside components/app/.",
+            "Shared effects use data-slot rules in stylesheets: global.css gives every Dropdown Menu item the Button's focus ring, docs-components.css fills preflight gaps by data-slot, and sign/light.css lights components by data-slot; generated files are unchanged.",
+            "src/styles/shadcn-theme.css holds the colour tokens in :root and .dark; src/lib/theme-core.ts toggles the .dark class together with Starlight's data-theme attribute.",
+            "docs/development/README.md Setup and validation names Astro 7, Starlight 0.42, TypeScript 6 checked by astro check, React 19, Tailwind CSS 4, shadcn CLI 4, oxlint 1, Prettier 3 with prettier-plugin-astro, node --test, pnpm 11, Node.js 24 or 26 and `pnpm --dir site validate`."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Only root package.json is included; site/package.json is excluded with its web-stack reason and differences, and the Bob acceptance manifest is excluded as fixture. No other maintained Project appeared after fixes or contextual work.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "package.json publishes the CLI with bin dist/cli.js, own src/ and build/test commands; pnpm-workspace.yaml lists site separately. Root uses pnpm 11.20.0 with lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
-                "tsconfig.json and tsconfig.build.json compile/typecheck root TypeScript with tsc. scripts/run-tests.ts invokes process.execPath with --test over test/*.test.ts; no other test runner or stack is used.",
-                "Root validate runs typecheck, lint, format:check, import-cycle check, build, root tests, and site ui:check/check/test/build:fixture. .github/workflows/validate.yml required aggregates depend on all six CLI jobs and both site jobs on Node.js 24 and 26; live main rules require all three aggregate names.",
-                "docs/development/README.md Setup and validation names TypeScript, Node 24/26, pnpm, oxlint, Prettier and node --test; Continuous integration documents complete required coverage after #445.",
-                "site/package.json is excluded: existing Astro 6.4.8 app has TypeScript 6.0.3 and no validate script, awaiting the web stack per #326 and repo-canon#217 decision 11. acceptance/projects/bob/package.json is a synthetic fixture."
+                "site/package.json pins astro 7.4.4 with @astrojs/starlight 0.42.8 and @astrojs/react 7.1.2 (framework major 7), react and react-dom 19.3.0, tailwindcss and @tailwindcss/vite 4.3.3, typescript 6.0.3 with @astrojs/check 0.9.12, and the exact shadcn 4.22.1 devDependency.",
+                "site/astro.config.mjs builds a static site (no adapter) from ../docs/usage and ../docs/adr through Starlight and from build-time catalogue data in src/lib/load-catalogue.ts, with React islands only (SiteNav, Home and SourceAdoption with client:load, the docs SupportMenu with client:settled): a Site, not an App.",
+                "site/package.json validate runs `pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture`; `check` is `astro check` (0 errors, 0 warnings over 123 files on the migration head) and `ui:check` runs scripts/registry.mjs check against registry-manifest.json (passes).",
+                "Root package.json validate ends with `pnpm --dir site validate`; .github/workflows/validate.yml's site job runs `pnpm --dir site validate` on the Node 24/26 matrix, and the three required aggregates need both site shards to succeed.",
+                "Root package.json holds packageManager pnpm@11.20.0, pnpm-lock.yaml, engines node >=24 <25 || >=26 <27, oxlint 1.86.0, Prettier 3.9.9 and prettier-plugin-astro 1.1.1; root lint and format:check cover site.",
+                "Tests use `node --test --test-concurrency=1 test/*.test.ts` with no other runner; no ESLint or Vitest is installed.",
+                "site/components.json sets style base-nova and iconLibrary lucide; ui:add and ui:update run the pinned CLI through scripts/registry.mjs, which records every generated file of src/components/ui/ in registry-manifest.json; Prettier and oxlint ignore that folder.",
+                "src/components/app/ holds ten one-line re-exports (badge, button, card, dialog, dropdown-menu, empty, input-group, kbd, toggle-group, tooltip); no wrapper exists. Custom components such as site-nav.tsx and the sign art live outside components/app/.",
+                "Shared effects use data-slot rules in stylesheets: global.css gives every Dropdown Menu item the Button's focus ring, docs-components.css fills preflight gaps by data-slot, and sign/light.css lights components by data-slot; generated files are unchanged.",
+                "src/styles/shadcn-theme.css holds the colour tokens in :root and .dark; src/lib/theme-core.ts toggles the .dark class together with Starlight's data-theme attribute.",
+                "docs/development/README.md Setup and validation names Astro 7, Starlight 0.42, TypeScript 6 checked by astro check, React 19, Tailwind CSS 4, shadcn CLI 4, oxlint 1, Prettier 3 with prettier-plugin-astro, node --test, pnpm 11, Node.js 24 or 26 and `pnpm --dir site validate`."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Only root package.json is included; site/package.json is excluded with its web-stack reason and differences, and the Bob acceptance manifest is excluded as fixture. No other maintained Project appeared after fixes or contextual work.",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
               "evidence": [
-                "package.json publishes the CLI with bin dist/cli.js, own src/ and build/test commands; pnpm-workspace.yaml lists site separately. Root uses pnpm 11.20.0 with lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
-                "tsconfig.json and tsconfig.build.json compile/typecheck root TypeScript with tsc. scripts/run-tests.ts invokes process.execPath with --test over test/*.test.ts; no other test runner or stack is used.",
-                "Root validate runs typecheck, lint, format:check, import-cycle check, build, root tests, and site ui:check/check/test/build:fixture. .github/workflows/validate.yml required aggregates depend on all six CLI jobs and both site jobs on Node.js 24 and 26; live main rules require all three aggregate names.",
-                "docs/development/README.md Setup and validation names TypeScript, Node 24/26, pnpm, oxlint, Prettier and node --test; Continuous integration documents complete required coverage after #445.",
-                "site/package.json is excluded: existing Astro 6.4.8 app has TypeScript 6.0.3 and no validate script, awaiting the web stack per #326 and repo-canon#217 decision 11. acceptance/projects/bob/package.json is a synthetic fixture."
+                "site/package.json pins astro 7.4.4 with @astrojs/starlight 0.42.8 and @astrojs/react 7.1.2 (framework major 7), react and react-dom 19.3.0, tailwindcss and @tailwindcss/vite 4.3.3, typescript 6.0.3 with @astrojs/check 0.9.12, and the exact shadcn 4.22.1 devDependency.",
+                "site/astro.config.mjs builds a static site (no adapter) from ../docs/usage and ../docs/adr through Starlight and from build-time catalogue data in src/lib/load-catalogue.ts, with React islands only (SiteNav, Home and SourceAdoption with client:load, the docs SupportMenu with client:settled): a Site, not an App.",
+                "site/package.json validate runs `pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture`; `check` is `astro check` (0 errors, 0 warnings over 123 files on the migration head) and `ui:check` runs scripts/registry.mjs check against registry-manifest.json (passes).",
+                "Root package.json validate ends with `pnpm --dir site validate`; .github/workflows/validate.yml's site job runs `pnpm --dir site validate` on the Node 24/26 matrix, and the three required aggregates need both site shards to succeed.",
+                "Root package.json holds packageManager pnpm@11.20.0, pnpm-lock.yaml, engines node >=24 <25 || >=26 <27, oxlint 1.86.0, Prettier 3.9.9 and prettier-plugin-astro 1.1.1; root lint and format:check cover site.",
+                "Tests use `node --test --test-concurrency=1 test/*.test.ts` with no other runner; no ESLint or Vitest is installed.",
+                "site/components.json sets style base-nova and iconLibrary lucide; ui:add and ui:update run the pinned CLI through scripts/registry.mjs, which records every generated file of src/components/ui/ in registry-manifest.json; Prettier and oxlint ignore that folder.",
+                "src/components/app/ holds ten one-line re-exports (badge, button, card, dialog, dropdown-menu, empty, input-group, kbd, toggle-group, tooltip); no wrapper exists. Custom components such as site-nav.tsx and the sign art live outside components/app/.",
+                "Shared effects use data-slot rules in stylesheets: global.css gives every Dropdown Menu item the Button's focus ring, docs-components.css fills preflight gaps by data-slot, and sign/light.css lights components by data-slot; generated files are unchanged.",
+                "src/styles/shadcn-theme.css holds the colour tokens in :root and .dark; src/lib/theme-core.ts toggles the .dark class together with Starlight's data-theme attribute.",
+                "docs/development/README.md Setup and validation names Astro 7, Starlight 0.42, TypeScript 6 checked by astro check, React 19, Tailwind CSS 4, shadcn CLI 4, oxlint 1, Prettier 3 with prettier-plugin-astro, node --test, pnpm 11, Node.js 24 or 26 and `pnpm --dir site validate`."
+              ],
+              "additionalPaths": []
+            }
+          }
+        },
+        {
+          "id": "typescript-node-stack",
+          "status": "satisfied",
+          "explanation": "The root CLI remains the only typescript-node Project and satisfies the stack; site now belongs to typescript-astro-stack, keeping the scopes disjoint.",
+          "changedPaths": [],
+          "evidence": [
+            "package.json publishes the CLI with bin dist/cli.js, its own src/ and build/test commands; pnpm-workspace.yaml lists site as a separate member. Root uses pnpm 11.20.0 with its lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
+            "tsconfig.json and tsconfig.build.json typecheck and compile root TypeScript with tsc. scripts/run-tests.ts runs process.execPath --test over test/*.test.ts; no other runner is used.",
+            "Root validate runs typecheck, lint, format:check, the import-cycle check, build, root tests and then `pnpm --dir site validate`. The required aggregates validate (linux, 1/3..3/3) need all six CLI parts and both site shards on Node.js 24 and 26.",
+            "docs/development/README.md Setup and validation names TypeScript, Node.js 24/26, pnpm, oxlint, Prettier and node --test for the CLI.",
+            "site/package.json is excluded: it is a Site in typescript-astro-stack. acceptance/projects/bob/package.json is a synthetic acceptance fixture."
+          ],
+          "scopeValidity": {
+            "afterFixes": {
+              "status": "valid",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
+              "evidence": [
+                "package.json publishes the CLI with bin dist/cli.js, its own src/ and build/test commands; pnpm-workspace.yaml lists site as a separate member. Root uses pnpm 11.20.0 with its lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
+                "tsconfig.json and tsconfig.build.json typecheck and compile root TypeScript with tsc. scripts/run-tests.ts runs process.execPath --test over test/*.test.ts; no other runner is used.",
+                "Root validate runs typecheck, lint, format:check, the import-cycle check, build, root tests and then `pnpm --dir site validate`. The required aggregates validate (linux, 1/3..3/3) need all six CLI parts and both site shards on Node.js 24 and 26.",
+                "docs/development/README.md Setup and validation names TypeScript, Node.js 24/26, pnpm, oxlint, Prettier and node --test for the CLI.",
+                "site/package.json is excluded: it is a Site in typescript-astro-stack. acceptance/projects/bob/package.json is a synthetic acceptance fixture."
+              ],
+              "additionalPaths": []
+            },
+            "current": {
+              "status": "valid",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
+              "evidence": [
+                "package.json publishes the CLI with bin dist/cli.js, its own src/ and build/test commands; pnpm-workspace.yaml lists site as a separate member. Root uses pnpm 11.20.0 with its lockfile, engines >=24 <25 || >=26 <27, TypeScript 7.0.2, oxlint 1.86.0 and Prettier 3.9.9.",
+                "tsconfig.json and tsconfig.build.json typecheck and compile root TypeScript with tsc. scripts/run-tests.ts runs process.execPath --test over test/*.test.ts; no other runner is used.",
+                "Root validate runs typecheck, lint, format:check, the import-cycle check, build, root tests and then `pnpm --dir site validate`. The required aggregates validate (linux, 1/3..3/3) need all six CLI parts and both site shards on Node.js 24 and 26.",
+                "docs/development/README.md Setup and validation names TypeScript, Node.js 24/26, pnpm, oxlint, Prettier and node --test for the CLI.",
+                "site/package.json is excluded: it is a Site in typescript-astro-stack. acceptance/projects/bob/package.json is a synthetic acceptance fixture."
+              ],
+              "additionalPaths": []
+            }
+          }
+        },
+        {
+          "id": "typescript-vite-stack",
+          "status": "satisfied",
+          "explanation": "No App exists: the site is an Astro Site and the root is the Node.js CLI, so typescript-vite-stack has no scope.",
+          "changedPaths": [],
+          "evidence": [
+            "site/astro.config.mjs builds static pages with Astro; no client-side router or App entry exists.",
+            "package.json is the published CLI; acceptance/projects/bob/package.json is a synthetic fixture."
+          ],
+          "scopeValidity": {
+            "afterFixes": {
+              "status": "valid",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
+              "evidence": [
+                "site/astro.config.mjs builds static pages with Astro; no client-side router or App entry exists.",
+                "package.json is the published CLI; acceptance/projects/bob/package.json is a synthetic fixture."
+              ],
+              "additionalPaths": []
+            },
+            "current": {
+              "status": "valid",
+              "explanation": "Scope is complete after fixes and after contextual review; no additional files belong in it.",
+              "evidence": [
+                "site/astro.config.mjs builds static pages with Astro; no client-side router or App entry exists.",
+                "package.json is the published CLI; acceptance/projects/bob/package.json is a synthetic fixture."
               ],
               "additionalPaths": []
             }
@@ -1716,45 +2297,20 @@
   "deferred": [],
   "reused": [
     {
-      "id": "assessment:factory-sandbox-image",
-      "kind": "assessment",
+      "id": "scope:project-readmes",
+      "kind": "scope",
       "evidence": {
-        "judgedAgainst": {
-          "kind": "rules",
-          "sha256": "a9139d625539ef858bb1c23524322ddf7da8127100e923808a839f2dd224a2b5"
-        },
-        "scope": {
-          "basis": "declaration",
-          "snapshot": "sha256:40f5c301d8d2d0c0bd915f37b132b7de323dc2a0b9b0a46c2b0694c403bd6834"
-        }
-      }
-    },
-    {
-      "id": "assessment:git-attributes",
-      "kind": "assessment",
-      "evidence": {
-        "judgedAgainst": {
-          "kind": "rules",
-          "sha256": "42adf209e10b6bb66d4290978d438cd5c26fa9510249147c3e848bcee9e6073a"
-        },
-        "scope": {
-          "basis": "declaration",
-          "snapshot": "sha256:a8914294f6ca6c31d9d90e9f3003c343c87da45a5187c2f50c50d7d7c65c364d"
-        }
-      }
-    },
-    {
-      "id": "assessment:project-agent-guidance",
-      "kind": "assessment",
-      "evidence": {
-        "judgedAgainst": {
-          "kind": "rules",
-          "sha256": "d28524380c291296b805f43440d09b437bc60edd390068bfbf552cdb8b982a25"
-        },
-        "scope": {
-          "basis": "declaration",
-          "snapshot": "sha256:327e8610ee57ea51e4dd9f828185f94b0c2cdcf9f4c903f9e05e97f4cb1a6b78"
-        }
+        "discovery": "a2cf9e7206712b7b169ebcf901d40ded7fa655100b3afbcf825296e46291b47a",
+        "rules": "6cc1cbca7a629ab74c4e93b83f400cade77159aeb1bd2502463eafedb63a24fc",
+        "draft": "none",
+        "paths": [
+          "acceptance/README.md",
+          "package.json",
+          "pnpm-workspace.yaml",
+          "site/README.md",
+          "site/package.json",
+          "site/src"
+        ]
       }
     },
     {
@@ -1784,44 +2340,32 @@
           "snapshot": "sha256:7dbaa74f334b4637efad17b87d496f5b494c34e283cf271d4e26f68d16b0c4e3"
         }
       }
-    },
-    {
-      "id": "assessment:typescript-node-stack",
-      "kind": "assessment",
-      "evidence": {
-        "judgedAgainst": {
-          "kind": "rules",
-          "sha256": "445cd0d96ebcd04d428d19498bf95c5a23447dbb5aade4cfbd61ac07fe2b6799"
-        },
-        "scope": {
-          "basis": "declaration",
-          "snapshot": "sha256:390d00b180904abc02b4480be18bfd41525d51e367f633a76a1400ed2f278ed9"
-        }
-      }
     }
   ],
   "assessedScopes": {
-    "documentation": "sha256:f321d2bcac3d2131b97ec938a68d5208cb616dce3bf913aee3e2296ee5568990",
+    "documentation": "sha256:32fc5858eec71ed3e127ff4ccaecf9cc30beac6dd11008bd36928f748a71bc05",
     "factory-sandbox-image": "sha256:40f5c301d8d2d0c0bd915f37b132b7de323dc2a0b9b0a46c2b0694c403bd6834",
     "factory-workflow": "sha256:f61bb6b747466f440a7bfe1ad8ac8d9c6cc81dd9a69aeeaef10fd61e5e7cfe89",
-    "git-attributes": "sha256:a8914294f6ca6c31d9d90e9f3003c343c87da45a5187c2f50c50d7d7c65c364d",
+    "git-attributes": "sha256:30ab006c4abbde4f201f0fa2a039a9a187d7d592a6b17f495d4a85c9296b9268",
     "github-repository-configuration": "sha256:f61bb6b747466f440a7bfe1ad8ac8d9c6cc81dd9a69aeeaef10fd61e5e7cfe89",
-    "project-agent-guidance": "sha256:327e8610ee57ea51e4dd9f828185f94b0c2cdcf9f4c903f9e05e97f4cb1a6b78",
-    "project-readmes": "sha256:f625fb9935eba92afbcc67caf9df7903b336f1dd6c63208d5f8f5e518605df9c",
+    "project-agent-guidance": "sha256:3357005a412427288e171162c628d301a68b1c767e34294644860a0007af6ec5",
+    "project-readmes": "sha256:83fbd2158b49a25cd3a2ea6872d738c62b8c25dcd59e4002264d64f92d8734bc",
     "repository-license": "sha256:fb816d84f8490f401fed9da0509dfee09760d5dde05b314b1c9ea7cd706529c4",
     "repository-readme": "sha256:7dbaa74f334b4637efad17b87d496f5b494c34e283cf271d4e26f68d16b0c4e3",
-    "typescript-node-stack": "sha256:390d00b180904abc02b4480be18bfd41525d51e367f633a76a1400ed2f278ed9"
+    "typescript-astro-stack": "sha256:365632bdd7a4448744c015712eea4f8b7a1947b6a2b6019276d2ec63df18f1cb",
+    "typescript-node-stack": "sha256:93831a1b8fe072f81df00cffb2569168142c9854881da314c6ddc5bdeb953bc6",
+    "typescript-vite-stack": "sha256:f61bb6b747466f440a7bfe1ad8ac8d9c6cc81dd9a69aeeaef10fd61e5e7cfe89"
   },
   "impact": {
-    "derived": "Contextual update: the run asks for contextual work on documentation, factory-workflow, github-repository-configuration, project-readmes, which needs review before it is committed.",
+    "derived": "Contextual update: the run asks for contextual work on documentation, factory-sandbox-image, factory-workflow, git-attributes, github-repository-configuration, project-agent-guidance, project-readmes, typescript-astro-stack, typescript-node-stack, typescript-vite-stack, which needs review before it is committed.",
     "releases": [
       {
-        "version": "v0.19.1",
+        "version": "v0.20.0",
         "action": null
       }
     ],
     "steps": [
-      "Review the contextual work on documentation, factory-workflow, github-repository-configuration, project-readmes.",
+      "Review the contextual work on documentation, factory-sandbox-image, factory-workflow, git-attributes, github-repository-configuration, project-agent-guidance, project-readmes, typescript-astro-stack, typescript-node-stack, typescript-vite-stack.",
       "Review and commit the update."
     ]
   }

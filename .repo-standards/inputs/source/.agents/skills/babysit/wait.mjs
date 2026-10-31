@@ -273,8 +273,13 @@ const parseArguments = (argv) => {
     const value = argv[(index += 1)];
     if (value === undefined) throw new UsageError(`--${flag} needs a value`);
     options[flag] = flag === "repo" ? value : Number(value);
-    if (flag !== "repo" && !(options[flag] > 0)) {
-      throw new UsageError(`--${flag} must be a positive number of seconds`);
+    if (
+      flag !== "repo" &&
+      (!(options[flag] > 0) || !Number.isFinite(options[flag] * 1000))
+    ) {
+      throw new UsageError(
+        `--${flag} must be a finite positive number of seconds with finite milliseconds`,
+      );
     }
   }
   if (positional.length !== 1 || !/^[1-9]\d*$/.test(positional[0])) {
@@ -283,6 +288,18 @@ const parseArguments = (argv) => {
     );
   }
   return { number: positional[0], ...options };
+};
+
+const pause = async (durationMs) => {
+  const startedAt = Date.now();
+  let remaining = durationMs;
+  while (remaining > 0) {
+    // Node turns delays above its signed 32-bit timer maximum into 1 ms.
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.min(remaining, 2_147_483_647)),
+    );
+    remaining = durationMs - (Date.now() - startedAt);
+  }
 };
 
 const look = async (number, pushTimes, reviewer, policy, connection) => {
@@ -380,12 +397,7 @@ export const main = async (argv = process.argv.slice(2), connection) => {
       return outcome.code;
     }
     const remaining = startedAt + limitMs - Date.now();
-    await new Promise((resolve) =>
-      setTimeout(
-        resolve,
-        Math.max(0, Math.min(options.interval * 1000, remaining)),
-      ),
-    );
+    await pause(Math.max(0, Math.min(options.interval * 1000, remaining)));
   }
 };
 

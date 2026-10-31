@@ -1,6 +1,6 @@
 # Installed rules
 
-These rules come from https://github.com/lutzseverino/repo-canon v0.19.1, profile factory.
+These rules come from https://github.com/lutzseverino/repo-canon v0.20.0, profile factory.
 Repository Standards installs and verifies them; adopt again to change them.
 Run `repo-standards rules <path>` to print the rules that cover a path.
 
@@ -38,6 +38,8 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0029-leave-archived-run-v6-reports-unread.md`
   - `docs/adr/0030-localize-the-site-through-mf2-catalogs.md`
   - `docs/adr/0031-give-every-site-page-one-nav.md`
+  - `docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md`
+  - `docs/adr/0033-keep-astro-for-content-and-static-sites.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`
@@ -80,5 +82,7 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `LICENSE`
 - [`repository-readme`](repository-readme.md) covers:
   - `README.md`
+- [`typescript-astro-stack`](typescript-astro-stack.md) covers:
+  - `site/package.json`
 - [`typescript-node-stack`](typescript-node-stack.md) covers:
   - `package.json`

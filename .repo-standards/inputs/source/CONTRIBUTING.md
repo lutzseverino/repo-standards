@@ -70,6 +70,13 @@ orchestrating agent never writes a brief it accepts: when its split changes a
 draft substantially, the grill rewrites that brief, and a research run writes
 one only when it needs code facts the grill did not gather.
 
+A grilling session changing a repository's glossary or ADRs works on its own
+branch in a checkout it owns (a worktree or fresh clone), never in a shared
+checkout on the default branch. Domain modeling edits those documents inline
+there. Each repository whose domain documents change gets one pull request
+through its normal review and merge. The grill's decision record and draft
+briefs stay in the workbench, committed directly to its default branch.
+
 The orchestrating agent, never the agent that wrote the brief, then reviews its
 evidence, scope, acceptance criteria, dependencies, and open questions. Passing
 the structure check never makes a brief hold. A brief that leaves owner intent
@@ -103,8 +110,10 @@ to open intake requests, specifications, tickets, and unrecognized issues;
 Wayfinder maps and children stay outside workflow states. The validator's own
 `needs-triage` is a fallback and never supersedes authorized readiness bound to
 the current revision, even when applied after its review. A person's later
-workflow state still supersedes readiness. A closed issue loses `needs-triage`
-and keeps its other labels and feedback unchanged.
+workflow state still supersedes readiness. A closed issue loses `needs-triage`,
+`needs-info`, `ready-for-agent`, `ready-for-human` and every `factory:*` label,
+preserving `wontfix`, category, `model:*`, unrelated labels and feedback.
+Reopening restores no removed labels; normal validation applies.
 A specification or ticket can be ready while its blockers are open.
 
 ## Development setup
@@ -215,20 +224,20 @@ verdict before committing. Otherwise finish or recover with `repo-standards adop
 using the pinned runtime once a run starts. An empty recorded change set can
 remain ready after committing; later readiness never replaces pre-commit evidence.
 
-Title it `chore: adopt <source> <version> with CLI <version>`, naming the
-source by the repository name in its URL and the versions from the record's
-Selection table, such as `chore: adopt repo-canon v0.6.0 with CLI 5.1.0`. An
-adoption is not breaking unless the maintainer judges it breaking for the
-project.
+Title it `chore: adopt <source> <version> with CLI <version>`, using the
+source URL's repository name and versions from the record's Selection table.
+An adoption is not breaking unless the maintainer judges it so.
 
-Its body is the adoption record: the output of `status --summary`, byte for
-byte, starting with its `# Repository Standards adoption record` heading. The
-record's Operations table lists the standards source's fixes and checks with
-their results. Post one check-outcomes comment with the repository's own
+Start its body with the complete `status --summary` output, byte for byte,
+including its `# Repository Standards adoption record` heading and optional
+sections. For a breaking (`!`) title, append Impact and Migration sections
+if absent. Then optionally append one `## Related issue` section outside the
+byte-preserved record, using the ordinary closing or partial-work reference.
+Squash with the complete PR body, including that relationship.
+Post one check-outcomes comment with the repository's own
 validation outcomes, confirmation of the recorded ready-to-commit verdict, and findings
 links or unfiled findings under the
-[findings rule](#findings). For a breaking (`!`) title, append Impact and Migration
-sections after the record only if it lacks them.
+[findings rule](#findings).
 Write the check-outcomes comment under the [comment rules](#comments).
 
 The Repository Standards update action uses `chore!:` titles and includes
@@ -253,10 +262,10 @@ head alongside the conditions below.
 
 Merge a pull request once every required check passes on its latest head and
 every review thread is answered with its fix or a reasoned decline under the
-[comment rules](#comments). The `github-repository-configuration` rules state
-when a head with no check counts as passed, and, for the optional
-repository-owned `.github/pull-request-reviewer.json`, its schema, review
-requests, and merging with or without the configured reviewer's review.
+[comment rules](#comments). Checks must include the current default branch
+under GitHub's up-to-date-branch enforcement; unconfirmed enforcement stops unattended merging. The
+`github-repository-configuration` rules define freshness, passing checks and
+reviewer policy.
 Squash-merge pull requests into their base branch, passing the subject
 `<title> (#<number>)` and the current PR body explicitly, with the body passed
 byte for byte through a file or stdin. GitHub's default squash message must
@@ -297,8 +306,9 @@ installed rules. The orchestrating agent reads the question
 first: when it can answer under the [triage](#triage) inference test, it
 answers on the issue; otherwise it puts the question in its decision inbox.
 
-If the answer changes the implementation contract, edit the contract; that
-drops readiness and requires review again.
+If the answer changes the implementation contract, have a separate writer edit
+it; await its validator notice, independent review and renewed readiness before
+continuation.
 
 An agent comments on an issue or pull request to record a decision, an outcome,
 or a question that needs an answer, never to narrate progress. Consolidate

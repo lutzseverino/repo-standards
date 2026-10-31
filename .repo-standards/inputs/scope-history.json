@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v6",
   "evidence": "historical",
-  "inspection": "sha256:0ae67604d4cfe4a49dea2e11128d7321f78df543c5f7626eec8bce4c11ffd1fd",
+  "inspection": "sha256:7876adc3ca7f08cd568f2c120ec6c0d2d784304ce8fd248edded77a54d8b7c74",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -103,6 +103,8 @@
             "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
             "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
             "docs/adr/0031-give-every-site-page-one-nav.md",
+            "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -771,6 +773,43 @@
         "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md"
       },
       {
+        "id": "typescript-astro-stack",
+        "checks": [
+          {
+            "id": "typescript-astro-stack-manifests",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-typescript-astro-stack.mjs",
+              "resources": [
+                "operations/lib/typescript-node-stack.mjs",
+                "operations/lib/stack-files.mjs",
+                "operations/lib/typescript-web-stack.mjs",
+                "operations/lib/stack-check.mjs",
+                "operations/lib/local-markdown-links.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/typescript-astro-stack.md",
+        "rules": "rules/typescript-web-stacks.md",
+        "targets": {
+          "paths": [
+            "site/package.json"
+          ],
+          "directories": []
+        }
+      },
+      {
         "id": "typescript-node-stack",
         "checks": [
           {
@@ -803,6 +842,18 @@
           ],
           "directories": []
         }
+      },
+      {
+        "id": "typescript-vite-stack",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/typescript-vite-stack.md",
+        "targets": {
+          "paths": [],
+          "directories": []
+        },
+        "no-scope": true
       },
       {
         "id": "validator-command",
@@ -1530,6 +1581,60 @@
         "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md"
       },
       {
+        "id": "typescript-astro-stack",
+        "checks": [
+          {
+            "id": "typescript-astro-stack-manifests",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-typescript-astro-stack.mjs",
+              "resources": [
+                "operations/lib/typescript-node-stack.mjs",
+                "operations/lib/stack-files.mjs",
+                "operations/lib/typescript-web-stack.mjs",
+                "operations/lib/stack-check.mjs",
+                "operations/lib/local-markdown-links.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/typescript-astro-stack.md",
+        "rules": "rules/typescript-web-stacks.md",
+        "discovery": "discovery/typescript-astro-stack.md",
+        "discovery-script": {
+          "run": {
+            "executable": "node",
+            "script": "discovery/draft-typescript-astro-stack-scope.mjs",
+            "resources": [
+              "operations/lib/typescript-node-stack.mjs",
+              "operations/lib/stack-files.mjs",
+              "operations/lib/typescript-web-stack.mjs",
+              "operations/lib/stack-scope.mjs",
+              "operations/lib/local-markdown-links.mjs"
+            ],
+            "arguments": []
+          },
+          "prerequisite": {
+            "version-arguments": [
+              "--version"
+            ],
+            "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          },
+          "timeout-seconds": 60
+        },
+        "optional": true
+      },
+      {
         "id": "typescript-node-stack",
         "checks": [
           {
@@ -1563,6 +1668,63 @@
             "script": "discovery/draft-typescript-node-stack-scope.mjs",
             "resources": [
               "operations/lib/typescript-node-stack.mjs",
+              "operations/lib/stack-files.mjs",
+              "operations/lib/typescript-web-stack.mjs",
+              "operations/lib/stack-scope.mjs",
+              "operations/lib/local-markdown-links.mjs"
+            ],
+            "arguments": []
+          },
+          "prerequisite": {
+            "version-arguments": [
+              "--version"
+            ],
+            "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          },
+          "timeout-seconds": 60
+        },
+        "optional": true
+      },
+      {
+        "id": "typescript-vite-stack",
+        "checks": [
+          {
+            "id": "typescript-vite-stack-manifests",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-typescript-vite-stack.mjs",
+              "resources": [
+                "operations/lib/typescript-node-stack.mjs",
+                "operations/lib/stack-files.mjs",
+                "operations/lib/typescript-web-stack.mjs",
+                "operations/lib/stack-check.mjs",
+                "operations/lib/local-markdown-links.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/typescript-vite-stack.md",
+        "rules": "rules/typescript-web-stacks.md",
+        "discovery": "discovery/typescript-vite-stack.md",
+        "discovery-script": {
+          "run": {
+            "executable": "node",
+            "script": "discovery/draft-typescript-vite-stack-scope.mjs",
+            "resources": [
+              "operations/lib/typescript-node-stack.mjs",
+              "operations/lib/stack-files.mjs",
+              "operations/lib/typescript-web-stack.mjs",
+              "operations/lib/stack-scope.mjs",
               "operations/lib/local-markdown-links.mjs"
             ],
             "arguments": []
@@ -1588,13 +1750,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:9bbb1b61b0df88d56c0e446db31a94a0d80576b31073b0f17a7cf072f598b667",
+    "identity": "sha256:a27fc0f3dc2ca82b7a7405b76572261e5d882f53ea154ad11e70a185381f9605",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Retain the previously confirmed docs documentation root and root GLOSSARY.md, add all current docs pages, and exclude docs/agents files owned by agent declarations. Carry the earlier exclusions of acceptance fixtures, example source inputs, packaged product skills and non-root README files; new files in those categories keep the earlier decisions. Website prose is product content, component AGENTS.md is generated-source guidance and site/test/fixtures is synthetic input; none becomes adopting-repository documentation. No documentation move or link repair is required.",
+          "coverage": "Retain the previously confirmed docs documentation root and root GLOSSARY.md, add all current docs pages, including ADRs 0032 and 0033, and exclude docs/agents files owned by agent declarations. Carry the earlier exclusions of acceptance fixtures, example source inputs, packaged product skills and non-root README files; new files in those categories keep the earlier decisions. Website prose is product content, component AGENTS.md is generated-source guidance and site/test/fixtures is synthetic input; none becomes adopting-repository documentation. No documentation move or link repair is required.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -2016,6 +2178,22 @@
               "evidence": [
                 "docs/adr/0031-give-every-site-page-one-nav.md",
                 "docs/adr/README.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0033-keep-astro-for-content-and-static-sites.md"
               ]
             },
             {
@@ -2517,7 +2695,7 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh has admin access. gh variable list returns no repository variables; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
+          "coverage": "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh is the owner's account with admin access. gh variable list returns only REPO_CANON_UPDATES=true; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
           "candidates": [],
           "unresolved": []
         },
@@ -2549,13 +2727,53 @@
           "unresolved": []
         },
         {
-          "id": "typescript-node-stack",
-          "coverage": "Drafted from manifests and workspace configuration by `discovery/draft-typescript-node-stack-scope.mjs`: one `package.json` per Project, included when it matches the stack's manifest facts and excluded naming its differences otherwise. A maintained workspace root package is a Project alongside its members; a shared-only root is not. Uncertain root membership stays unresolved. A root package without workspace members is a Project. Reviewed maintained root independently: package.json publishes the CLI via dist/cli.js, tsconfig.build.json builds src/, and root commands maintain that product. site is a separate web Project. Acceptance projects are synthetic fixtures, not maintained Projects.",
+          "id": "typescript-astro-stack",
+          "coverage": "Exactly site/package.json: the private Astro 7 and Starlight 0.42 Site whose pages are built ahead of time from repository Markdown and build-time catalogue data, with small React islands. The root CLI stays in typescript-node-stack and the acceptance fixture is excluded; no Project uses typescript-vite-stack.",
           "candidates": [
             {
               "path": "acceptance/projects/bob/package.json",
               "decision": "exclude",
-              "reason": "Synthetic parcel-queue acceptance fixture described by acceptance/README.md, not an independently maintained Project and not a workspace member.",
+              "reason": "Synthetic parcel-queue acceptance fixture described by acceptance/README.md, not an independently maintained Project and not a workspace member; excluded as a fixture, as the last adoption did.",
+              "evidence": [
+                "acceptance/README.md",
+                "acceptance/projects/bob/package.json",
+                "pnpm-workspace.yaml"
+              ]
+            },
+            {
+              "path": "package.json",
+              "decision": "exclude",
+              "reason": "The root package is the published Node.js CLI (dist/cli.js, tsconfig.build.json over src/), a typescript-node-stack Project, not a typescript-astro web Project; the scopes stay disjoint.",
+              "evidence": [
+                "package.json",
+                "src",
+                "tsconfig.build.json"
+              ]
+            },
+            {
+              "path": "site/package.json",
+              "decision": "include",
+              "reason": "A Site: astro 7.4.4 with @astrojs/starlight 0.42.8 build static pages from repository Markdown and recorded or live catalogue data, with React 19 islands; TypeScript 6.0.3 checked by astro check, Tailwind 4, the exact shadcn 4.22.1 pin with ui:add, ui:update and ui:check, and a validate script running ui:check, check, test and build:fixture.",
+              "evidence": [
+                "pnpm-lock.yaml",
+                "pnpm-workspace.yaml",
+                "site/README.md",
+                "site/astro.config.mjs",
+                "site/components.json",
+                "site/package.json"
+              ]
+            }
+          ],
+          "unresolved": []
+        },
+        {
+          "id": "typescript-node-stack",
+          "coverage": "Exactly the root package.json: the published CLI. site is a Site in typescript-astro-stack, and the acceptance projects are synthetic fixtures, not maintained Projects.",
+          "candidates": [
+            {
+              "path": "acceptance/projects/bob/package.json",
+              "decision": "exclude",
+              "reason": "Synthetic parcel-queue acceptance fixture described by acceptance/README.md, not an independently maintained Project and not a workspace member; excluded as a fixture, as the last adoption did.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/projects/bob/package.json",
@@ -2565,7 +2783,7 @@
             {
               "path": "package.json",
               "decision": "include",
-              "reason": "Maintained published CLI with its own sources, binary and build/test commands, alongside site; meets all stack manifest and contextual rules.",
+              "reason": "Maintained published CLI with its own sources, binary and build/test commands, alongside site; meets the stack's manifest facts: pnpm 11, its lockfile, Node.js 24 or 26, oxlint 1, Prettier 3 and a validate script.",
               "evidence": [
                 ".github/workflows/validate.yml",
                 "docs/development/README.md",
@@ -2579,13 +2797,59 @@
             {
               "path": "site/package.json",
               "decision": "exclude",
-              "reason": "Existing Astro website Project waits for the web stack per #326 and repo-canon#217 decision 11. It uses TypeScript 6.0.3 rather than 7 and has no validate script; excluded without changing its stack.",
+              "reason": "The Astro website is a Site in typescript-astro-stack; the scopes stay disjoint.",
               "evidence": [
+                "pnpm-lock.yaml",
+                "pnpm-workspace.yaml",
+                "site/README.md",
+                "site/astro.config.mjs",
+                "site/components.json",
                 "site/package.json"
               ]
             }
           ],
           "unresolved": []
+        },
+        {
+          "id": "typescript-vite-stack",
+          "coverage": "No App: site is a Site in typescript-astro-stack, the root is the Node.js CLI, and the acceptance fixture is no maintained Project.",
+          "candidates": [
+            {
+              "path": "acceptance/projects/bob/package.json",
+              "decision": "exclude",
+              "reason": "Synthetic parcel-queue acceptance fixture described by acceptance/README.md, not an independently maintained Project and not a workspace member; excluded as a fixture, as the last adoption did.",
+              "evidence": [
+                "acceptance/README.md",
+                "acceptance/projects/bob/package.json",
+                "pnpm-workspace.yaml"
+              ]
+            },
+            {
+              "path": "package.json",
+              "decision": "exclude",
+              "reason": "The root package is the published Node.js CLI (dist/cli.js, tsconfig.build.json over src/), a typescript-node-stack Project, not a typescript-vite web Project; the scopes stay disjoint.",
+              "evidence": [
+                "package.json",
+                "src",
+                "tsconfig.build.json"
+              ]
+            },
+            {
+              "path": "site/package.json",
+              "decision": "exclude",
+              "reason": "A Site built ahead of time by Astro, in typescript-astro-stack; not an App rendered by client-side code that owns its routing.",
+              "evidence": [
+                "pnpm-lock.yaml",
+                "pnpm-workspace.yaml",
+                "site/README.md",
+                "site/astro.config.mjs",
+                "site/components.json",
+                "site/package.json"
+              ]
+            }
+          ],
+          "unresolved": [],
+          "noScope": true
         }
       ]
     },
@@ -2689,7 +2953,7 @@
         },
         "docs/adr/0018-add-a-private-astro-site-workspace.md": {
           "type": "file",
-          "sha256": "8843db226c5e09c91966a69bbb629b968283aaa9e3376f2fee6f17651e80b03f",
+          "sha256": "ad8431da7a7093df82fa9bb46acc79c2268107f466124fdfa95f2640970deb96",
           "executable": false
         },
         "docs/adr/0019-run-declared-discovery-scripts-read-only.md": {
@@ -2754,17 +3018,27 @@
         },
         "docs/adr/0031-give-every-site-page-one-nav.md": {
           "type": "file",
-          "sha256": "11c08dcc923e721b6c6dcf4ea5c6948704116f9aa0fc30a48917c14740c6cd5a",
+          "sha256": "20671cd7186ad5b732c325d3249845c8aa8371a6ccef2421a42fd31e212766e4",
+          "executable": false
+        },
+        "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
+          "type": "file",
+          "sha256": "006eff0a983fd1c1a5812c5d26c34c036dbbd05f43dfdffdc47cb376768ad934",
+          "executable": false
+        },
+        "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
+          "type": "file",
+          "sha256": "e3ac2e95d12320525961ced10696419ebb70cfefd74ac13073d75bddc124e1b7",
           "executable": false
         },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "de2e5849cdcacf35adecb4e806077c24652c79e12194adde23af6609d11da602",
+          "sha256": "8cf18413f783a3b4c343e942201c7955f192d4b7996c59b0c418e36da5afc53f",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "43dbc36d402c9b6c76ad0315633ea3fcd72155dbcfb9ac0d3cb706a1e68b0dff",
+          "sha256": "eea2bff684f92a12eaca2d889f0fef79099c2756a3be421bb6cf24bf47b2b255",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -2899,12 +3173,17 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "c419f62106ed38ec2af9a9513ef9d93918a11b846c2e046785bf951a031b870c",
+          "sha256": "8fe7c4b90eb71356ecd1eb746b653a9911b88b985c4901460bafb1c5fc4c0163",
           "executable": false
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "8f0f623952b3d441c22f82f90e79a3072f5440444af7e5d2c062b30fb7fe595d",
+          "sha256": "e8551ff5f5ee4b75a3c6621e954b5cdfa95feacf9b0a263b947679d75439ad15",
+          "executable": false
+        },
+        "site/package.json": {
+          "type": "file",
+          "sha256": "cec149a651dbf968cc399a130e50c2013cac1a085cffa1f8a21ca582cb6f18e0",
           "executable": false
         }
       }
@@ -3219,6 +3498,22 @@
             ]
           },
           {
+            "path": "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+            "decision": "include",
+            "reason": "A file under the documentation root `docs`.",
+            "evidence": [
+              "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md"
+            ]
+          },
+          {
+            "path": "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+            "decision": "include",
+            "reason": "A file under the documentation root `docs`.",
+            "evidence": [
+              "docs/adr/0033-keep-astro-for-content-and-static-sites.md"
+            ]
+          },
+          {
             "path": "docs/adr/README.md",
             "decision": "include",
             "reason": "A file under the documentation root `docs`.",
@@ -3499,6 +3794,36 @@
         ]
       },
       {
+        "id": "typescript-astro-stack",
+        "coverage": "Drafted from manifests and workspace configuration by `discovery/draft-typescript-astro-stack-scope.mjs`: one `package.json` per Project, included when it matches the stack's manifest facts and excluded naming its differences otherwise. A maintained workspace root package is a Project alongside its members; a shared-only root is not. Uncertain root membership stays unresolved. A root package without workspace members is a Project.",
+        "candidates": [
+          {
+            "path": "package.json",
+            "decision": "exclude",
+            "reason": "`package.json` has no evidence of membership in typescript-astro; assess independently, without assigning a web stack from tool conformity alone.",
+            "evidence": [
+              "acceptance/cli.ts",
+              "package.json"
+            ]
+          },
+          {
+            "path": "site/package.json",
+            "decision": "include",
+            "reason": "Astro dependency and configuration evidence pages built ahead of time; confirm Site semantics from sources and assessment. The Project matches typescript-astro manifest facts; confirm the remaining rules through assessment.",
+            "evidence": [
+              "package.json",
+              "pnpm-lock.yaml",
+              "pnpm-workspace.yaml",
+              "site/components.json",
+              "site/package.json"
+            ]
+          }
+        ],
+        "unresolved": [
+          "Is `acceptance/projects/bob/package.json` the manifest of a maintained Project? No workspace lists it. If it is, include it when it matches the stack, or exclude it naming its differences; otherwise exclude it as no maintained Project."
+        ]
+      },
+      {
         "id": "typescript-node-stack",
         "coverage": "Drafted from manifests and workspace configuration by `discovery/draft-typescript-node-stack-scope.mjs`: one `package.json` per Project, included when it matches the stack's manifest facts and excluded naming its differences otherwise. A maintained workspace root package is a Project alongside its members; a shared-only root is not. Uncertain root membership stays unresolved. A root package without workspace members is a Project.",
         "candidates": [
@@ -3516,15 +3841,232 @@
           {
             "path": "site/package.json",
             "decision": "exclude",
-            "reason": "The Project of `site/package.json` differs from the typescript-node stack, so it stays out of the scope until a migration brings it in: Add a `validate` script to `site/package.json` that runs the Project's checks.",
+            "reason": "Astro dependency and configuration evidence pages built ahead of time; confirm Site semantics from sources and assessment. Intended stack: typescript-astro.",
             "evidence": [
-              "site/package.json"
+              "site/README.md",
+              "site/astro.config.mjs",
+              "site/package.json",
+              "site/scripts/count-adopters.ts",
+              "site/scripts/registry.mjs",
+              "site/scripts/social-image.mjs",
+              "site/scripts/translation-source.ts",
+              "site/src/components/AgentLinks.astro",
+              "site/src/components/LocaleScript.astro",
+              "site/src/components/SupportLine.astro",
+              "site/src/components/adoption-dialog.tsx",
+              "site/src/components/app/badge.ts",
+              "site/src/components/app/button.ts",
+              "site/src/components/app/card.ts",
+              "site/src/components/app/dialog.ts",
+              "site/src/components/app/dropdown-menu.ts",
+              "site/src/components/app/empty.ts",
+              "site/src/components/app/input-group.ts",
+              "site/src/components/app/kbd.ts",
+              "site/src/components/app/toggle-group.ts",
+              "site/src/components/app/tooltip.ts",
+              "site/src/components/docs-link.tsx",
+              "site/src/components/docs/Footer.astro",
+              "site/src/components/docs/Head.astro",
+              "site/src/components/docs/Header.astro",
+              "site/src/components/docs/SiteTitle.astro",
+              "site/src/components/docs/ThemeProvider.astro",
+              "site/src/components/docs/ThemeSelect.astro",
+              "site/src/components/home.tsx",
+              "site/src/components/install.tsx",
+              "site/src/components/language-menu.tsx",
+              "site/src/components/plate.tsx",
+              "site/src/components/profiles.tsx",
+              "site/src/components/rich-text.tsx",
+              "site/src/components/search.tsx",
+              "site/src/components/sign/arrow.tsx",
+              "site/src/components/sign/assembly.tsx",
+              "site/src/components/sign/face.tsx",
+              "site/src/components/sign/fit-name.ts",
+              "site/src/components/sign/posts.ts",
+              "site/src/components/sign/rail.tsx",
+              "site/src/components/sign/rig.ts",
+              "site/src/components/sign/signposts.tsx",
+              "site/src/components/sign/story.tsx",
+              "site/src/components/sign/torch.ts",
+              "site/src/components/site-nav.tsx",
+              "site/src/components/source-adoption.tsx",
+              "site/src/components/support.tsx",
+              "site/src/components/theme-toggle.tsx",
+              "site/src/components/ui/badge.tsx",
+              "site/src/components/ui/button.tsx",
+              "site/src/components/ui/card.tsx",
+              "site/src/components/ui/dialog.tsx",
+              "site/src/components/ui/dropdown-menu.tsx",
+              "site/src/components/ui/empty.tsx",
+              "site/src/components/ui/input-group.tsx",
+              "site/src/components/ui/input.tsx",
+              "site/src/components/ui/kbd.tsx",
+              "site/src/components/ui/textarea.tsx",
+              "site/src/components/ui/toggle-group.tsx",
+              "site/src/components/ui/toggle.tsx",
+              "site/src/components/ui/tooltip.tsx",
+              "site/src/i18n/choice.ts",
+              "site/src/i18n/format.ts",
+              "site/src/i18n/ids.ts",
+              "site/src/i18n/locales.ts",
+              "site/src/i18n/message.ts",
+              "site/src/i18n/pseudo.ts",
+              "site/src/i18n/translations.ts",
+              "site/src/layouts/base.astro",
+              "site/src/lib/adopter-counts.ts",
+              "site/src/lib/adopters.ts",
+              "site/src/lib/agent-pages.ts",
+              "site/src/lib/agent-paths.ts",
+              "site/src/lib/analytics.ts",
+              "site/src/lib/catalogue.ts",
+              "site/src/lib/docs-content.ts",
+              "site/src/lib/format.ts",
+              "site/src/lib/hydration.ts",
+              "site/src/lib/load-catalogue.ts",
+              "site/src/lib/search-report.ts",
+              "site/src/lib/section-ids.ts",
+              "site/src/lib/settled.ts",
+              "site/src/lib/social-image.ts",
+              "site/src/lib/source-page.ts",
+              "site/src/lib/structured-data.ts",
+              "site/src/lib/support.ts",
+              "site/src/lib/theme-core.ts",
+              "site/src/lib/theme.ts",
+              "site/src/lib/utils.ts",
+              "site/src/pages/[...locale]/how-it-works.astro",
+              "site/src/pages/[...locale]/index.astro",
+              "site/src/pages/[...locale]/sources/[owner]/[repo].astro",
+              "site/src/pages/llms.txt.ts",
+              "site/src/pages/sources.json.ts",
+              "site/src/pages/sources/[owner]/[repo]/prompt.txt.ts"
             ]
           }
         ],
         "unresolved": [
           "Is `acceptance/projects/bob/package.json` the manifest of a maintained Project? No workspace lists it. If it is, include it when it matches the stack, or exclude it naming its differences; otherwise exclude it as no maintained Project."
         ]
+      },
+      {
+        "id": "typescript-vite-stack",
+        "coverage": "Drafted from manifests and workspace configuration by `discovery/draft-typescript-vite-stack-scope.mjs`: one `package.json` per Project, included when it matches the stack's manifest facts and excluded naming its differences otherwise. A maintained workspace root package is a Project alongside its members; a shared-only root is not. Uncertain root membership stays unresolved. A root package without workspace members is a Project. No Project is included in this draft, so it proposes no scope; unresolved questions must be settled before confirming membership.",
+        "candidates": [
+          {
+            "path": "package.json",
+            "decision": "exclude",
+            "reason": "`package.json` has no evidence of membership in typescript-vite; assess independently, without assigning a web stack from tool conformity alone.",
+            "evidence": [
+              "acceptance/cli.ts",
+              "package.json"
+            ]
+          },
+          {
+            "path": "site/package.json",
+            "decision": "exclude",
+            "reason": "Astro dependency and configuration evidence pages built ahead of time; confirm Site semantics from sources and assessment. Intended stack: typescript-astro.",
+            "evidence": [
+              "site/README.md",
+              "site/astro.config.mjs",
+              "site/package.json",
+              "site/scripts/count-adopters.ts",
+              "site/scripts/registry.mjs",
+              "site/scripts/social-image.mjs",
+              "site/scripts/translation-source.ts",
+              "site/src/components/AgentLinks.astro",
+              "site/src/components/LocaleScript.astro",
+              "site/src/components/SupportLine.astro",
+              "site/src/components/adoption-dialog.tsx",
+              "site/src/components/app/badge.ts",
+              "site/src/components/app/button.ts",
+              "site/src/components/app/card.ts",
+              "site/src/components/app/dialog.ts",
+              "site/src/components/app/dropdown-menu.ts",
+              "site/src/components/app/empty.ts",
+              "site/src/components/app/input-group.ts",
+              "site/src/components/app/kbd.ts",
+              "site/src/components/app/toggle-group.ts",
+              "site/src/components/app/tooltip.ts",
+              "site/src/components/docs-link.tsx",
+              "site/src/components/docs/Footer.astro",
+              "site/src/components/docs/Head.astro",
+              "site/src/components/docs/Header.astro",
+              "site/src/components/docs/SiteTitle.astro",
+              "site/src/components/docs/ThemeProvider.astro",
+              "site/src/components/docs/ThemeSelect.astro",
+              "site/src/components/home.tsx",
+              "site/src/components/install.tsx",
+              "site/src/components/language-menu.tsx",
+              "site/src/components/plate.tsx",
+              "site/src/components/profiles.tsx",
+              "site/src/components/rich-text.tsx",
+              "site/src/components/search.tsx",
+              "site/src/components/sign/arrow.tsx",
+              "site/src/components/sign/assembly.tsx",
+              "site/src/components/sign/face.tsx",
+              "site/src/components/sign/fit-name.ts",
+              "site/src/components/sign/posts.ts",
+              "site/src/components/sign/rail.tsx",
+              "site/src/components/sign/rig.ts",
+              "site/src/components/sign/signposts.tsx",
+              "site/src/components/sign/story.tsx",
+              "site/src/components/sign/torch.ts",
+              "site/src/components/site-nav.tsx",
+              "site/src/components/source-adoption.tsx",
+              "site/src/components/support.tsx",
+              "site/src/components/theme-toggle.tsx",
+              "site/src/components/ui/badge.tsx",
+              "site/src/components/ui/button.tsx",
+              "site/src/components/ui/card.tsx",
+              "site/src/components/ui/dialog.tsx",
+              "site/src/components/ui/dropdown-menu.tsx",
+              "site/src/components/ui/empty.tsx",
+              "site/src/components/ui/input-group.tsx",
+              "site/src/components/ui/input.tsx",
+              "site/src/components/ui/kbd.tsx",
+              "site/src/components/ui/textarea.tsx",
+              "site/src/components/ui/toggle-group.tsx",
+              "site/src/components/ui/toggle.tsx",
+              "site/src/components/ui/tooltip.tsx",
+              "site/src/i18n/choice.ts",
+              "site/src/i18n/format.ts",
+              "site/src/i18n/ids.ts",
+              "site/src/i18n/locales.ts",
+              "site/src/i18n/message.ts",
+              "site/src/i18n/pseudo.ts",
+              "site/src/i18n/translations.ts",
+              "site/src/layouts/base.astro",
+              "site/src/lib/adopter-counts.ts",
+              "site/src/lib/adopters.ts",
+              "site/src/lib/agent-pages.ts",
+              "site/src/lib/agent-paths.ts",
+              "site/src/lib/analytics.ts",
+              "site/src/lib/catalogue.ts",
+              "site/src/lib/docs-content.ts",
+              "site/src/lib/format.ts",
+              "site/src/lib/hydration.ts",
+              "site/src/lib/load-catalogue.ts",
+              "site/src/lib/search-report.ts",
+              "site/src/lib/section-ids.ts",
+              "site/src/lib/settled.ts",
+              "site/src/lib/social-image.ts",
+              "site/src/lib/source-page.ts",
+              "site/src/lib/structured-data.ts",
+              "site/src/lib/support.ts",
+              "site/src/lib/theme-core.ts",
+              "site/src/lib/theme.ts",
+              "site/src/lib/utils.ts",
+              "site/src/pages/[...locale]/how-it-works.astro",
+              "site/src/pages/[...locale]/index.astro",
+              "site/src/pages/[...locale]/sources/[owner]/[repo].astro",
+              "site/src/pages/llms.txt.ts",
+              "site/src/pages/sources.json.ts",
+              "site/src/pages/sources/[owner]/[repo]/prompt.txt.ts"
+            ]
+          }
+        ],
+        "unresolved": [
+          "Is `acceptance/projects/bob/package.json` the manifest of a maintained Project? No workspace lists it. If it is, include it when it matches the stack, or exclude it naming its differences; otherwise exclude it as no maintained Project."
+        ],
+        "noScope": true
       }
     ],
     "declarations": [
@@ -3553,9 +4095,21 @@
         "executable": false
       },
       {
+        "id": "typescript-astro-stack",
+        "source": "discovery/typescript-astro-stack.md",
+        "sha256": "2c41b18bc7757bc2f6b4f26cdebec67f8c9c70b25ac636562a27843d8ba4c615",
+        "executable": false
+      },
+      {
         "id": "typescript-node-stack",
         "source": "discovery/typescript-node-stack.md",
-        "sha256": "0ac8fb30073e6b656d8456e1f0c7cd21a5e17668494402d39ee103270824e3f9",
+        "sha256": "d23ae9513f022862a8be9be8d8ca30ced7ed8febef21a27ab3b3e34cbfeba937",
+        "executable": false
+      },
+      {
+        "id": "typescript-vite-stack",
+        "source": "discovery/typescript-vite-stack.md",
+        "sha256": "d26c9725c371c74235feef40d4cfae4d6e5c5ad4d6da13e69603155cfe06d03b",
         "executable": false
       }
     ],
@@ -4063,7 +4617,7 @@
         },
         ".github/workflows/validate.yml": {
           "type": "file",
-          "sha256": "2bfc094d3f50ab633c886dba0f691d42c20a20775ad3ca21d0a6a88ffa06d212",
+          "sha256": "10552f40dcb39e13d70b287ece1e389c9554644d82470968bf8a3fa237216760",
           "executable": false
         },
         ".gitignore": {
@@ -4453,7 +5007,7 @@
         },
         "docs/adr/0018-add-a-private-astro-site-workspace.md": {
           "type": "file",
-          "sha256": "8843db226c5e09c91966a69bbb629b968283aaa9e3376f2fee6f17651e80b03f",
+          "sha256": "ad8431da7a7093df82fa9bb46acc79c2268107f466124fdfa95f2640970deb96",
           "executable": false
         },
         "docs/adr/0019-run-declared-discovery-scripts-read-only.md": {
@@ -4518,12 +5072,22 @@
         },
         "docs/adr/0031-give-every-site-page-one-nav.md": {
           "type": "file",
-          "sha256": "11c08dcc923e721b6c6dcf4ea5c6948704116f9aa0fc30a48917c14740c6cd5a",
+          "sha256": "20671cd7186ad5b732c325d3249845c8aa8371a6ccef2421a42fd31e212766e4",
+          "executable": false
+        },
+        "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
+          "type": "file",
+          "sha256": "006eff0a983fd1c1a5812c5d26c34c036dbbd05f43dfdffdc47cb376768ad934",
+          "executable": false
+        },
+        "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
+          "type": "file",
+          "sha256": "e3ac2e95d12320525961ced10696419ebb70cfefd74ac13073d75bddc124e1b7",
           "executable": false
         },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "de2e5849cdcacf35adecb4e806077c24652c79e12194adde23af6609d11da602",
+          "sha256": "8cf18413f783a3b4c343e942201c7955f192d4b7996c59b0c418e36da5afc53f",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -4543,7 +5107,7 @@
         },
         "docs/agents/project.md": {
           "type": "file",
-          "sha256": "6d3a7d29efe7a8ab34199faa7d3b509c9be674584d2f2e61ade02a683958b244",
+          "sha256": "f25e1e50e78e8976c85aa245b3aac4ff9448923b660f29c0a090cbde836cb316",
           "executable": false
         },
         "docs/agents/triage-labels.md": {
@@ -4553,7 +5117,7 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "43dbc36d402c9b6c76ad0315633ea3fcd72155dbcfb9ac0d3cb706a1e68b0dff",
+          "sha256": "eea2bff684f92a12eaca2d889f0fef79099c2756a3be421bb6cf24bf47b2b255",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -4788,12 +5352,12 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "c419f62106ed38ec2af9a9513ef9d93918a11b846c2e046785bf951a031b870c",
+          "sha256": "8fe7c4b90eb71356ecd1eb746b653a9911b88b985c4901460bafb1c5fc4c0163",
           "executable": false
         },
         "pnpm-lock.yaml": {
           "type": "file",
-          "sha256": "7cbc5cfdd9efd7b13f28cd806761e3ea5658ed0445dbf29e2653fcb0e5ac73dd",
+          "sha256": "bb1e2f0f393876e8af2c2289916bbdf9f450cb89c2559dd3640745c7496d7e13",
           "executable": false
         },
         "pnpm-workspace.yaml": {
@@ -4848,12 +5412,12 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "8f0f623952b3d441c22f82f90e79a3072f5440444af7e5d2c062b30fb7fe595d",
+          "sha256": "e8551ff5f5ee4b75a3c6621e954b5cdfa95feacf9b0a263b947679d75439ad15",
           "executable": false
         },
         "site/astro.config.mjs": {
           "type": "file",
-          "sha256": "89f74a13b7b00fa8ca33b84e4b6c844d9a74cf846131a3a04a641d88191c71c7",
+          "sha256": "c9bd2e22a9e9cfdddd8ab5efb2a479f8eb9591d2e4106e2674338e3eb9c77f56",
           "executable": false
         },
         "site/components.json": {
@@ -4883,7 +5447,7 @@
         },
         "site/package.json": {
           "type": "file",
-          "sha256": "282ada5e9e71a23824dc84886ed55861188dc926792a82bd979e584fc9c43e0d",
+          "sha256": "cec149a651dbf968cc399a130e50c2013cac1a085cffa1f8a21ca582cb6f18e0",
           "executable": false
         },
         "site/public/apple-touch-icon.png": {
@@ -5113,7 +5677,7 @@
         },
         "site/src/components/language-menu.tsx": {
           "type": "file",
-          "sha256": "e60e3fee5e2deb7cd5ff12b3e980bc41c3e7f8aab1a10fbb1b41df62e53437b6",
+          "sha256": "b4388876173e865480d77c3754eb156423ef9b62bb455fd9312b369a143ce609",
           "executable": false
         },
         "site/src/components/plate.tsx": {
@@ -5203,7 +5767,7 @@
         },
         "site/src/components/site-nav.tsx": {
           "type": "file",
-          "sha256": "10e5b1dcc3d7c7de30002409075eb02c4a1be2b66eac5d2777278293f43ff772",
+          "sha256": "c9fa9d931ab14dfc7b676a040bbf7dd722522413b102633f0119bd7a650eeb70",
           "executable": false
         },
         "site/src/components/source-adoption.tsx": {
@@ -5598,7 +6162,7 @@
         },
         "site/src/styles/global.css": {
           "type": "file",
-          "sha256": "4cdce8f83511f522ad3b70db80fcb44938c40bf9f7ae67886a6f189120dbb3c3",
+          "sha256": "df48773de5423bc7500c5377224c22f7eea60eb23f6cf5566afd9e83b0ea4cf5",
           "executable": false
         },
         "site/src/styles/plate.css": {
@@ -5633,7 +6197,7 @@
         },
         "site/test/browser.ts": {
           "type": "file",
-          "sha256": "3df177adf4db92510c614ffae14658f4354aa577125f1f3c974f58c9e90763e4",
+          "sha256": "2d567925cbeee3fd0624752abb6499b85db024569c65d103c141a0bd1b72758d",
           "executable": false
         },
         "site/test/crawlability.test.ts": {
@@ -5648,7 +6212,7 @@
         },
         "site/test/docs-palette.ts": {
           "type": "file",
-          "sha256": "cb38358d425c759bbd08e5d06d2c63dac54f2c3437edab0b367e4fb8d7eb1c06",
+          "sha256": "d468eddd73875830a9502b97720586cea6356c19cfb421c70aaf229d240fdad0",
           "executable": false
         },
         "site/test/docs-theme.test.ts": {
@@ -5658,7 +6222,7 @@
         },
         "site/test/docs.test.ts": {
           "type": "file",
-          "sha256": "391da97c7ca09ad00e7091a1e04fc7eb9ef419d60afd2df581ce292dc4c3344c",
+          "sha256": "efaf7dbcdd7e137f32303372d2d3cf4b298e57fb9a5e3a7120313afc04eeb564",
           "executable": false
         },
         "site/test/fixtures/docs/guides/nested/deep.md": {
@@ -5698,12 +6262,12 @@
         },
         "site/test/pages.test.ts": {
           "type": "file",
-          "sha256": "b8b97a57c578161df4ea417139187b421ff4a30e1cbad8d530bca3b96ff2514c",
+          "sha256": "a8cb130c32815ac8bbd123adc83ef6734da685d5a602a6838758e2f77d9169ec",
           "executable": false
         },
         "site/test/phone-layout.test.ts": {
           "type": "file",
-          "sha256": "781c6ee500fe44daf66ca886d2002a09fabe1fc90a4b82d85904569a364d054f",
+          "sha256": "1991e868c53af416e7c4e138184a213c0f7a8cf117d4f4315d9f3512fff0d5e3",
           "executable": false
         },
         "site/test/pseudo-locale.test.ts": {
@@ -6318,7 +6882,7 @@
         },
         "test/test-command.test.ts": {
           "type": "file",
-          "sha256": "fb1f3a8383bf42235f3d42a111e842303ba7c4fdda2b2605e2901a2caa7ae9ad",
+          "sha256": "1342e9cd8effb4fd94887eb92030ea32e79b08a0b8f0089d39851dfb0388c37c",
           "executable": false
         },
         "test/update-action-cli.mjs": {
@@ -6898,6 +7462,8 @@
           "docs/adr/0029-leave-archived-run-v6-reports-unread.md",
           "docs/adr/0030-localize-the-site-through-mf2-catalogs.md",
           "docs/adr/0031-give-every-site-page-one-nav.md",
+          "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+          "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -8045,7 +8611,7 @@
         },
         "info": {
           "type": "file",
-          "sha256": "321dffcb77a68a6c079d35da12944866b895b4cc9fb3b1fae72fe9468c7eafeb",
+          "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
           "executable": false
         },
         ".gitignore": {
@@ -8593,7 +9159,15 @@
     {
       "id": "documentation",
       "additions": [
-        "docs/adr/0031-give-every-site-page-one-nav.md"
+        "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
+        "docs/adr/0033-keep-astro-for-content-and-static-sites.md"
+      ],
+      "removals": []
+    },
+    {
+      "id": "typescript-astro-stack",
+      "additions": [
+        "site/package.json"
       ],
       "removals": []
     }

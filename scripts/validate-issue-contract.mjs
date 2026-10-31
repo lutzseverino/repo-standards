@@ -50,7 +50,7 @@ const contractSectionNames = new Set([
 // Whether an issue's contract is a directly authored specification: it carries
 // no Wayfinder or triage category label, and its body's recognized contract
 // headings identify a specification. Labels are names or GitHub label objects.
-function isSpecification({ labels, body }) {
+export function isSpecification({ labels, body }) {
   const names = (labels ?? []).map((label) =>
     typeof label === "string" ? label : label.name,
   );
@@ -190,15 +190,20 @@ const wayfinderChildFields = new Set(["parent", "question"]);
 // none, a `null` `commentId` to create it), and the exit code with its message.
 export function decideIssueContract(snapshot) {
   if (snapshot.issue.state === "closed") {
-    const needsTriage = (snapshot.issue.labels ?? []).some(
-      (label) => labelName(label) === "needs-triage",
-    );
+    const removeLabels = (snapshot.issue.labels ?? [])
+      .map(labelName)
+      .filter(
+        (label) =>
+          (workflowLabels.has(label) && label !== "wontfix") ||
+          label.startsWith("factory:"),
+      );
     return issueDecision({
       exitCode: 0,
-      message: needsTriage
-        ? "Skipped closed issue validation; removed needs-triage."
-        : "Skipped closed issue; issue contract validation handles open issues only.",
-      removeLabels: needsTriage ? ["needs-triage"] : [],
+      message:
+        removeLabels.length > 0
+          ? `Skipped closed issue validation; removed ${removeLabels.join(", ")}.`
+          : "Skipped closed issue; issue contract validation handles open issues only.",
+      removeLabels,
     });
   }
 
@@ -911,35 +916,16 @@ function assessReadiness({
     latestEvent.label?.name === currentReadyLabels[0]
       ? latestEvent
       : null);
-  if (
-    currentReadyLabels.length === 1 &&
-    activeApproval(
-      permissions,
+  const grant =
+    currentApproval(recorded, revision, currentReadyLabels[0], timeline) ??
+    readinessGrant(
       recorded,
+      previousFeedback,
       revision,
-      currentReadyLabels[0],
+      currentReadyLabels,
+      labelEvent,
       timeline,
-    )
-  ) {
-    return {
-      valid: true,
-      approved: true,
-      label: recorded.label,
-      reviewer: recorded.reviewer,
-      reviewEventId: recorded.reviewEventId,
-      observedEventId,
-      sourceInvalidation,
-    };
-  }
-
-  const grant = readinessGrant(
-    recorded,
-    previousFeedback,
-    revision,
-    currentReadyLabels,
-    labelEvent,
-    timeline,
-  );
+    );
   if (grant.candidate) {
     if (!grant.valid)
       return {
@@ -1053,7 +1039,7 @@ function readinessGrant(
   return { candidate: true, valid: true, label, reviewer, reviewEventId };
 }
 
-function activeApproval(permissions, recorded, revision, label, timeline) {
+function currentApproval(recorded, revision, label, timeline) {
   if (
     recorded?.status !== "approved" ||
     recorded.revision !== revision ||
@@ -1062,9 +1048,15 @@ function activeApproval(permissions, recorded, revision, label, timeline) {
     !recorded.reviewEventId ||
     !timeline.isCurrentReview(recorded.reviewEventId, label)
   ) {
-    return false;
+    return null;
   }
-  return reviewerAuthority(permissions, recorded.reviewer).authorized;
+  return {
+    candidate: true,
+    valid: true,
+    label: recorded.label,
+    reviewer: recorded.reviewer,
+    reviewEventId: recorded.reviewEventId,
+  };
 }
 
 // The creation snapshot's review of an unedited direct contract, for either the

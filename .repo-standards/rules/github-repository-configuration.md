@@ -33,11 +33,14 @@ contribution guide take precedence over its upstream Meaning column, including
 the conflicting `needs-info` and `ready-for-human` entries.
 
 For `needs-info`, follow the contribution guide's Triage section for question
-routing and its inference test. Agent work follows the agent path; where
-factory workflow rules are installed, follow them for factory pickup exclusions.
+routing and its inference test. Agent work, including work awaiting the owner's
+review, follows the contribution guide's Triage and Readiness sections for
+`ready-for-agent`. Where factory workflow rules are installed, follow their
+State labels section for factory pickup exclusions.
 
-These rules name no `factory:` label: the factory workflow rules govern who
-creates and manages the labels named by the repository's factory configuration.
+The repository owns `ready-for-agent`, provisioned by canonical-label setup.
+These rules name no `factory:` label. Where factory workflow rules are installed,
+follow them for ownership of factory state labels and skip and model labels.
 
 ## Merge settings
 
@@ -52,10 +55,73 @@ requirement is unavailable, not optional, and applies once GitHub offers
 either. GitHub runs the PR metadata validation workflow only from the default
 branch, so the check is required once the workflow is on the default branch.
 
+## Required-check freshness
+
+Every adopter requires GitHub's “Require branches to be up to date before
+merging” setting on its default branch wherever required-check enforcement is
+available: `strict: true` in classic protection, or
+`strict_required_status_checks_policy: true` in an active applicable ruleset
+with at least one required check. Checks must pass against the current default
+branch. Extra validation after concurrent merges is expected.
+
+Before unattended merging, confirm this platform enforcement through current
+GitHub policy reads. A local ancestry check alone cannot protect against a
+base advance between inspection and the merge request. Bypassable enforcement
+alone cannot provide that final guard: babysit confirms either a strict
+ruleset whose matching detail explicitly reports `current_user_can_bypass: "never"`
+for the same credential that performs the merge, or strict classic
+checks enforced for admins. The ruleset evidence concerns the merging credential:
+a hidden bypass list or a list containing other actors does not disqualify it,
+and an empty list alone does not qualify it. Other or missing caller-bypass
+values cannot confirm that ruleset's enforcement.
+Setup preserves existing bypass configuration; resolve insufficient enforcement
+with the owner rather than changing bypass policy during delivery.
+
+Unavailable, unreadable or unconfirmed freshness stops unattended merging until
+the repository is fixed. Adoption's plan limits, missing workflow and deferred
+remote setup grant no merge exception. Use the contribution guide's owner
+handoff; no best-effort merge or alternate credential is permitted.
+
+A stale PR returns to branch update and validation. Preserve its work, rebase
+or replay only its changes onto the refreshed default branch, and repeat
+required checks and applicable internal and external review on the replacement
+head. Checks from the old head never qualify the replacement. GitHub remains
+the final guard if the base advances again; bound recovery as babysit directs.
+
+## Designated owner review
+
+Owner review is required when either the authoritative implementation contract
+or the worker's handoff says so. Resolve the authoritative implementation
+contract under the contribution guide's Implementation contracts section.
+Read both sources; an omission in one does not cancel a designation in the
+other. Carry that designation and its source into the PR handoff.
+Record the designation and its source in a PR comment, including when no worker
+handoff is required.
+
+Before merging a designated PR, the merging agent verifies the owner's
+explicit approval of the current head. Record the approval's source and head
+SHA in a PR comment. Any head change requires renewed owner approval; approval
+of an earlier head does not authorize the new one. Passing checks, a configured
+external review, its absence or timeout, and an app-author review-policy skip
+never substitute for owner approval. When approval is missing, follow the
+contribution guide's owner-question handoff and leave the PR unmerged.
+
+Read these PR comments when verifying designation and current-head approval,
+including after a handoff or resumed delivery. For adoption PRs, keep both
+records in comments and preserve the body under the contribution guide's
+adoption-record contract.
+
+This gate applies in both profiles and does not assign merge ownership.
+In the standard profile, the otherwise authorized merging agent, ordinarily
+the implementing agent, enforces it. It requires no factory label, pickup or
+recovery mechanism. Where factory workflow rules are installed, follow them
+for merge ownership and approval-pause continuation. Without a designation,
+ordinary applicable merge conditions hold.
+
 ## Preserved settings
 
-The GitHub configuration changes only the labels, merge settings, and required
-check these rules name. Unrelated labels, rules, checks, and repository
+The GitHub configuration changes only the labels, merge settings, required check,
+and freshness these rules name. Unrelated labels, rules, checks, and repository
 settings stay as the repository has them.
 
 ## Installed workflow runners
@@ -103,7 +169,8 @@ cancel and rerun a job already queued on unavailable labels.
 
 ## Automated standards updates
 
-Both profiles install `.github/workflows/standards-update.yml`. Its daily
+The standard and factory profiles install
+`.github/workflows/standards-update.yml`. Its daily
 schedule and manual `workflow_dispatch` run the job only when
 `REPO_CANON_UPDATES` is `true`; installing the file opts nobody in. The job
 reads `vars.REPO_CANON_RUNS_ON`, checks out the default branch, and serializes
@@ -380,6 +447,17 @@ With other credentials, or without that notice, it applies no readiness and
 leaves readiness to the owner. The run that wrote the brief never applies its
 readiness. Readiness it applies is bound to that revision like any other, so
 an edit to the brief removes it until the new revision is reviewed.
+
+Outside repositories governed by factory workflow rules, these roles authorize
+an orchestrating agent whose account is a person, bot or App alike. It applies
+readiness through triage's bundled `ready.mjs` and requires the validator's
+approval of that same account's event for the reviewed revision; its account's
+eligibility never authorizes manual labels that bypass this command or the
+validator. Where factory workflow rules are installed, their person-only
+eligibility also applies. The command establishes that boundary from the
+selected destination's installed `.repo-standards/rules/factory-workflow.md` at
+its default-branch commit, independently of the local checkout. A failed
+identity or applicability read authorizes no readiness writes.
 
 ## Native blockers
 

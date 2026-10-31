@@ -16,6 +16,13 @@ Until the PR metadata validation workflow is on the default branch, requiring
 the check is deferred, and the next adoption or update after the workflow
 merges requires it.
 
+The fix establishes and reads back strict required-check freshness through
+classic protection or its managed ruleset when it establishes the required
+check, preserving other checks, rules and bypass settings. Changes to existing
+policy require confirmation. Adoption deferrals do not authorize unattended
+merging: unavailable, unreadable or unconfirmed freshness stops it until the
+owner fixes the repository, as the rules require.
+
 ## Remote setup
 
 The `canonical-labels` and `pull-request-integration` fixes are remote setup:
