@@ -92,6 +92,17 @@ export class Browser {
         else pending.resolve(message.result ?? {});
       }
       for (const listener of this.#listeners) listener(message);
+      // TEMPORARY #448 diagnosis: what reloads the first dev page
+      if (
+        message.method === "Runtime.consoleAPICalled" ||
+        message.method === "Runtime.exceptionThrown" ||
+        message.method === "Page.frameRequestedNavigation" ||
+        message.method === "Page.frameScheduledNavigation" ||
+        message.method === "Page.navigatedWithinDocument"
+      )
+        process.stderr.write(
+          `[diag] ${message.method} ${JSON.stringify(message.params).slice(0, 600)}\n`,
+        );
     });
   }
 
