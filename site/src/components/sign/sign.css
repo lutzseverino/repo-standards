@@ -23,7 +23,7 @@
    preserve-3d the browser hit-tested the plates unreliably while the tilt
    moved, and the link cursor flickered. The tilt writes its properties to
    the assembly every frame; they are registered as not inherited, so only
-   the tubes and the glare, which ask for them, restyle. */
+   the posts, their clamps and the glare, which ask for them, restyle. */
   @property --tilt-x {
     syntax: "<angle>";
     inherits: false;
@@ -37,7 +37,7 @@
   @property --post-hl {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 38%;
+    initial-value: 34%;
   }
   /* where the plates face the eye, in page coordinates */
   @property --gxp {
@@ -50,8 +50,20 @@
     inherits: false;
     initial-value: -9999px;
   }
-  .sign-assembly .sign-posts,
-  .sign-assembly .sign-tube {
+  /* the posts slide behind the plates as the sign turns, the highlight moves
+   round them, and their clamps turn with the sign */
+  .sign-assembly .sign-posts {
+    --tilt-x: inherit;
+    --tilt-y: inherit;
+    --post-hl: inherit;
+  }
+  .sign-assembly .sign-tube,
+  .sign-assembly .sign-clamp-band {
+    --post-hl: inherit;
+  }
+  .sign-assembly .sign-clamp {
+    --tilt-x: inherit;
+    --tilt-y: inherit;
     --post-hl: inherit;
   }
   .sign-assembly .sign-mount,
@@ -73,34 +85,293 @@
       transform: none;
     }
   }
+  /* The posts stand about 12 cm (30 px) behind the sheeting, on the rails'
+   stand-off and the clamps. As the sign turns, they slide behind the plates
+   by that depth times the sine of the turn, as a point 30 px behind the
+   plane would under the assembly's own rotateY. */
   .sign-posts {
     position: absolute;
     inset: 34px 0 0 0; /* posts start hidden behind the title plate */
     pointer-events: none;
+    translate: calc(sin(var(--tilt-y)) * -30px) 0;
   }
+  /* Fresh hot-dip galvanised tube, lit as a cylinder by the sun up and to
+   the left behind the viewer: a soft shoulder, a narrow specular line where
+   the post mirrors the sun, the terminator past the middle, the core shadow
+   and a little bounce light from the ground at the far edge. The highlight
+   (--post-hl, rig.ts) moves round the tube by half the eye's angle as the
+   sign tilts. Over it, the weld seam along the tube, the zinc's spangle,
+   crystals a few millimetres across that catch the light unevenly, and the
+   sky above and the ground below. */
   .sign-tube {
+    --spangle: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.17' numOctaves='2' seed='7' stitchTiles='stitch'/><feComponentTransfer><feFuncR type='discrete' tableValues='0.36 0.6 0.46 0.66 0.4 0.55'/><feFuncG type='discrete' tableValues='0.36 0.6 0.46 0.66 0.4 0.55'/><feFuncB type='discrete' tableValues='0.36 0.6 0.46 0.66 0.4 0.55'/><feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>");
+    --z-rim: #5d6261;
+    --z-1: #868b89;
+    --z-2: #b0b4b1;
+    --z-3: #d6d9d5;
+    --z-spec: #f8f9f5;
+    --z-4: #a3a7a5;
+    --z-term: #7b807e;
+    --z-core: #5b605f;
+    --z-bounce: #6d7271;
+    --seam-hi: rgb(255 255 255 / 0.22);
+    --seam-lo: rgb(0 0 0 / 0.16);
     position: absolute;
     top: 0;
     bottom: 0;
     width: 19px;
     transform: translateX(-50%);
-    filter: var(--post-filter);
-    background:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='160'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.05 0.012' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0.9 0 0 0 -0.25'/></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>"),
+    background-image:
       linear-gradient(
         90deg,
-        #5d615e 0%,
-        #8e928e 16%,
-        #c9ccc7 calc(var(--post-hl) - 8%),
-        #e9ebe6 var(--post-hl),
-        #b9bcb7 calc(var(--post-hl) + 10%),
-        #8a8e8a 74%,
-        #5a5e5b 100%
+        transparent 62%,
+        var(--seam-hi) 62% 65.5%,
+        var(--seam-lo) 65.5% 69%,
+        transparent 69%
+      ),
+      var(--spangle),
+      linear-gradient(
+        to bottom,
+        rgb(255 255 255 / 0.1),
+        transparent 30%,
+        transparent 65%,
+        rgb(0 0 0 / 0.14)
+      ),
+      linear-gradient(
+        90deg,
+        var(--z-rim) 0%,
+        var(--z-1) 7%,
+        var(--z-2) calc(var(--post-hl) - 15%),
+        var(--z-3) calc(var(--post-hl) - 4%),
+        var(--z-spec) var(--post-hl),
+        var(--z-3) calc(var(--post-hl) + 4%),
+        var(--z-4) 56%,
+        var(--z-term) 72%,
+        var(--z-core) 86%,
+        var(--z-bounce) 95%,
+        var(--z-rim) 100%
       );
     background-size:
-      38px 160px,
+      100% 100%,
+      64px 64px,
+      100% 100%,
       100% 100%;
-    background-blend-mode: soft-light, normal;
+    background-blend-mode: normal, soft-light, normal, normal;
+  }
+  /* at night the post is lit by the torch (below); unlit, it is only a
+   shape against the dark */
+  :root.dark .sign-tube {
+    --z-rim: #0b0d0e;
+    --z-1: #15181a;
+    --z-2: #1f2326;
+    --z-3: #292d31;
+    --z-spec: #343a3f;
+    --z-4: #1d2023;
+    --z-term: #141618;
+    --z-core: #0d0f10;
+    --z-bounce: #131517;
+    --seam-hi: rgb(255 255 255 / 0.05);
+    --seam-lo: rgb(0 0 0 / 0.3);
+  }
+  /* The plates shade the posts: by day each plate's bottom edge throws a
+   shadow about 20 px down the posts, so the gaps between plates are in
+   shade; at night only the occlusion where plate meets post is left.
+   dressPosts (posts.ts) writes one gradient for each theme, once per
+   layout. */
+  .sign-tube::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--shade-day, none);
+  }
+  :root.dark .sign-tube::before {
+    background: var(--shade-night, none);
+  }
+
+  /* ================= clamps =================
+   A cast-aluminium clamp (Klemmschelle) round each post where a plate's
+   bottom rail grips it, 60 mm (15 px) tall, its top 4 px behind the plate
+   (posts.ts). It is drawn in 3D, so it turns as the eye moves: seen from
+   below by --vx and from the side by --vy, each the clamp's own angle from
+   the eye (--vx0, --vy0, written once per layout) plus the sign's tilt, so
+   the left and right posts' clamps mirror each other. The band round the
+   tube is a cylinder, which looks the same from any side, so it stays flat
+   and only its lower edge arches up by the angle from below; the bolted
+   flanges either side are boxes with a front, an outer end and an
+   underside, with nuts standing proud of them; the band's underside shows
+   below its arch. One small 3D group per clamp, no filters. */
+  .sign-clamp {
+    position: absolute;
+    width: 36px;
+    height: 15px;
+    translate: -50% 0;
+    pointer-events: none;
+    --vx: calc(var(--tilt-x) + var(--vx0, 8deg));
+    --vy: calc(var(--tilt-y) + var(--vy0, 0deg));
+    /* band radius, tube radius, flange length, depth and height */
+    --R: 11px;
+    --r: 9.5px;
+    --L: 7px;
+    --D: 7px;
+    --H: 11px;
+    /* by day the clamps are in the plate's shadow */
+    --al-hi: #c9ccc8;
+    --al: #a3a7a4;
+    --al-mid: #858987;
+    --al-lo: #626766;
+    --al-dk: #464a49;
+    --al-sun: #b4b8b5;
+    --al-shade: #5a5f5d;
+    --al-under: #3a3e3d;
+    --nut-hi: #dadcd7;
+  }
+  :root.dark .sign-clamp {
+    --al-hi: #9a9e9b;
+    --al: #747875;
+    --al-mid: #5c605e;
+    --al-lo: #414544;
+    --al-dk: #2e3231;
+    --al-sun: #7d817e;
+    --al-shade: #3a3e3d;
+    --al-under: #222625;
+    --nut-hi: #b4b6b2;
+  }
+  .sign-clamp-lugs {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--vx)) rotateY(var(--vy));
+  }
+  .sign-clamp-lugs > i {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    backface-visibility: hidden;
+    /* each flange's centre, out from the axis */
+    --cx: calc(var(--s) * (var(--R) + var(--L) / 2));
+  }
+  .sign-clamp-l {
+    --s: -1;
+  }
+  .sign-clamp-r {
+    --s: 1;
+  }
+  .sign-clamp-front {
+    width: var(--L);
+    height: var(--H);
+    margin: calc(var(--H) / -2) 0 0 calc(var(--L) / -2);
+    transform: translateX(var(--cx)) translateY(1.5px)
+      translateZ(calc(var(--D) / 2));
+    background: linear-gradient(
+      to bottom,
+      var(--al-hi),
+      var(--al) 40%,
+      var(--al-mid)
+    );
+  }
+  .sign-clamp-end {
+    width: var(--D);
+    height: var(--H);
+    margin: calc(var(--H) / -2) 0 0 calc(var(--D) / -2);
+    transform: translateX(calc(var(--s) * (var(--R) + var(--L))))
+      translateY(1.5px) rotateY(calc(var(--s) * 90deg));
+  }
+  /* the sun is up and to the left: the left ends face it */
+  .sign-clamp-end.sign-clamp-l {
+    background: var(--al-sun);
+  }
+  .sign-clamp-end.sign-clamp-r {
+    background: var(--al-shade);
+  }
+  .sign-clamp-bottom {
+    width: var(--L);
+    height: var(--D);
+    margin: calc(var(--D) / -2) 0 0 calc(var(--L) / -2);
+    transform: translateX(var(--cx)) translateY(calc(var(--H) / 2 + 1.5px))
+      rotateX(-90deg);
+    background: var(--al-dk);
+  }
+  /* a nut stands 2 px proud of the flange: its face and, behind it, its
+   dark flank, which the face uncovers as the clamp turns */
+  .sign-clamp-nut,
+  .sign-clamp-nut-side {
+    width: 4.6px;
+    height: 4.6px;
+    margin: -2.3px 0 0 -2.3px;
+    border-radius: 1.4px;
+  }
+  .sign-clamp-nut-side {
+    transform: translateX(var(--cx)) translateY(3px)
+      translateZ(calc(var(--D) / 2 + 0.6px));
+    background: #2f3332;
+  }
+  .sign-clamp-nut {
+    transform: translateX(var(--cx)) translateY(3px)
+      translateZ(calc(var(--D) / 2 + 2px));
+    background: radial-gradient(
+      circle at 40% 35%,
+      var(--nut-hi),
+      var(--al-mid) 55%,
+      var(--al-lo)
+    );
+  }
+  /* the band: a short cylinder lit like the tube, its lower edge arched up
+   by the angle from below */
+  .sign-clamp-band,
+  .sign-clamp-under {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - var(--R));
+    width: calc(2 * var(--R));
+  }
+  .sign-clamp-band {
+    background:
+      linear-gradient(
+        to bottom,
+        transparent calc(100% - 1.5px),
+        rgb(0 0 0 / 0.25) calc(100% - 1.5px)
+      ),
+      linear-gradient(
+        90deg,
+        var(--al-lo) 0%,
+        var(--al-mid) 8%,
+        var(--al) calc(var(--post-hl) - 10%),
+        var(--al-hi) var(--post-hl),
+        var(--al) calc(var(--post-hl) + 9%),
+        var(--al-mid) 58%,
+        var(--al-lo) 80%,
+        var(--al-dk) 92%,
+        var(--al-lo) 100%
+      );
+    mask-image: radial-gradient(
+      var(--R) max(0.1px, calc(var(--R) * sin(var(--vx)))) at 50% 100%,
+      transparent 97%,
+      #000 100%
+    );
+  }
+  /* The band's underside, seen from below: the crescent between the band's
+   arched edge and the tube's, both ellipses of the same slant, in the
+   band's dark underside colour. Flat, not a ring turned in 3D, which left a
+   bright seam along the band's edge at night; it reaches a hair past the
+   band's edge to cover it. */
+  .sign-clamp-under {
+    background: var(--al-under);
+    --slant: sin(var(--vx));
+    mask-image:
+      radial-gradient(
+        calc(var(--R) + 0.3px)
+          max(0.1px, calc((var(--R) + 0.3px) * var(--slant))) at 50% 100%,
+        #000 97%,
+        transparent 100%
+      ),
+      radial-gradient(
+        var(--r) max(0.1px, calc(var(--r) * var(--slant))) at 50% 100%,
+        #000 97%,
+        transparent 100%
+      );
+    mask-composite: exclude;
   }
 
   /* A mount is one plate on the posts. */
@@ -119,11 +390,28 @@
   .sign-mount--tab + .sign-mount {
     margin-top: 0;
   }
-  /* by day the plates throw a shadow on the posts and the page */
-  :root:not(.dark) .sign-assembly .sign-face:not(.sign-face--lit) {
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.35),
-      0 10px 16px -10px rgba(0, 0, 0, 0.55);
+  /* The eye is below the sign, so under each plate it sees the underside of
+   the plate's folded aluminium edge: a dark lip, deeper the higher the
+   plate (--lip, posts.ts). By day the lip throws the plate's shadow on the
+   posts and the page. */
+  .sign-assembly {
+    --lip-top: #3e444a;
+    --lip-bottom: #737a81;
+  }
+  :root.dark .sign-assembly {
+    --lip-top: #101215;
+    --lip-bottom: #23272c;
+  }
+  .sign-assembly .sign-face-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 11px;
+    translate: 0 var(--lip, 2px);
+    background: linear-gradient(to bottom, var(--lip-top), var(--lip-bottom));
+  }
+  :root:not(.dark) .sign-assembly .sign-face-wrap::before {
+    box-shadow: 0 10px 16px -10px rgba(0, 0, 0, 0.55);
   }
 
   /* The posts end behind the guardrail, which stands in front of the hero. */
@@ -219,6 +507,36 @@
   .sign-face-wrap > * {
     grid-area: 1 / 1;
   }
+  /* A hero plate's wear: road dust settled towards its bottom, faint rain
+   runs from its top edge, and slow unevenness in the sheeting. One static
+   layer over the plate and its lit copy, faint enough to keep the copy
+   legible, as dirt dulls the retroreflection too. Plain alpha, no blend
+   mode: multiplied inside the lit copies, which repaint whenever the torch
+   moves, it cost about 60% more per frame. */
+  .sign-grime {
+    position: relative;
+    z-index: 1;
+    border-radius: 11px;
+    pointer-events: none;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='260'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.3 0.011' numOctaves='3' seed='21' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22  0 0 0 0 0.2  0 0 0 0 0.16  0.4 0 0 0 -0.24'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>")
+        0 0 / 160px 260px repeat-x,
+      linear-gradient(
+        to top,
+        rgb(72 62 46 / 0.2),
+        rgb(72 62 46 / 0.07) 22%,
+        transparent 48%
+      ),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.007' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.28  0 0 0 0 0.24  0.4 0 0 0 -0.15'/></filter><rect width='100%' height='100%' filter='url(%23b)'/></svg>")
+        0 0 / 320px 320px;
+  }
+  /* the dust shows more on white */
+  .sign-face--white ~ .sign-grime {
+    opacity: 0.75;
+  }
+  .sign-tab-face ~ .sign-grime {
+    border-radius: 9px 9px 0 0;
+  }
 
   .sign-face {
     position: relative;
@@ -271,12 +589,6 @@
   }
   :root:not(.dark) a.sign-face:focus-visible {
     box-shadow: 0 0 0 5px var(--verkehrsgelb);
-  }
-  /* the hero plates keep their shadow by day */
-  :root:not(.dark) .sign-assembly a.sign-face:focus-visible {
-    box-shadow:
-      0 0 0 5px var(--verkehrsgelb),
-      0 10px 16px -10px rgba(0, 0, 0, 0.55);
   }
   /* both copies of an arrow move together */
   .sign-face .sign-arrow {
@@ -517,6 +829,52 @@
   }
   /* plates the beam cannot reach do no work at all */
   .sign-lit-off > .sign-lit-copy {
+    display: none;
+  }
+  /* The torch lights the posts too. A post has no lit copy: it takes the
+   beam itself (rig.ts). The light is at the eye, so the post is brightest
+   down its middle, where it faces the eye, and darkens to its edges. Bare
+   zinc reflects the torch diffusely, so it stays far dimmer than the
+   retroreflective plates beside it. Masked to the beam like a lit copy. */
+  :root.dark .sign-tube::after {
+    --lx: inherit;
+    --ly: inherit;
+    --brx: inherit;
+    --bry: inherit;
+    --gain: inherit;
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: calc(0.85 * var(--gain));
+    background:
+      var(--spangle),
+      linear-gradient(
+        90deg,
+        #1e2123 0%,
+        #4a4f52 14%,
+        #7a7f81 30%,
+        #a5a9a9 43%,
+        #d6d7d2 49%,
+        #ecebe4 50.5%,
+        #c2c4c1 54%,
+        #8f9394 66%,
+        #5a5f61 82%,
+        #1f2224 100%
+      );
+    background-size:
+      64px 64px,
+      100% 100%;
+    background-blend-mode: soft-light, normal;
+    mask-image: radial-gradient(
+      var(--brx) var(--bry) at var(--lx) var(--ly),
+      #000 0%,
+      rgba(0, 0, 0, 0.85) var(--hot),
+      rgba(0, 0, 0, 0.35) 72%,
+      transparent 100%
+    );
+  }
+  .sign-tube.sign-lit-off::after {
     display: none;
   }
   /* the folded edge of a hero plate catches the beam */

@@ -6,12 +6,13 @@
 // before the first paint (`restScript`), so the page is drawn in its resting
 // state, sign at its pose and lights on, instead of flat and dark until the
 // page hydrates. It fits the list's plate names first (fit-name.ts), since
-// they set the plates' sizes, and sinks the posts behind the rail
-// (posts.ts). Hydration then writes the same values again.
+// they set the plates' sizes, sinks the posts behind the rail and dresses
+// them for the plates in front of them (posts.ts). Hydration then writes the
+// same values again.
 // The inline copy is the function's source, so `lightRig` must reference
 // nothing outside its own body.
 import { fitName } from "./fit-name";
-import { sinkPosts } from "./posts";
+import { dressPosts, sinkPosts } from "./posts";
 import { HERO_RAIL_BASE, HERO_RAIL_WIDTH, heroBend } from "./rail";
 
 export type Beam = { x: number; y: number; r: number };
@@ -41,7 +42,7 @@ export function lightRig() {
 
   type Origin = {
     el: HTMLElement;
-    /** The lit copy's frame, which reads the beam, if the plate has one. */
+    /** What reads the beam: a plate's lit copy, a post itself, or nothing. */
     rot: HTMLElement | null;
     x: number;
     y: number;
@@ -139,7 +140,10 @@ export function lightRig() {
           y: r.top + sy,
           // the layout size, for how far the beam reaches
           ...layoutSize(el),
-          rot: el.querySelector<HTMLElement>(":scope > .sign-lit-copy"),
+          // a post has no lit copy: it takes the beam itself (sign.css)
+          rot:
+            el.querySelector<HTMLElement>(":scope > .sign-lit-copy") ??
+            (el.classList.contains("sign-tube") ? el : null),
           off: false,
         };
       },
@@ -264,8 +268,11 @@ export function lightRig() {
     const s = el.style;
     s.setProperty("--tilt-x", `${at.x.toFixed(2)}deg`);
     s.setProperty("--tilt-y", `${at.y.toFixed(2)}deg`);
-    // the tube's highlight stripe follows the viewer round the cylinder
-    s.setProperty("--post-hl", `${(38 + at.y * 4).toFixed(1)}%`);
+    // the posts' highlight moves round the tube by half the eye's angle
+    s.setProperty(
+      "--post-hl",
+      `${(34 + Math.sin((at.y * Math.PI) / 180) * 30).toFixed(1)}%`,
+    );
     // glare: where the plates face the eye, in page coordinates
     const ty = (at.y * Math.PI) / 180;
     const tx = (at.x * Math.PI) / 180;
@@ -315,13 +322,16 @@ export function lightRig() {
 export const restScript = () => `(() => {
   const fitName = ${fitName.toString()};
   const sinkPosts = ${sinkPosts.toString()};
+  const dressPosts = ${dressPosts.toString()};
   const heroBend = ${heroBend.toString()};
   const settle = () => {
     document.querySelectorAll(".signpost-name").forEach((el) => fitName(el));
     const assembly = document.querySelector(".sign-assembly");
     const rail = document.querySelector("svg.sign-hero-rail");
-    if (assembly && rail)
+    if (assembly && rail) {
       sinkPosts(assembly, rail, (x) => heroBend(x, ${HERO_RAIL_WIDTH}), ${HERO_RAIL_BASE});
+      dressPosts(assembly);
+    }
   };
   const rig = (${lightRig.toString()})();
   settle();

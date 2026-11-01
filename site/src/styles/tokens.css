@@ -125,7 +125,6 @@
   --white-lit: #ffffff;
   --white-ink-lit: #1b1d1f;
 
-  --post-filter: none;
   --card-border: color-mix(in oklab, #2b2e30 18%, #f3f4f2);
   --rail-steel: #8a8f95;
   --rail-strip: #c6cace;
@@ -148,7 +147,6 @@
   --white-lit: #fffcf0;
   --white-ink-lit: #111;
 
-  --post-filter: brightness(0.3) saturate(0.5);
   --card-border: color-mix(in oklab, #e8eae7 16%, #0d0f11);
   --rail-steel: #2a2e32;
   --rail-strip: #40454a;

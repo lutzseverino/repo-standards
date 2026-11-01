@@ -43,7 +43,9 @@ development guide's [Site on a phone](../docs/development/README.md#site-on-a-ph
 describes. `browser.ts` drives the installed Chrome, Chromium or Edge through
 the DevTools protocol over Node's own WebSocket, with no browser package, and
 `layout-probe.ts` is what runs in the page to find content a phone does not
-show whole.
+show whole. `sign-clamps.test.ts` checks in the same browser that each of
+the hero sign's clamps sits on its post under its plate, at 1440 px and on a
+phone, once loaded and after a resize.
 
 `src/content.config.ts` loads `../docs/usage/**/*.md` and `../docs/adr/**/*.md`
 in place. `src/lib/docs-content.ts` supplies each file's H1 as its title before
@@ -249,7 +251,10 @@ configures shadcn's `base-nova` style with the `@/` alias from
 
 The sign art has no shadcn equivalent and lives in `src/components/sign/`:
 the sheeted plates, the LED border, the guardrail, the torch that lights them
-and the signpost list. `sign.css` styles it. The sign stylesheets, `sign.css`,
+and the signpost list. The hero assembly stands on galvanised posts 12 cm
+behind its plates, which shade them, held by cast-aluminium clamps drawn in
+3D; the eye, below the sign, sees the plates' folded edges, and road dust and
+rain runs mark the plates. `sign.css` styles it. The sign stylesheets, `sign.css`,
 `light.css`, `story.css` and `adoption-dialog.css`, sit in the `sign` cascade
 layer, which `global.css` orders after Tailwind's components and before its
 utilities, so a utility on a sign element wins. They style only classes that
@@ -276,7 +281,9 @@ same module, applies it before the first paint.
 `rig.ts` measures the lit elements and writes the beam and the sign's tilt to
 them. The page also runs it as an inline script after the markup and holds the
 first paint until it has run, so the first frame already shows the sign at
-its pose, its posts sunk behind the guardrail (`posts.ts`), the list's plate
+its pose, its posts sunk behind the guardrail and dressed for the plates in
+front of them, with the plates' shadows, the clamps and the plates' edges
+(`posts.ts`), the list's plate
 names fitted to one line (`fit-name.ts`) and the lights on, and hydration
 changes nothing.
 D-DIN PRO, under the SIL Open Font License in `public/fonts/d-din-pro/`, sets

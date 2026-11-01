@@ -32,6 +32,8 @@ type FaceProps = {
   hidden?: boolean;
   slats?: boolean;
   leds?: boolean;
+  /** Road dust and rain runs, on the hero assembly's plates. */
+  grime?: boolean;
   children: ReactNode;
 };
 
@@ -44,6 +46,7 @@ export function Face({
   hidden = false,
   slats = false,
   leds = false,
+  grime = false,
   children,
 }: FaceProps) {
   const classes = `sign-face sign-face--${kind} ${className}`;
@@ -74,6 +77,9 @@ export function Face({
           {children}
         </div>
       </div>
+      {/* one static layer over both copies, outside the lit copy, which
+          repaints whenever the torch moves */}
+      {grime && <span className="sign-grime" aria-hidden="true" />}
       {leds && (
         <span className="sign-leds" aria-hidden="true">
           <i className="spill" />

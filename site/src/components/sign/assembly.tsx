@@ -4,6 +4,7 @@
 // The sign is also the way into "How it works": its tab, its title and its
 // notice sink it behind the guardrail and play the story in its place.
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -14,7 +15,7 @@ import type { Strings } from "@/i18n/ids";
 import { repositoryUrl, type Source } from "@/lib/catalogue";
 import { Arrow } from "./arrow";
 import { Face, Surface } from "./face";
-import { sinkPosts } from "./posts";
+import { dressPosts, sinkPosts } from "./posts";
 import {
   HERO_RAIL_BASE,
   HERO_RAIL_WIDTH,
@@ -133,9 +134,10 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
   }, [ref]);
 }
 
-/** Keeps the posts' feet behind the guardrail (posts.ts) as the page
- * changes size. */
-function useSunkPosts(
+/** Keeps the posts' feet behind the guardrail, and the plates' shadows, the
+ * clamps and the plates' edges on them (posts.ts), as the page changes
+ * size. */
+function usePostLayout(
   ref: RefObject<HTMLElement | null>,
   rail: RefObject<SVGSVGElement | null>,
 ) {
@@ -143,7 +145,10 @@ function useSunkPosts(
     const el = ref.current;
     const svg = rail.current;
     if (!el || !svg) return;
-    const place = () => sinkPosts(el, svg, railAt, HERO_RAIL_BASE);
+    const place = () => {
+      sinkPosts(el, svg, railAt, HERO_RAIL_BASE);
+      dressPosts(el);
+    };
     place();
     const ro = new ResizeObserver(place);
     ro.observe(document.body);
@@ -237,7 +242,7 @@ export function SignAssembly({
   const ref = useRef<HTMLDivElement>(null);
   const railRef = useRef<SVGSVGElement>(null);
   useTilt(ref);
-  useSunkPosts(ref, railRef);
+  usePostLayout(ref, railRef);
   // idle: the sign stands; playing: it has sunk and the story runs;
   // leaving: the story plays its entrance backwards, the floor sinking last
   // in, first out; rising: the sign comes back up as the floor goes
@@ -312,21 +317,28 @@ export function SignAssembly({
             suppressHydrationWarning
           >
             <div className="sign-posts" aria-hidden="true">
-              {/* sunk behind the rail before the page hydrates (rig.ts) */}
-              <span
-                className="sign-tube"
-                style={{ left: "21%" }}
-                suppressHydrationWarning
-              />
-              <span
-                className="sign-tube"
-                style={{ left: "79%" }}
-                suppressHydrationWarning
-              />
+              {/* sunk behind the rail and shaded by the plates before the
+                  page hydrates, and lit by the torch (rig.ts) */}
+              {POSTS.map((left) => (
+                <span
+                  key={left}
+                  className="sign-tube"
+                  style={{ left }}
+                  data-lo=""
+                  suppressHydrationWarning
+                />
+              ))}
+              {/* a clamp on each post under each plate, placed before the
+                  page hydrates (rig.ts) */}
+              {[0, 1, 2].flatMap((plate) =>
+                POSTS.map((left) => (
+                  <Clamp key={`${plate}-${left}`} plate={plate} left={left} />
+                )),
+              )}
             </div>
 
             <div className="sign-mount sign-mount--tab story-cue">
-              <Face kind="white" className="sign-tab-face" hidden>
+              <Face kind="white" className="sign-tab-face" hidden grime>
                 <span className="sign-face__inner flex items-center gap-1.5">
                   {strings["sign.story.tab"]}
                   <Arrow size={16} />
@@ -352,6 +364,7 @@ export function SignAssembly({
                 as="h1"
                 kind="blue"
                 slats
+                grime
                 className="px-8 pb-6 pt-7 md:px-10"
               >
                 <span className="sign-face__inner block text-[42px] font-bold leading-none md:text-[62px]">
@@ -370,6 +383,7 @@ export function SignAssembly({
                 href={repositoryUrl(start)}
                 slats
                 leds
+                grime
                 label={startLabel}
                 className="px-6 pb-5 pt-5 md:px-8"
               >
@@ -399,6 +413,7 @@ export function SignAssembly({
               <Face
                 as="p"
                 kind="white"
+                grime
                 className="px-6 py-4 text-[16px] font-medium leading-snug md:text-[17px]"
               >
                 <span className="sign-face__inner block">
@@ -421,6 +436,38 @@ export function SignAssembly({
       </div>
       <HeroRail ref={railRef} beat={phase === "playing" ? beat : null} />
     </>
+  );
+}
+
+/** The posts' centres across the assembly. */
+const POSTS = ["21%", "79%"];
+const SIDES = ["sign-clamp-l", "sign-clamp-r"];
+
+/** A cast-aluminium clamp round a post under a plate, drawn in 3D
+ * (sign.css): the bolted flanges either side as boxes, with nuts standing
+ * proud of them, the band round the tube and the band's underside. */
+function Clamp({ plate, left }: { plate: number; left: string }) {
+  return (
+    <span
+      className="sign-clamp"
+      data-plate={plate}
+      style={{ left }}
+      suppressHydrationWarning
+    >
+      <i className="sign-clamp-lugs">
+        {SIDES.map((side) => (
+          <Fragment key={side}>
+            <i className={`sign-clamp-end ${side}`} />
+            <i className={`sign-clamp-bottom ${side}`} />
+            <i className={`sign-clamp-front ${side}`} />
+            <i className={`sign-clamp-nut-side ${side}`} />
+            <i className={`sign-clamp-nut ${side}`} />
+          </Fragment>
+        ))}
+      </i>
+      <i className="sign-clamp-band" />
+      <i className="sign-clamp-under" />
+    </span>
   );
 }
 
