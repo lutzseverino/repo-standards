@@ -88,7 +88,7 @@ Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checkin
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. The site's
 tests use Node's built-in test runner; no site test framework is installed.
-Their phone-layout check uses the Google Chrome that GitHub's runners carry,
+Their phone-layout and sign-clamp checks use the Google Chrome that GitHub's runners carry,
 in these jobs and in the macOS validation after merge. The CLI's tests pack and
 install the npm package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through

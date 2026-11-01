@@ -427,6 +427,11 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // one space on a homepage with no <pre> or <textarea>, and a space between
   // </body> and </html>. The Astro 6 fixture build at 2ba1c50 gives the same
   // hash under these rules.
+  // Since #461 the hero sign is drawn as a roadside assembly: its posts take
+  // the torch's beam themselves, a clamp holds each post under each plate,
+  // the hero plates carry a layer of grime, and the rest script inlines the
+  // posts' layout pass, which places the clamps and the plates' shadows and
+  // edges. sign-clamps.test.ts checks where the clamps sit.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -483,7 +488,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "d6a096116c6bd0a4bbe10602001a6fef3c868fd0a178b00d09a10a5205a39905",
+    "4dd33eca075a5b1b18014e9015d0fb97fd5c21dfb3352a4f36bc69597f021420",
   );
 });
 
