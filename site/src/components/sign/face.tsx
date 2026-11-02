@@ -18,7 +18,8 @@ export function Surface({
     <span className="sign-sheet" aria-hidden="true">
       <i className="seal" />
       {slats && <i className="slats" />}
-      {lit && <i className="rainbow" />}
+      {/* lit before the page hydrates (rig.ts) */}
+      {lit && <i className="rainbow" suppressHydrationWarning />}
     </span>
   );
 }
@@ -71,9 +72,14 @@ export function Face({
         suppressHydrationWarning
       >
         <div className={`${classes} sign-face--lit`}>
+          {/* the lit layers take the beam and the tilt themselves, before
+              the page hydrates too (rig.ts) */}
+          <i className="sign-lit-streak" suppressHydrationWarning />
           <Surface slats={slats} lit />
-          <i className="sign-lit-glint" />
-          <i className="sign-glare" />
+          <i className="sign-lit-glint" suppressHydrationWarning>
+            <i />
+          </i>
+          <i className="sign-glare" suppressHydrationWarning />
           {children}
         </div>
       </div>

@@ -26,9 +26,28 @@
     /* the width of the border it lights, shadcn's 1px */
     --edge: 1px;
   }
+  /* The ring's centre and radius. The torch writes them to each component
+   every frame (rig.ts); they are not inherited, so a write restyles the
+   component and its ring, not everything inside it. Before the page
+   hydrates the ring takes the root's --px, --py and --edge-r instead. */
+  @property --lit-x {
+    syntax: "*";
+    inherits: false;
+  }
+  @property --lit-y {
+    syntax: "*";
+    inherits: false;
+  }
+  @property --lit-r {
+    syntax: "*";
+    inherits: false;
+  }
   /* the ring lies on the component's own border, so it shares its corners */
   .sign-page [data-slot="input-group"]::before,
   .sign-page [data-slot="toggle-group-item"]::before {
+    --lit-x: inherit;
+    --lit-y: inherit;
+    --lit-r: inherit;
     content: "";
     position: absolute;
     inset: calc(-1 * var(--edge));
@@ -37,7 +56,8 @@
     pointer-events: none;
     z-index: 1;
     background: radial-gradient(
-        circle var(--edge-r, 400px) at var(--px) var(--py),
+        circle var(--lit-r, var(--edge-r, 400px)) at var(--lit-x, var(--px))
+          var(--lit-y, var(--py)),
         var(--edge-hot) 0%,
         var(--edge-warm) 30%,
         var(--edge-pink) var(--ring-in),

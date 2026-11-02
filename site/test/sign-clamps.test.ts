@@ -6,6 +6,12 @@
 // plates' heights. The page is drawn with reduced motion, so the sign stands
 // untilted and the boxes measured are the layout's.
 //
+// Each clamp is a 3D object seen without perspective, which the tilt
+// (rig.ts) draws flat: each face of its flanges with the 2D transform that
+// turning it in 3D would give it. The file checks every face against the
+// browser's own 3D transform for the clamp's turn, at its own angles from
+// the eye and at angles the tilt can add to them.
+//
 // The browser is the one `browser.ts` finds; without one this file skips,
 // except in CI.
 import assert from "node:assert/strict";
@@ -165,6 +171,117 @@ for (const width of WIDTHS)
           await measure(tab),
           `${width} px, resized from ${from} px`,
         );
+      } finally {
+        await tab.close();
+      }
+    },
+  );
+
+/** Each face of each clamp's flanges, where it is drawn, and where the
+ * browser draws it turned in 3D: rotateX by the angle the clamp is seen from
+ * below, rotateY by the angle from the side, then the face's own place on
+ * the clamp, flattened onto the page. `angles` sets every clamp's own
+ * angles first, as the layout pass would, and has the tilt draw them. */
+const faces = (tab: Tab, angles: [number, number] | null) =>
+  tab.evaluate(async (angles) => {
+    const clamps = [
+      ...document.querySelectorAll<HTMLElement>(".sign-assembly .sign-clamp"),
+    ];
+    if (angles) {
+      for (const c of clamps) {
+        c.dataset.vx0 = String(angles[0]);
+        c.dataset.vy0 = String(angles[1]);
+      }
+      // the tilt draws again on resize, without a new layout
+      window.dispatchEvent(new Event("resize"));
+    }
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+    const px = (el: Element, name: string) =>
+      parseFloat(getComputedStyle(el).getPropertyValue(name));
+    return clamps.flatMap((c, i) => {
+      const [R, L, D, H] = ["--R", "--L", "--D", "--H"].map((n) => px(c, n));
+      const vx = Number(c.dataset.vx0);
+      const vy = Number(c.dataset.vy0);
+      const box = c.getBoundingClientRect();
+      const centre = [box.left + box.width / 2, box.top + box.height / 2];
+      return [...c.querySelectorAll<HTMLElement>(".sign-clamp-lugs > i")].map(
+        (face) => {
+          const s = face.classList.contains("sign-clamp-l") ? -1 : 1;
+          const kind = face.classList[0].replace("sign-clamp-", "");
+          const x = s * (R + L / 2);
+          const place = {
+            front: `translate3d(${x}px, 1.5px, ${D / 2}px)`,
+            end: `translate3d(${s * (R + L)}px, 1.5px, 0) rotateY(${s * 90}deg)`,
+            bottom: `translate3d(${x}px, ${H / 2 + 1.5}px, 0) rotateX(-90deg)`,
+            "nut-side": `translate3d(${x}px, 3px, ${D / 2 + 0.6}px)`,
+            nut: `translate3d(${x}px, 3px, ${D / 2 + 2}px)`,
+          }[kind];
+          const turned = new DOMMatrix(
+            `rotateX(${vx}deg) rotateY(${vy}deg) ${place}`,
+          );
+          const w = px(face, "width") / 2;
+          const h = px(face, "height") / 2;
+          const corners = [
+            [-w, -h],
+            [w, -h],
+            [w, h],
+            [-w, h],
+          ].map(([cx, cy]) => turned.transformPoint(new DOMPoint(cx, cy, 0)));
+          const r = face.getBoundingClientRect();
+          return {
+            name: `clamp ${i + 1}, ${kind} ${s < 0 ? "left" : "right"}`,
+            drawn: [
+              r.left - centre[0],
+              r.top - centre[1],
+              r.right - centre[0],
+              r.bottom - centre[1],
+            ],
+            turned: [
+              Math.min(...corners.map((p) => p.x)),
+              Math.min(...corners.map((p) => p.y)),
+              Math.max(...corners.map((p) => p.x)),
+              Math.max(...corners.map((p) => p.y)),
+            ],
+            // the face's own z axis, turned, still points to the eye
+            facing: turned.m33 > 0,
+            shown: getComputedStyle(face).visibility !== "hidden",
+            arch: [
+              px(c.querySelector(".sign-clamp-band")!, "--vx"),
+              px(c.querySelector(".sign-clamp-under")!, "--vx"),
+              vx,
+            ],
+          };
+        },
+      );
+    });
+  }, angles);
+
+for (const width of [1440, 320])
+  test(
+    `each clamp's faces are drawn where the clamp turned in 3D shows them at ${width} px`,
+    { skip },
+    async () => {
+      const tab = await open(width);
+      try {
+        // the clamps' own angles, then the tilt's extremes added to them:
+        // from the side either way, and from above, where the underside
+        // turns away
+        for (const angles of [null, [12, 21], [-3, -21]] as const) {
+          const seen = await faces(tab, angles && [...angles]);
+          assert.equal(seen.length, 60, `${width} px: ten faces on six clamps`);
+          for (const face of seen) {
+            const at = `${width} px, ${angles ? `turned ${angles.join(", ")}` : "at rest"}, ${face.name}`;
+            for (const [i, edge] of face.drawn.entries())
+              assert.ok(
+                Math.abs(edge - face.turned[i]) < 0.02,
+                `${at}: drawn at ${face.drawn.join(", ")}, turned in 3D ${face.turned.join(", ")}`,
+              );
+            assert.equal(face.shown, face.facing, `${at}: shown as it faces`);
+            // the band's lower edge arches by the angle from below
+            for (const vx of face.arch.slice(0, 2))
+              assert.ok(Math.abs(vx - face.arch[2]) < 0.01, `${at}: ${vx}`);
+          }
+        }
       } finally {
         await tab.close();
       }

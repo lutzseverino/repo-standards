@@ -13,12 +13,15 @@
 // Performance: positions are measured once into cached origins (`data-lo`)
 // and refreshed only when layout changes. Each frame writes the beam's custom
 // properties only to the elements that read them: the lit copy of each plate
-// the beam reaches, in that plate's own coordinates, and the lit edges of
-// shadcn components. Writing them to the root would restyle the whole page
-// every frame. Plates far from the beam or off screen switch their lit copy
-// off and get no writes. The page-wide layers are window-sized and paint
-// their disc where the torch tells them; see light.css for why they never
-// scale.
+// the beam reaches and the lit layers drawn in it, in that plate's own
+// coordinates, the posts, and the lit edges of shadcn components. Writing them
+// to the root would restyle the whole page every frame, and so would an
+// element's children that inherit them. Plates the beam's footprint misses,
+// and plates off screen, switch their lit copy off and get no writes. Nothing
+// in a frame reads the layout: the rig reads the window's size and scroll
+// when they change.
+// The page-wide layers are window-sized and paint their disc where the torch
+// tells them; see light.css for why they never scale.
 import { useEffect } from "react";
 import type { Theme } from "@/lib/theme";
 import { lightRig } from "./rig";
@@ -185,11 +188,15 @@ export function useTorch(theme: Theme | null) {
       const at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       aim(at.x, at.y, at);
     };
-    const onScroll = () => apply();
+    const onScroll = () => {
+      rig.look();
+      apply();
+    };
     const touchFirst = window.matchMedia(rig.TOUCH_FIRST);
     // a flood sized for a smaller window would show its edge in a larger one,
     // and a fixed beam belongs to the window's new width
     const onResize = () => {
+      rig.look();
       if (flooded) {
         const entry = rig.start();
         tgt.r = cur.r = entry.r;

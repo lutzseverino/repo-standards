@@ -39,11 +39,19 @@ export function lightRig() {
   /** The shadcn components whose edges light.css lights, by their data-slot. */
   const LIT_EDGES =
     '.sign-page [data-slot="input-group"], .sign-page [data-slot="toggle-group-item"]';
+  /** The layers inside a plate's lit copy that read the beam, where they are
+   * drawn: the rainbow ring, the glints and, by day, the sun's streak. */
+  const LIT_LAYERS = ".rainbow, .sign-lit-glint, .sign-lit-streak";
 
   type Origin = {
     el: HTMLElement;
-    /** What reads the beam: a plate's lit copy, a post itself, or nothing. */
-    rot: HTMLElement | null;
+    /** What the beam lights: a plate's lit copy, a post itself, or
+     * nothing. */
+    lit: HTMLElement | null;
+    /** The layers in a lit copy that read the beam where they are drawn.
+     * Each takes the beam itself, so a write restyles only the elements that
+     * draw it. */
+    inside: HTMLElement[];
     x: number;
     y: number;
     w: number;
@@ -51,12 +59,53 @@ export function lightRig() {
     off: boolean;
   };
   type Rail = { x: number; y: number; grads: SVGRadialGradientElement[] };
+  /** A face of a clamp's flange: its two axes and its centre, in px from
+   * the clamp's centre, in the clamp's own space: x right, y down, z towards
+   * the eye. */
+  type Face = {
+    el: HTMLElement;
+    u: number[];
+    v: number[];
+    at: number[];
+    shown: boolean;
+  };
+  type Clamp = {
+    el: HTMLElement;
+    band: HTMLElement | null;
+    under: HTMLElement | null;
+    faces: Face[];
+  };
+  /** The assembly and what in it reads the tilt (sign.css). */
+  type Tilted = {
+    el: HTMLElement;
+    posts: HTMLElement[];
+    tubes: HTMLElement[];
+    glares: HTMLElement[];
+    clamps: Clamp[];
+  };
 
   let origins: Origin[] = [];
   let rails: Rail[] = [];
   // page-wide layers: discs of diameter data-light-layer × the beam radius
   let layers: HTMLElement[] = [];
   let edges: HTMLElement[] = [];
+  /** The names the edges take the ring's centre and radius under
+   * (light.css): on each edge, names only its ring reads; on the root before
+   * the page hydrates, names every edge inherits. */
+  let ring = ["--lit-x", "--lit-y", "--lit-r"];
+  let tilted: Tilted | null = null;
+  /** The window's size and scroll position, read by `look` when they can
+   * change, never by the per-frame writers: the torch and the tilt write in
+   * the same frame, and a read after the other's writes restyles the page
+   * there and then. */
+  const view = { w: 0, h: 0, sx: 0, sy: 0 };
+  const look = () => {
+    view.w = window.innerWidth;
+    view.h = window.innerHeight;
+    view.sx = window.scrollX;
+    view.sy = window.scrollY;
+  };
+  look();
 
   const reduced = () =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -128,12 +177,15 @@ export function lightRig() {
   /** Measures the lit elements' positions into cached origins and returns
    * the plates, whose later size changes need a new measurement. */
   function measure() {
-    const sx = window.scrollX;
-    const sy = window.scrollY;
+    look();
+    const { sx, sy } = view;
+    // what is drawn: a layer a theme or a place hides reads nothing
+    const shown = (el: HTMLElement) => getComputedStyle(el).display !== "none";
     // read everything first, then write, so layout is computed once
     const next = [...document.querySelectorAll<HTMLElement>("[data-lo]")].map(
       (el) => {
         const r = el.getBoundingClientRect();
+        const copy = el.querySelector<HTMLElement>(":scope > .sign-lit-copy");
         return {
           el,
           x: r.left + sx,
@@ -141,9 +193,10 @@ export function lightRig() {
           // the layout size, for how far the beam reaches
           ...layoutSize(el),
           // a post has no lit copy: it takes the beam itself (sign.css)
-          rot:
-            el.querySelector<HTMLElement>(":scope > .sign-lit-copy") ??
-            (el.classList.contains("sign-tube") ? el : null),
+          lit: copy ?? (el.classList.contains("sign-tube") ? el : null),
+          inside: copy
+            ? [...copy.querySelectorAll<HTMLElement>(LIT_LAYERS)].filter(shown)
+            : [],
           off: false,
         };
       },
@@ -162,7 +215,7 @@ export function lightRig() {
       const s = o.el.style;
       s.setProperty("--ox", `${o.x.toFixed(1)}px`);
       s.setProperty("--oy", `${o.y.toFixed(1)}px`);
-      if (o.rot) o.el.classList.remove("sign-lit-off");
+      if (o.lit) o.el.classList.remove("sign-lit-off");
     }
     origins = next;
     rails = nextRails;
@@ -174,10 +227,7 @@ export function lightRig() {
   /** Writes the beam, aimed at a point in the window, to everything it
    * lights. */
   function apply(beam: Beam) {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const sx = window.scrollX;
-    const sy = window.scrollY;
+    const { w: vw, h: vh, sx, sy } = view;
     const dx = beam.x - vw / 2;
     const dy = beam.y - vh / 2;
     const slant = Math.atan(Math.hypot(dx, dy) / EYE);
@@ -193,14 +243,13 @@ export function lightRig() {
       Math.hypot(k * major * cosA, l * minor * sinA),
       Math.hypot(k * major * sinA, l * minor * cosA),
     ];
-    const [ex, ey] = extent(1, 1);
+    const [ex, ey] = extent(1, 1).map(Math.round);
     const [hx, hy] = extent(0.55, 0.6);
     // the near side's ellipse sits towards the eye, along the beam
     const near = beam.r * 0.3 * Math.sin(slant);
     const props: [string, string][] = [
-      ["--br", `${beam.r.toFixed(0)}px`],
-      ["--brx", `${ex.toFixed(0)}px`],
-      ["--bry", `${ey.toFixed(0)}px`],
+      ["--brx", `${ex}px`],
+      ["--bry", `${ey}px`],
       ["--hrx", `${hx.toFixed(0)}px`],
       ["--hry", `${hy.toFixed(0)}px`],
       ["--hx", `${(near * cosA).toFixed(1)}px`],
@@ -213,10 +262,11 @@ export function lightRig() {
     const px = `${beam.x.toFixed(1)}px`;
     const py = `${beam.y.toFixed(1)}px`;
     const bry = `${minor.toFixed(0)}px`;
+    const [rx, ry, rr] = ring;
     for (const edge of edges) {
-      edge.style.setProperty("--px", px);
-      edge.style.setProperty("--py", py);
-      edge.style.setProperty("--edge-r", bry);
+      edge.style.setProperty(rx, px);
+      edge.style.setProperty(ry, py);
+      edge.style.setProperty(rr, bry);
     }
 
     for (const layer of layers) {
@@ -239,14 +289,17 @@ export function lightRig() {
       }
     }
 
-    // switch off lit copies that the beam cannot reach or that are off
-    // screen, and light the rest in their own coordinates
+    // A lit copy shows only inside the beam's footprint, the ellipse its
+    // mask draws round the aim point (sign.css). Switch off those whose
+    // plate the footprint misses, and those off screen, and light the rest
+    // in their own coordinates.
+    const br = `${beam.r.toFixed(0)}px`;
     for (const o of origins) {
-      if (!o.rot) continue;
-      const cx = o.x + o.w / 2;
-      const cy = o.y + o.h / 2;
-      const far =
-        Math.hypot(cx - ax, cy - ay) - Math.hypot(o.w, o.h) / 2 > major;
+      if (!o.lit) continue;
+      // the plate's point nearest the aim point, as the footprint measures
+      const nx = Math.min(Math.max(ax, o.x), o.x + o.w) - ax;
+      const ny = Math.min(Math.max(ay, o.y), o.y + o.h) - ay;
+      const far = (nx / ex) ** 2 + (ny / ey) ** 2 >= 1;
       const hidden = o.y > sy + vh || o.y + o.h < sy;
       const off = far || hidden;
       if (off !== o.off) {
@@ -255,37 +308,136 @@ export function lightRig() {
       }
       if (off) continue;
       // the aim point in plate coordinates
-      const s = o.rot.style;
-      s.setProperty("--lx", `${(ax - o.x).toFixed(1)}px`);
-      s.setProperty("--ly", `${(ay - o.y).toFixed(1)}px`);
+      const lx = `${(ax - o.x).toFixed(1)}px`;
+      const ly = `${(ay - o.y).toFixed(1)}px`;
+      const s = o.lit.style;
+      s.setProperty("--lx", lx);
+      s.setProperty("--ly", ly);
       for (const [name, value] of props) s.setProperty(name, value);
+      // the layers inside read only the aim point and the radius
+      for (const layer of o.inside) {
+        layer.style.setProperty("--lx", lx);
+        layer.style.setProperty("--ly", ly);
+        layer.style.setProperty("--br", br);
+      }
     }
   }
 
-  /** Writes the sign's tilt to the assembly, with the post highlight and the
-   * glare that follow it. */
-  function tilt(el: HTMLElement, at: Pose) {
-    const s = el.style;
-    s.setProperty("--tilt-x", `${at.x.toFixed(2)}deg`);
-    s.setProperty("--tilt-y", `${at.y.toFixed(2)}deg`);
-    // the posts' highlight moves round the tube by half the eye's angle
-    s.setProperty(
-      "--post-hl",
-      `${(34 + Math.sin((at.y * Math.PI) / 180) * 30).toFixed(1)}%`,
+  /** A clamp's band, its underside and the faces of its bolted flanges
+   * (sign.css): the band R round the post's axis, and either side a flange
+   * L long, D deep and H tall, its centre 1.5 px below the band's, with a
+   * nut standing 2 px proud of the flange's front on a flank 0.6 px proud. */
+  function clampOf(el: HTMLElement): Clamp {
+    const cs = getComputedStyle(el);
+    const [R, L, D, H] = ["--R", "--L", "--D", "--H"].map((name) =>
+      parseFloat(cs.getPropertyValue(name)),
     );
-    // glare: where the plates face the eye, in page coordinates
+    const across = [1, 0, 0];
+    const down = [0, 1, 0];
+    const faces = [
+      ...el.querySelectorAll<HTMLElement>(".sign-clamp-lugs > i"),
+    ].map((face) => {
+      const s = face.classList.contains("sign-clamp-l") ? -1 : 1;
+      const x = s * (R + L / 2);
+      const kind = face.classList[0];
+      const [u, v, at] =
+        kind === "sign-clamp-end"
+          ? // the outer end, turned to face out
+            [[0, 0, -s], down, [s * (R + L), 1.5, 0]]
+          : kind === "sign-clamp-bottom"
+            ? // the underside, turned to face down
+              [across, [0, 0, -1], [x, H / 2 + 1.5, 0]]
+            : kind === "sign-clamp-front"
+              ? [across, down, [x, 1.5, D / 2]]
+              : kind === "sign-clamp-nut-side"
+                ? [across, down, [x, 3, D / 2 + 0.6]]
+                : [across, down, [x, 3, D / 2 + 2]];
+      return { el: face, u, v, at, shown: true };
+    });
+    return {
+      el,
+      band: el.querySelector<HTMLElement>(".sign-clamp-band"),
+      under: el.querySelector<HTMLElement>(".sign-clamp-under"),
+      faces,
+    };
+  }
+
+  /** Writes the sign's tilt to the assembly, and what follows it to what in
+   * the assembly reads it, each only what it reads, so a write restyles
+   * only those. */
+  function tilt(el: HTMLElement, at: Pose) {
+    if (tilted?.el !== el) {
+      const all = (selector: string) => [
+        ...el.querySelectorAll<HTMLElement>(selector),
+      ];
+      tilted = {
+        el,
+        posts: all(".sign-posts"),
+        tubes: all(".sign-tube"),
+        glares: all(".sign-glare"),
+        clamps: all(".sign-clamp").map(clampOf),
+      };
+    }
+    const { posts, tubes, glares, clamps } = tilted;
+    const set = (els: HTMLElement[], name: string, value: string) => {
+      for (const t of els) t.style.setProperty(name, value);
+    };
     const ty = (at.y * Math.PI) / 180;
     const tx = (at.x * Math.PI) / 180;
-    const cx = window.innerWidth / 2 + window.scrollX;
-    const cy = window.innerHeight / 2 + window.scrollY;
-    s.setProperty(
+    el.style.setProperty("--tilt-x", `${at.x.toFixed(2)}deg`);
+    el.style.setProperty("--tilt-y", `${at.y.toFixed(2)}deg`);
+    // the posts slide behind the plates
+    set(posts, "--tilt-y", `${at.y.toFixed(2)}deg`);
+    // the posts' highlight moves round the tube by half the eye's angle,
+    // and round the clamps' bands with it
+    const hl = `${(34 + Math.sin(ty) * 30).toFixed(1)}%`;
+    set(tubes, "--post-hl", hl);
+    // glare: where the plates face the eye, in page coordinates
+    const cx = view.w / 2 + view.sx;
+    const cy = view.h / 2 + view.sy;
+    set(
+      glares,
       "--gxp",
       `${(cx - EYE * Math.sin(ty) * Math.cos(ty)).toFixed(1)}px`,
     );
-    s.setProperty(
+    set(
+      glares,
       "--gyp",
       `${(cy + EYE * Math.sin(tx) * Math.cos(tx)).toFixed(1)}px`,
     );
+    // Each clamp turns as the eye moves, seen from below by vx and from the
+    // side by vy: its own angles from the eye (posts.ts) plus the sign's
+    // tilt. There is no perspective, so each face of its flanges is drawn
+    // with the 2D transform that a turn in 3D would give it, and hidden when
+    // it faces away.
+    for (const clamp of clamps) {
+      const vx = at.x + Number(clamp.el.dataset.vx0 ?? 8);
+      const vy = at.y + Number(clamp.el.dataset.vy0 ?? 0);
+      const c1 = Math.cos((vy * Math.PI) / 180);
+      const s1 = Math.sin((vy * Math.PI) / 180);
+      const c2 = Math.cos((vx * Math.PI) / 180);
+      const s2 = Math.sin((vx * Math.PI) / 180);
+      // a point turned by rotateX(vx) rotateY(vy), as the page shows it
+      const seen = ([x, y, z]: number[]) => [
+        x * c1 + z * s1,
+        y * c2 + (x * s1 - z * c1) * s2,
+      ];
+      for (const face of clamp.faces) {
+        const [a, b] = seen(face.u);
+        const [c, d] = seen(face.v);
+        const [e, f] = seen(face.at);
+        const shown = a * d - b * c > 0;
+        face.el.style.transform = `matrix(${[a, b, c, d].map((n) => n.toFixed(4)).join(", ")}, ${e.toFixed(3)}, ${f.toFixed(3)})`;
+        if (shown !== face.shown) {
+          face.shown = shown;
+          face.el.style.visibility = shown ? "" : "hidden";
+        }
+      }
+      const angle = `${vx.toFixed(2)}deg`;
+      clamp.band?.style.setProperty("--post-hl", hl);
+      clamp.band?.style.setProperty("--vx", angle);
+      clamp.under?.style.setProperty("--vx", angle);
+    }
   }
 
   /** Draws the page at rest, before it hydrates: the sign at its pose and
@@ -297,10 +449,12 @@ export function lightRig() {
     if (assembly) tilt(assembly, pose());
     measure();
     edges = [document.documentElement];
+    ring = ["--px", "--py", "--edge-r"];
     apply(start());
   }
 
   return {
+    look,
     day,
     touchFirst,
     TOUCH_FIRST,

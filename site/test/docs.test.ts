@@ -432,6 +432,11 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // the hero plates carry a layer of grime, and the rest script inlines the
   // posts' layout pass, which places the clamps and the plates' shadows and
   // edges. sign-clamps.test.ts checks where the clamps sit.
+  // Since #462 each lit plate carries the sun's streak as an element and its
+  // glint's sparkle as a layer of its own, so the light moves them instead of
+  // drawing them again; the hero's stage is clipped only while the story
+  // plays; and the rest script inlines the rig that draws the clamps' faces
+  // flat. sign-clamps.test.ts checks the faces against the browser's 3D.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -488,7 +493,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "4dd33eca075a5b1b18014e9015d0fb97fd5c21dfb3352a4f36bc69597f021420",
+    "81ebd695c1a64c053e5d2574c799ddd3b775a0b8ae67d5cb932707a7e5a6f27f",
   );
 });
 
