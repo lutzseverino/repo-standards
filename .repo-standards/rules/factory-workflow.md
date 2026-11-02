@@ -18,13 +18,25 @@ sandbox access.
 ## Parent readiness
 
 A parent (a specification or any issue with sub-issues) never runs; its
-readiness releases its tickets, which each also need their own readiness. Apply the parent's
-readiness after its tickets are published, and again when a ticket is
-published later. To re-apply readiness the parent still carries, remove
-`ready-for-agent` and add it back. Apply that readiness only once the latest
-ticket link appears in the parent's timeline. Readiness recorded in the same
-second as that link holds the tickets; the factory's skip reason says to remove
-`ready-for-agent` and add it back.
+readiness releases its tickets, which each also need their own readiness.
+Parenthood grants no Agent Brief exemption: a non-specification parent labelled
+`bug` or `enhancement` needs its own complete Agent Brief and revision-bound
+readiness under the contribution guide and issue-contract validator.
+
+With complete sub-issue link actor history, later links preserve the parent's
+readiness only when every addition at or after readiness was made by a person
+the readiness policy authorizes. Bot, excluded, unauthorized, unknown or
+unreadable actors, and unknown link times, hold the parent. A later authorized
+link never cancels an earlier unauthorized one. Body edits and Agent Brief
+revisions still require the applicable review and renewed readiness.
+
+Scriptorium v2.3.0 introduced this actor-history rule. Platforms without that
+history use the latest-link-time fallback: apply the parent's readiness after
+its tickets are published, and again when a ticket is published later. To re-apply readiness the parent still
+carries, remove `ready-for-agent` and add it back, only once the latest ticket
+link appears in the parent's timeline. Readiness recorded in the same second
+as that link holds the tickets. A platform reporting no link times skips the
+link check; contract-review and authorization gates still apply.
 
 ## Model selection
 
@@ -56,6 +68,15 @@ suggested it applies no label.
 The factory runs an unlabelled ticket on the host's default model; a parent's
 label chooses none of its tickets' models.
 
+The host operator may set an optional `models.allowed` list in the host
+configuration. It is a nonempty list of unique, resolvable provider/model names without
+`@<effort>` and must include the default and retry models when set; membership
+compares provider and model, ignoring effort. An absent list adds no membership
+restriction. A `model:` label outside the list holds the issue with a visible
+model-label reason, never falling back to another model. The same hold applies
+to a relaunch whose recorded model is no longer listed. The host operator
+maintains the list; default and retry models alone do not define a catalog.
+
 The factory accepts readiness only from a person. In repositories governed by
 these rules, triage's bundled `ready.mjs` refuses GitHub App and bot accounts
 before any readiness write, even when their roles authorize review under the
@@ -86,7 +107,11 @@ question, and the factory adds `factory:running` while it holds an issue,
 pauses a run. `factory:paused` means the factory paused the run and resumes it
 by itself, and its comment on the issue says why, so nobody removes the label
 by hand. Remove `factory:failed` to run the issue again once its failure note
-or the factory's comment is dealt with.
+or the factory's comment is dealt with, subject to the existing pickup gates.
+For ordinary runs, removing `factory:needs-input` after resolving the question
+resumes the same work and PR on a current base, whether the PR is open or
+closed-unmerged. Removing `factory:failed` requests a retry, not the stopped-PR
+orchestrator handoff described below.
 
 `ready-for-human` is only for work that needs the owner's own accounts or
 credentials, or a taste call the owner reserved for themselves. Agent work the
@@ -111,7 +136,9 @@ recorded PR handoff; the issue stays open until delivery finishes. The handoff
 records the PR's current head, validation and internal review outcomes,
 outstanding findings, and any owner-review requirement with its source. The
 orchestrating agent continues `babysit` and owns the merge under the
-contribution guide and applicable review rules.
+contribution guide and applicable review rules. For a qualifying ordinary factory
+handoff, the orchestrating agent may also take merge ownership under Ordinary
+factory runs below.
 
 Apply the `github-repository-configuration` rules' Designated owner review gate
 for designation, provenance and current-head approval. The skip marker alone
@@ -135,6 +162,22 @@ Any head change returns to this approval pause until renewed approval is
 verified and recorded. This continuation requires neither owner merge, PR
 closure nor factory pickup.
 
+## Release holds
+
+In a factory repository, a release PR carries the configured
+`labels.releaseHold` label from opening until it merges or closes. Factory-profile
+label setup provisions and verifies this release-hold label. While another
+open PR carries it, the factory holds merges in that repository. Babysit also
+checks immediately before its merge write, covering a release PR opened
+mid-run and every babysit merge, including orchestrator recovery and
+handed-off worker PRs. The labelled PR is exempt from its own hold. Merges
+outside babysit are unaffected by its check.
+
+Babysit reads the hold configuration from the destination default branch at
+the same pinned revision as trusted review configuration; proposed PR changes
+cannot remove their own hold. Follow babysit's exit-9 steps to resume after
+the hold ends; a release hold is not an owner handoff.
+
 ## External review of factory pull requests
 
 Before requesting or waiting for external review, apply the optional
@@ -148,11 +191,26 @@ repository's reviewer policy.
 
 A policy skip preserves required checks and their waits, internal Standards
 and Spec reviews defined by the `github-repository-configuration` rules'
-app-author policy, merge authorization, and handling of findings that arrive.
+Internal Standards and Spec reviews section, merge authorization, and handling of findings that arrive.
 Those rules hold the skip outcome wording and internal review record;
 the contribution guide's supplied-credential restrictions still apply.
 
 ## Owner handoff and recovery
+
+The factory records actionable holds on the held issue, one marker-keyed
+comment per reason: refused readiness, a parent not ready, a model-label error
+(several labels, an unresolvable label or an unlisted model), or a repository
+paused for its configuration. Changed details update the comment in place;
+cleared reasons are marked resolved, and recurrence reuses the same comment,
+including after host restarts. Hold comments are never deleted.
+
+Open blockers, including a parent's blockers, usage drains or owner holds,
+provider caps and states already carrying labels or notices (running, paused,
+needs-input, failed and skip) remain log-only, as do transient unreadable role
+lookups. Existing awaiting-merge,
+failure, pause and close notices keep their own lifecycle. Without a cached
+valid repository configuration, the host cannot read its issues and posts no
+hold comment.
 
 When an agent needs an answer only the owner can give, follow the contribution
 guide's owner-question and comment rules and add `factory:needs-input` to the
@@ -215,19 +273,54 @@ on the superseded contract.
 If the answer leaves the contract unchanged, no new readiness cycle is required.
 
 Once the question is resolved and any required renewed readiness is recorded,
-follow the existing recovery paths below.
-With no open pull request, whoever answers, the orchestrating agent or the
-owner, removes the label to return the issue to the frontier as a fresh first
-attempt. While the run's pull request is open, removing the label starts no
-run in a repository a factory serves, and the owner, even after the
-orchestrating agent answers, either finishes the pull request by merging it, for example after
-pushing the refused change, and ensuring the issue is closed under the
-contribution guide's pull request rules, or hands it back: close it before
-removing the label, wait for `factory:running` to disappear, then remove the label so a
-fresh first attempt continues its branch.
+whoever answers, the orchestrating agent or the owner, may remove
+`factory:needs-input` to request factory resumption. The factory resumes the
+same work and PR on a current base, whether the PR is open or closed-unmerged;
+it reopens the existing PR when needed and never creates a replacement PR.
+With no PR, it continues the preserved issue work. Resumption starts a fresh
+attempt 1, subject to readiness, authorization, blockers, skip, repository,
+capacity and usage gates. Preserve committed, staged, unstaged and untracked
+work, reviews, answers and handoff context. Refresh the default branch, rebase
+or replay only the issue's changes, and revalidate before delivery; never merge
+the default branch into the issue branch. Uncertain ownership requires an
+owner handoff.
+
+A qualifying handoff is a non-skipped factory run stopped under
+`factory:needs-input` with its PR still open. An open PR under `factory:failed`
+does not qualify; removing that label requests a retry. The orchestrating agent
+may take delivery ownership of a qualifying handoff and continue `babysit`
+through its Branch-update recovery. Keep `factory:needs-input` throughout this
+delivery attempt, until merge or owner handoff, preventing concurrent factory
+resumption. Removing it requests factory resumption, not orchestrator delivery.
+Handing the PR to the owner does not itself request factory resumption; retain
+the waiting marker.
+
+Rebase onto the current default branch in a checkout it owns, never through
+GitHub update-branch. Revalidate the integrated change and repeat applicable
+internal and external review and designated current-head owner approval, under
+the contribution guide and review rules, then use babysit's merge step. One
+recovery attempt is allowed; a failed recovery or a further stale-base result
+hands the still-unmerged PR to the owner with its failure reason. Pending or
+failed checks permit no merge; obsolete-head checks and approval never qualify
+a replacement head. The supplied-credential restrictions still apply: a
+permission refusal ends the attempt without another push or identity switch.
+Record the merge outcome in a PR comment, retaining the delivered head,
+validation and applicable review results, and resulting merge commit SHA.
+Deliver several waiting PRs sequentially, refreshing the default branch for
+each PR; create no shared queue.
+
+The owner may instead finish the open PR by merging it and ensuring its issue
+closes under the contribution guide's pull request rules, or request factory
+resumption by removing `factory:needs-input` once the question and any required
+renewed readiness are resolved. No PR closure or ordered label-removal
+procedure is required. Removing `factory:failed` retries only when the existing
+pickup gates allow it; it does not grant orchestrator delivery ownership.
 
 ## Issue closure
 
-A merged pull request that leaves its issue open fails the factory run for
-good, without a retry. The contribution guide holds the issue-closing
-obligations.
+When a merged PR's body has an actual closing reference to its still-open
+issue, the factory closes the issue and clears its factory state instead of
+failing the run. A branch-name match alone grants no authority to close it:
+a merged PR without that closing reference that leaves the issue open still
+fails the run for good, without a retry. The contribution guide holds the
+issue-closing obligations.

@@ -92,6 +92,7 @@ export async function trustedReviewConfiguration(connection) {
       policy: parseFile(files.policy, policyTarget, parseReviewPolicy),
       reviewer: parseFile(files.reviewer, reviewerTarget, parseReviewer),
       evidence,
+      revision,
     };
   } catch (error) {
     if (error instanceof InvalidTrustedReviewConfiguration) throw error;

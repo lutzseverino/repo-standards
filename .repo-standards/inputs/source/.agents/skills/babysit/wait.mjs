@@ -3,7 +3,7 @@
 // Waits for a pull request's checks and the configured reviewer's review of
 // its head commit, polling through Postern. It prints nothing while waiting and one line when
 // it exits, starting with the head's full SHA, plus one line per failing
-// check, and its exit code names the outcome:
+// check or a copyable outcome template on exit 6. Its exit code names the outcome:
 //
 //   0  checks settled and the reviewer reviewed the head, or none is configured
 //   1  usage or platform error
@@ -44,6 +44,7 @@ import {
   InvalidTrustedReviewConfiguration,
   trustedReviewConfiguration,
 } from "./trusted-review-config.mjs";
+import { reviewOutcomeTemplate } from "./review-outcome.mjs";
 import {
   reviewRequestedAt,
   reviewerState,
@@ -200,6 +201,14 @@ export const report = (outcome, head) => {
   return [
     `${head}: ${line}`,
     ...outcome.failing.map((check) => `${check.name} ${check.link}`),
+    ...(outcome.code === 6
+      ? [
+          "",
+          "Post this comment after replacing both outcome placeholders:",
+          "",
+          ...reviewOutcomeTemplate(head),
+        ]
+      : []),
   ];
 };
 

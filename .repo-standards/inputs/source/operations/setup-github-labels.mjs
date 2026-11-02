@@ -163,6 +163,11 @@ async function setupLabels(request) {
             color: "c5def5",
             description: "Ready agent work the factory must not pick up",
           },
+          {
+            name: "factory:release-hold",
+            color: "c5def5",
+            description: "Hold other merges while a release PR is open",
+          },
         ]
       : canonicalLabels;
 
