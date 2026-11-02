@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 import { setTimeout as wait } from "node:timers/promises";
-import { isSpecification } from "../../../scripts/validate-issue-contract.mjs";
+import {
+  issueContractResult,
+  isSpecification,
+} from "../../../scripts/validate-issue-contract.mjs";
 import {
   connectionFor,
   executedAsScript,
@@ -9,7 +12,6 @@ import {
 } from "../babysit/platform.mjs";
 
 const readiness = new Set(["ready-for-agent", "ready-for-human"]);
-const marker = "<!-- repo-canon:issue-contract-feedback -->";
 
 // Eligibility follows installed rules in the selected destination, independently
 // of the checkout that supplies this command. Pin the default tip before reading.
@@ -114,15 +116,8 @@ async function snapshot(connection, number) {
   const issue = await tracker.issue(number);
   const comments = await tracker.comments(number);
   const events = await tracker.labelChanges(number);
-  const feedback = comments.findLast(
-    (comment) =>
-      comment.author?.login === "github-actions[bot]" &&
-      comment.body.includes(marker),
-  );
-  const encoded = /<!-- repo-canon:issue-contract-state (.+) -->/.exec(
-    feedback?.body ?? "",
-  );
-  const state = encoded ? JSON.parse(encoded[1]) : null;
+  // The validator's own reader interprets its published result.
+  const { comment: feedback, state } = issueContractResult(comments);
   const latest = events.findLast(
     (event) =>
       readiness.has(event.label) &&
@@ -152,10 +147,18 @@ function parentNeedsReapply({ issue, events }, label) {
 }
 
 function checkContract(current, revision) {
-  if (current.feedback?.body.includes("## Issue contract needs attention"))
+  if (current.state?.status === "needs-attention")
     throw new Error(`Incomplete contract.\n${current.feedback.body}`);
   if (!current.state)
-    throw new Error("The validator's contract revision notice is missing.");
+    throw new Error(
+      current.feedback
+        ? "The validator's contract result has an unknown format; update this command."
+        : "The validator's contract revision notice is missing.",
+    );
+  if (!["awaiting-review", "approved"].includes(current.state.status))
+    throw new Error(
+      "The feedback does not report a complete contract awaiting review.",
+    );
   if (current.state.revision !== revision)
     throw new Error(
       "The reviewed revision differs from the current revision; review the current notice again.",
@@ -249,15 +252,8 @@ export async function main(
     }
     const staleParent = parentNeedsReapply(before, label);
     if (
-      !(
-        before.state.status === "awaiting-review" &&
-        before.feedback.body.includes("## Issue contract awaiting review")
-      ) &&
-      !(
-        staleParent &&
-        before.state.status === "approved" &&
-        before.feedback.body.includes("## Issue contract readiness recorded")
-      )
+      before.state.status !== "awaiting-review" &&
+      !(staleParent && before.state.status === "approved")
     )
       throw new Error(
         "The feedback does not report a complete contract awaiting review.",

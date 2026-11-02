@@ -4,6 +4,8 @@ description: Turn the owner's feature or problem into an approved plan across ti
 disable-model-invocation: true
 ---
 
+A prompt or brief naming this skill is its invocation.
+
 # Orchestrate
 
 You are the orchestrating agent. Turn the owner's feature or problem into a
@@ -24,8 +26,7 @@ task context. Illustrative names include `triage repo-canon#726`,
 
 Use the capabilities available in your session to carry out the steps. An
 application may enhance orchestration; the shared method works without it.
-Keep application-specific tool mappings in the owner's own setup outside
-Repo Canon.
+Keep application-specific tool mappings out of this skill.
 
 ## Workbench
 
@@ -457,3 +458,29 @@ and losing it loses nothing: act on the files.
 
 When your harness cannot send messages between sessions, re-read the active
 plan directories at each turn, and the owner tells you when a grill is done.
+
+## Reads
+
+Repository paths are relative to each tracked repository's root, and
+workbench paths to the workbench's.
+
+- `CONTRIBUTING.md`: its Triage, Readiness, Comments, Findings and Pull
+  requests sections. When it is missing, carry out this skill's method as
+  written, and put each rule the method leaves to the guide in `inbox.md` as a
+  decision for the owner.
+- `AGENTS.md`: its Agent skills requirements for delegation and session
+  naming. When it is missing, give each launch only its task context, and name
+  each session for its operation and target where naming is supported.
+- The workbench's `index.md`, `inbox.md`, `wishes.md` and `now.md`, and each
+  plan's `<plan>/plan.md` and `<plan>/log.md`, its `retro.md` and its other
+  Markdown files: the workbench, whose format this skill owns. When the
+  workbench is missing, create it as [Workbench](#workbench) says, and create
+  a plan's files when the plan starts.
+- A tracked repository's Repository Standards adoption record: the Repo Canon
+  source its Selection names, for the `workbench` profile offer and for
+  lessons about a Repo Canon skill or rule. When it is missing, use the
+  example source the steps give.
+- The `babysit` skill: `wait.mjs` imports its GitHub CLI connection, and a
+  worker's merge resumes it. When it is missing, the wait script cannot start:
+  re-read the records at each turn, as
+  [Progress observation](#progress-observation) says.
