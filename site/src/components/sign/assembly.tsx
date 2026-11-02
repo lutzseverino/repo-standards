@@ -4,7 +4,6 @@
 // The sign is also the way into "How it works": its tab, its title and its
 // notice sink it behind the guardrail and play the story in its place.
 import {
-  Fragment,
   useEffect,
   useRef,
   useState,
@@ -40,8 +39,10 @@ export const SIGN_STRINGS = [
  * and when the pointer leaves, the sign settles into a presentational pose and
  * holds it a moment before following the pointer again. A finger is no eye:
  * it never tilts the sign. A soft spring drives the tilt; the glare of the
- * torch follows the tilt. */
+ * torch follows the tilt. It returns what draws the sign at its current
+ * tilt again, for the layout to call once it has moved the clamps. */
 function useTilt(ref: RefObject<HTMLElement | null>) {
+  const redraw = useRef(() => {});
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -62,6 +63,7 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
     let pointer = { x: 0, y: 0 };
 
     const write = () => rig.tilt(el, cur);
+    redraw.current = write;
     const step = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
       last = now;
@@ -119,27 +121,36 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
       tgt.y = rest.y;
       kick();
     };
-    const onScroll = () => write();
+    // the glare is placed in page coordinates, by the window's centre
+    const onView = () => {
+      rig.look();
+      write();
+    };
     write();
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("mouseout", onLeave);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onView, { passive: true });
+    window.addEventListener("resize", onView);
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(hold);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("mouseout", onLeave);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onView);
+      window.removeEventListener("resize", onView);
+      redraw.current = () => {};
     };
   }, [ref]);
+  return redraw;
 }
 
 /** Keeps the posts' feet behind the guardrail, and the plates' shadows, the
  * clamps and the plates' edges on them (posts.ts), as the page changes
- * size. */
+ * size. The clamps then turn from their new places (`redraw`). */
 function usePostLayout(
   ref: RefObject<HTMLElement | null>,
   rail: RefObject<SVGSVGElement | null>,
+  redraw: RefObject<() => void>,
 ) {
   useEffect(() => {
     const el = ref.current;
@@ -148,12 +159,13 @@ function usePostLayout(
     const place = () => {
       sinkPosts(el, svg, railAt, HERO_RAIL_BASE);
       dressPosts(el);
+      redraw.current();
     };
     place();
     const ro = new ResizeObserver(place);
     ro.observe(document.body);
     return () => ro.disconnect();
-  }, [ref, rail]);
+  }, [ref, rail, redraw]);
 }
 
 /** The story plays on its own once per visitor, after they have been still
@@ -241,8 +253,8 @@ export function SignAssembly({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const railRef = useRef<SVGSVGElement>(null);
-  useTilt(ref);
-  usePostLayout(ref, railRef);
+  const redraw = useTilt(ref);
+  usePostLayout(ref, railRef, redraw);
   // idle: the sign stands; playing: it has sunk and the story runs;
   // leaving: the story plays its entrance backwards, the floor sinking last
   // in, first out; rising: the sign comes back up as the floor goes
@@ -299,12 +311,14 @@ export function SignAssembly({
 
   return (
     <>
-      {/* clipped along the rail, so whatever sinks or rises there vanishes
-          behind the rail and nowhere else */}
+      {/* clipped along the rail while the story is on, so whatever sinks or
+          rises there vanishes behind the rail and nowhere else. At rest the
+          rail's ground hides the posts' feet, and the clip, which the
+          compositor draws as a pass of its own every frame, is left off */}
       <div
         className="sign-hero-stage flex flex-col items-center"
         data-sunk={sunk || undefined}
-        style={{ clipPath: RAIL_CLIP }}
+        style={phase === "idle" ? undefined : { clipPath: RAIL_CLIP }}
       >
         <div
           className="sign-sink w-full max-w-[760px]"
@@ -316,7 +330,12 @@ export function SignAssembly({
             className="sign-assembly w-full max-w-[760px]"
             suppressHydrationWarning
           >
-            <div className="sign-posts" aria-hidden="true">
+            {/* slid by the tilt before the page hydrates (rig.ts) */}
+            <div
+              className="sign-posts"
+              aria-hidden="true"
+              suppressHydrationWarning
+            >
               {/* sunk behind the rail and shaded by the plates before the
                   page hydrates, and lit by the torch (rig.ts) */}
               {POSTS.map((left) => (
@@ -442,10 +461,15 @@ export function SignAssembly({
 /** The posts' centres across the assembly. */
 const POSTS = ["21%", "79%"];
 const SIDES = ["sign-clamp-l", "sign-clamp-r"];
+/** A flange's faces, in the order they are drawn: the nut over its flank,
+ * both over the front. */
+const FACES = ["end", "bottom", "front", "nut-side", "nut"];
 
 /** A cast-aluminium clamp round a post under a plate, drawn in 3D
  * (sign.css): the bolted flanges either side as boxes, with nuts standing
- * proud of them, the band round the tube and the band's underside. */
+ * proud of them, the band round the tube and the band's underside. The
+ * flanges' faces, the band and the underside turn with the tilt before the
+ * page hydrates (rig.ts). */
 function Clamp({ plate, left }: { plate: number; left: string }) {
   return (
     <span
@@ -455,18 +479,18 @@ function Clamp({ plate, left }: { plate: number; left: string }) {
       suppressHydrationWarning
     >
       <i className="sign-clamp-lugs">
-        {SIDES.map((side) => (
-          <Fragment key={side}>
-            <i className={`sign-clamp-end ${side}`} />
-            <i className={`sign-clamp-bottom ${side}`} />
-            <i className={`sign-clamp-front ${side}`} />
-            <i className={`sign-clamp-nut-side ${side}`} />
-            <i className={`sign-clamp-nut ${side}`} />
-          </Fragment>
-        ))}
+        {SIDES.flatMap((side) =>
+          FACES.map((face) => (
+            <i
+              key={`${side}-${face}`}
+              className={`sign-clamp-${face} ${side}`}
+              suppressHydrationWarning
+            />
+          )),
+        )}
       </i>
-      <i className="sign-clamp-band" />
-      <i className="sign-clamp-under" />
+      <i className="sign-clamp-band" suppressHydrationWarning />
+      <i className="sign-clamp-under" suppressHydrationWarning />
     </span>
   );
 }

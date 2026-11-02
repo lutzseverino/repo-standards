@@ -103,11 +103,11 @@ export function dressPosts(assembly: HTMLElement) {
   // Each clamp is drawn in 3D, seen from where it stands relative to the
   // eye, which is in front of the assembly's foot (its transform origin) at
   // the tilt's perspective distance: from below by the angle up to it, and
-  // from the side by the angle across to its post. The tilt adds to both,
-  // per frame, in CSS.
+  // from the side by the angle across to its post, in degrees. The tilt adds
+  // to both, per frame (rig.ts).
   const foot = assembly.offsetHeight;
   const width = assembly.offsetWidth;
-  const deg = (r: number) => `${((r * 180) / Math.PI).toFixed(2)}deg`;
+  const deg = (r: number) => ((r * 180) / Math.PI).toFixed(2);
   posts.querySelectorAll<HTMLElement>(".sign-clamp").forEach((c) => {
     const p = plates[Number(c.dataset.plate)];
     if (!p) return;
@@ -116,8 +116,8 @@ export function dressPosts(assembly: HTMLElement) {
     c.style.top = `${y.toFixed(1)}px`;
     const above = foot - (top + y + 7.5);
     const across = (parseFloat(c.style.left) / 100 - 0.5) * width;
-    c.style.setProperty("--vx0", deg(Math.atan(above / 1600)));
-    c.style.setProperty("--vy0", deg(Math.atan(across / 1600)));
+    c.dataset.vx0 = deg(Math.atan(above / 1600));
+    c.dataset.vy0 = deg(Math.atan(across / 1600));
   });
 
   // The eye is below the sign, near its foot, so it sees the underside of

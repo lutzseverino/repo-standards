@@ -45,7 +45,8 @@ the DevTools protocol over Node's own WebSocket, with no browser package, and
 `layout-probe.ts` is what runs in the page to find content a phone does not
 show whole. `sign-clamps.test.ts` checks in the same browser that each of
 the hero sign's clamps sits on its post under its plate, at 1440 px and on a
-phone, once loaded and after a resize.
+phone, once loaded and after a resize, and that each face of a clamp is drawn
+where the browser's own 3D transform of the turned clamp would show it.
 
 `src/content.config.ts` loads `../docs/usage/**/*.md` and `../docs/adr/**/*.md`
 in place. `src/lib/docs-content.ts` supplies each file's H1 as its title before

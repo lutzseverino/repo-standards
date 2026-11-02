@@ -21,9 +21,11 @@
   /* ================= hero: the sign assembly =================
    The whole assembly tilts as one flat object. It is not a 3D scene: with
    preserve-3d the browser hit-tested the plates unreliably while the tilt
-   moved, and the link cursor flickered. The tilt writes its properties to
-   the assembly every frame; they are registered as not inherited, so only
-   the posts, their clamps and the glare, which ask for them, restyle. */
+   moved, and the link cursor flickered. Every frame the tilt writes its
+   properties to the assembly and to each element in it that reads them
+   (rig.ts): the posts, their tubes, the clamps' faces, band and underside,
+   and the plates' glare. They are registered as not inherited and nothing
+   inherits them, so a write restyles only the element it is written to. */
   @property --tilt-x {
     syntax: "<angle>";
     inherits: false;
@@ -50,29 +52,11 @@
     inherits: false;
     initial-value: -9999px;
   }
-  /* the posts slide behind the plates as the sign turns, the highlight moves
-   round them, and their clamps turn with the sign */
-  .sign-assembly .sign-posts {
-    --tilt-x: inherit;
-    --tilt-y: inherit;
-    --post-hl: inherit;
-  }
-  .sign-assembly .sign-tube,
-  .sign-assembly .sign-clamp-band {
-    --post-hl: inherit;
-  }
-  .sign-assembly .sign-clamp {
-    --tilt-x: inherit;
-    --tilt-y: inherit;
-    --post-hl: inherit;
-  }
-  .sign-assembly .sign-mount,
-  .sign-assembly .sign-face-wrap,
-  .sign-assembly .sign-lit-copy,
-  .sign-assembly .sign-face--lit,
-  .sign-assembly .sign-glare {
-    --gxp: inherit;
-    --gyp: inherit;
+  /* the angle a clamp is seen from below, the tilt plus its own (below) */
+  @property --vx {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
   }
   .sign-assembly {
     position: relative;
@@ -193,22 +177,25 @@
    A cast-aluminium clamp (Klemmschelle) round each post where a plate's
    bottom rail grips it, 60 mm (15 px) tall, its top 4 px behind the plate
    (posts.ts). It is drawn in 3D, so it turns as the eye moves: seen from
-   below by --vx and from the side by --vy, each the clamp's own angle from
-   the eye (--vx0, --vy0, written once per layout) plus the sign's tilt, so
-   the left and right posts' clamps mirror each other. The band round the
-   tube is a cylinder, which looks the same from any side, so it stays flat
-   and only its lower edge arches up by the angle from below; the bolted
-   flanges either side are boxes with a front, an outer end and an
-   underside, with nuts standing proud of them; the band's underside shows
-   below its arch. One small 3D group per clamp, no filters. */
+   below and from the side, each by the clamp's own angle from the eye
+   (written once per layout) plus the sign's tilt, so the left and right
+   posts' clamps mirror each other. The band round the tube is a cylinder,
+   which looks the same from any side, so it stays flat and only its lower
+   edge arches up by the angle from below (--vx); the bolted flanges either
+   side are boxes with a front, an outer end and an underside, with nuts
+   standing proud of them; the band's underside shows below its arch. No
+   filters, and no 3D rendering: the clamps' 3D faces were composited layers
+   of their own, about seventy, which the browser layered and drew again
+   every frame. The eye sees the clamp without perspective, so the tilt
+   (rig.ts) turns each face in the clamp's space and draws it flat with the
+   2D transform that gives it, hiding the faces turned away. The faces are
+   sized and coloured here and placed there. */
   .sign-clamp {
     position: absolute;
     width: 36px;
     height: 15px;
     translate: -50% 0;
     pointer-events: none;
-    --vx: calc(var(--tilt-x) + var(--vx0, 8deg));
-    --vy: calc(var(--tilt-y) + var(--vy0, 0deg));
     /* band radius, tube radius, flange length, depth and height */
     --R: 11px;
     --r: 9.5px;
@@ -240,29 +227,17 @@
   .sign-clamp-lugs {
     position: absolute;
     inset: 0;
-    transform-style: preserve-3d;
-    transform: rotateX(var(--vx)) rotateY(var(--vy));
   }
+  /* each face centred on the clamp, which the tilt moves it out from */
   .sign-clamp-lugs > i {
     position: absolute;
     left: 50%;
     top: 50%;
-    backface-visibility: hidden;
-    /* each flange's centre, out from the axis */
-    --cx: calc(var(--s) * (var(--R) + var(--L) / 2));
-  }
-  .sign-clamp-l {
-    --s: -1;
-  }
-  .sign-clamp-r {
-    --s: 1;
   }
   .sign-clamp-front {
     width: var(--L);
     height: var(--H);
     margin: calc(var(--H) / -2) 0 0 calc(var(--L) / -2);
-    transform: translateX(var(--cx)) translateY(1.5px)
-      translateZ(calc(var(--D) / 2));
     background: linear-gradient(
       to bottom,
       var(--al-hi),
@@ -274,8 +249,6 @@
     width: var(--D);
     height: var(--H);
     margin: calc(var(--H) / -2) 0 0 calc(var(--D) / -2);
-    transform: translateX(calc(var(--s) * (var(--R) + var(--L))))
-      translateY(1.5px) rotateY(calc(var(--s) * 90deg));
   }
   /* the sun is up and to the left: the left ends face it */
   .sign-clamp-end.sign-clamp-l {
@@ -288,8 +261,6 @@
     width: var(--L);
     height: var(--D);
     margin: calc(var(--D) / -2) 0 0 calc(var(--L) / -2);
-    transform: translateX(var(--cx)) translateY(calc(var(--H) / 2 + 1.5px))
-      rotateX(-90deg);
     background: var(--al-dk);
   }
   /* a nut stands 2 px proud of the flange: its face and, behind it, its
@@ -302,13 +273,9 @@
     border-radius: 1.4px;
   }
   .sign-clamp-nut-side {
-    transform: translateX(var(--cx)) translateY(3px)
-      translateZ(calc(var(--D) / 2 + 0.6px));
     background: #2f3332;
   }
   .sign-clamp-nut {
-    transform: translateX(var(--cx)) translateY(3px)
-      translateZ(calc(var(--D) / 2 + 2px));
     background: radial-gradient(
       circle at 40% 35%,
       var(--nut-hi),
@@ -656,8 +623,6 @@
     z-index: 1;
     pointer-events: none;
     border-radius: inherit;
-    --mx: var(--lx, -9999px);
-    --my: var(--ly, -9999px);
   }
   .sign-sheet > i {
     position: absolute;
@@ -691,10 +656,19 @@
   }
   /* Microprismatic sheeting splits light into a rainbow at the beam's rim. A
    conic gradient round the light that starts and ends on the same colour has
-   no seam anywhere. */
+   no seam anywhere. The ring is drawn once round its own centre and moved to
+   the aim point, so it follows the beam without being drawn again; the
+   plate clips it. */
   .sign-sheet .rainbow {
+    inset: auto;
+    left: 0;
+    top: 0;
+    width: calc(2 * var(--br));
+    height: calc(2 * var(--br));
+    border-radius: 0;
+    translate: calc(var(--lx) - var(--br)) calc(var(--ly) - var(--br));
     background: conic-gradient(
-      from 200deg at var(--mx) var(--my),
+      from 200deg,
       #ff5e9c,
       #ffd35e,
       #6effc2,
@@ -705,7 +679,7 @@
     mix-blend-mode: screen;
     opacity: 0.4;
     mask-image: radial-gradient(
-      circle var(--br) at var(--mx) var(--my),
+      circle var(--br),
       transparent var(--ring-in),
       #000 var(--ring-peak),
       transparent var(--ring-out)
@@ -721,9 +695,13 @@
   }
 
   /* ================= the torch =================
-   The torch writes the beam to each lit copy (.sign-lit-copy) every frame. The
-   properties are registered as not inherited, so a write restyles only the
-   few elements that ask for them with `inherit`, not the whole plate. */
+   Every frame the torch writes the beam to each lit copy (.sign-lit-copy) and
+   to the lit layers drawn in it that read the beam: the rainbow ring, the
+   glints and the sun's streak (rig.ts). The properties are registered as not
+   inherited and nothing in a plate inherits them, so a write restyles only
+   the elements it is written to, not the whole plate. The lit copy's mask
+   and the glints' are drawn again as the beam moves; the ring, the streak
+   and the glare are moved, not drawn again. */
   @property --lx {
     syntax: "<length>";
     inherits: false;
@@ -776,22 +754,6 @@
     inherits: false;
     initial-value: 1;
   }
-  /* the lit plate, its sheeting, rainbow and glints read the beam */
-  .sign-lit-copy > .sign-face--lit {
-    --lx: inherit;
-    --ly: inherit;
-    --br: inherit;
-  }
-  .sign-face--lit > .sign-sheet,
-  .sign-face--lit > .sign-lit-glint {
-    --lx: inherit;
-    --ly: inherit;
-    --br: inherit;
-  }
-  .sign-face--lit > .sign-sheet > .rainbow {
-    --br: inherit;
-  }
-
   /* Each plate renders twice, an unlit copy and a lit copy masked to the beam.
    The lit copy shares the plate's grid cell, untransformed, so it has the
    plate's exact layout: the same box, the same line breaks, and text on the
@@ -886,20 +848,26 @@
       0 0 4px rgba(255, 255, 255, 0.55),
       inset 0 0 3px rgba(255, 255, 255, 0.4);
   }
-  /* prisms sparkle in the hotspot */
+  /* Prisms sparkle in the hotspot. The sparkle is a layer of its own inside
+   the glint, so moving the glint's mask does not draw it again. */
   .sign-lit-glint {
     position: absolute;
     inset: 0;
     z-index: 2;
     border-radius: inherit;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='1' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  11 0 0 0 -8.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    background-size: 140px 140px;
     opacity: 0.5;
     mask-image: radial-gradient(
       circle calc(var(--br) * 0.5) at var(--lx) var(--ly),
       #000,
       transparent
     );
+  }
+  .sign-lit-glint > i {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='1' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  11 0 0 0 -8.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 140px 140px;
   }
   .sign-face--white .sign-lit-glint {
     opacity: 0.3;
@@ -909,39 +877,47 @@
   :root:not(.dark) .sign-lit-glint {
     opacity: 0.45;
   }
-  /* by day the sun's streak: a band of reflected sky across the sheeting,
-   slanting with the sun, centred on the glint */
-  :root:not(.dark) .sign-face--lit::before {
-    --lx: inherit;
-    content: "";
+  /* By day the sun's streak: a band of reflected sky across the sheeting,
+   slanting with the sun, centred on the glint. The band is moved there, not
+   drawn again, and the plate clips it. */
+  .sign-lit-streak {
+    display: none;
+  }
+  :root:not(.dark) .sign-lit-streak {
+    display: block;
     position: absolute;
-    inset: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 640px;
     z-index: 2;
     pointer-events: none;
+    translate: calc(var(--lx) - 320px) 0;
     background: linear-gradient(
-        112deg,
-        transparent 38%,
-        rgba(255, 252, 240, 0.34) 47%,
-        rgba(255, 252, 240, 0.5) 50%,
-        rgba(255, 252, 240, 0.34) 53%,
-        transparent 62%
-      )
-      no-repeat;
-    background-size: 640px 100%;
-    background-position: calc(var(--lx) - 320px) 0;
+      112deg,
+      transparent 38%,
+      rgba(255, 252, 240, 0.34) 47%,
+      rgba(255, 252, 240, 0.5) 50%,
+      rgba(255, 252, 240, 0.34) 53%,
+      transparent 62%
+    );
   }
-  /* glare: the glossy film mirrors the torch where the plate faces the eye */
+  /* Glare: the glossy film mirrors the torch where the plate faces the eye.
+   It follows the sign's tilt (--gxp/--gyp, rig.ts), moved there round its
+   own centre, not drawn again; the plate clips it. */
   .sign-glare {
     position: absolute;
-    inset: 0;
+    left: 0;
+    top: 0;
+    width: 300px;
+    height: 220px;
     z-index: 2;
-    border-radius: inherit;
     pointer-events: none;
     mix-blend-mode: screen;
-    /* it follows the sign's tilt (--gxp/--gyp, written to the assembly) */
+    translate: calc(var(--gxp) - var(--ox, 0px) - 150px)
+      calc(var(--gyp) - var(--oy, 0px) - 110px);
     background: radial-gradient(
-      150px 110px at calc(var(--gxp) - var(--ox, 0px))
-        calc(var(--gyp) - var(--oy, 0px)),
+      150px 110px,
       rgba(255, 255, 255, 0.22),
       rgba(255, 255, 255, 0.07) 45%,
       transparent 75%
