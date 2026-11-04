@@ -437,6 +437,8 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // drawing them again; the hero's stage is clipped only while the story
   // plays; and the rest script inlines the rig that draws the clamps' faces
   // flat. sign-clamps.test.ts checks the faces against the browser's 3D.
+  // #463 changes only the pre-paint theme script in this normalized HTML.
+  // Substituting the previous script reproduces the preceding baseline hash.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -493,7 +495,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "81ebd695c1a64c053e5d2574c799ddd3b775a0b8ae67d5cb932707a7e5a6f27f",
+    "401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699",
   );
 });
 

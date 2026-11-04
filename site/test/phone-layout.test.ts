@@ -383,8 +383,8 @@ for (const page of pages)
                   s.steps[0].control === NAV_PANEL.controls &&
                   s.steps.length === 2,
               ).length,
-              1,
-              "the nested language list is measured",
+              2,
+              "the nested language and theme menus are measured",
             );
             assert.equal(
               states.filter(
