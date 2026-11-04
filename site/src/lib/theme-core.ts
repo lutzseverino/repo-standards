@@ -7,6 +7,7 @@
 // through `useTheme` (theme.ts).
 
 export type Theme = "dark" | "light";
+export type ThemePreference = "system" | Theme;
 
 /** Reads, applies and stores the theme. The head's inline copy is this
  * function's source, so it must reference nothing outside its own body. */
@@ -33,21 +34,38 @@ export function themes() {
   };
   const current = (): Theme =>
     document.documentElement.classList.contains("dark") ? "dark" : "light";
+  /** Document-local memory survives failed storage writes and removals, and
+   * is shared by every consumer, including separately hydrated islands. */
+  const preference = (): ThemePreference => {
+    const root = document.documentElement;
+    const value = root.dataset.themePreference;
+    if (value === "system" || value === "light" || value === "dark")
+      return value;
+    const initial = stored() ?? "system";
+    root.dataset.themePreference = initial;
+    return initial;
+  };
+  const sync = () => {
+    const selected = preference();
+    apply(selected === "system" ? system() : selected);
+  };
   /** Remembers the visitor's choice and applies it. */
-  const choose = (theme: Theme) => {
+  const choose = (theme: ThemePreference) => {
+    document.documentElement.dataset.themePreference = theme;
     try {
-      window.localStorage.setItem(KEY, theme);
+      if (theme === "system") window.localStorage.removeItem(KEY);
+      else window.localStorage.setItem(KEY, theme);
     } catch {
       // the choice then lasts only for this page
     }
-    apply(theme);
+    sync();
   };
-  return { DARK, stored, system, apply, current, choose };
+  return { DARK, stored, system, apply, current, preference, sync, choose };
 }
 
 /** The inline script that applies the stored or system theme before the
  * first paint. */
 export const themeScript = () => `(() => {
   const theme = (${themes.toString()})();
-  theme.apply(theme.stored() ?? theme.system());
+  theme.sync();
 })();`;

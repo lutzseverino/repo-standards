@@ -42,3 +42,11 @@ three phone menus in the real site: "I like A too. Let's go with that." The
 others were option B, a pane as tall as the screen like the docs', and option
 C, which moved the theme icon into the header row. The floating language list
 and the dimmed page are as option A showed them.
+
+Amended for [#463](https://github.com/lutzseverino/repo-standards/issues/463)
+by the owner's 2026-11-03 choice: the theme icon now opens a System / Light /
+Dark choice menu, named Theme, with the selected preference discernible. Both
+preferences take three taps on a phone. Escape dismisses either preference
+menu before the sheet and restores its trigger. This replaces the two-way
+theme toggle and its description; the remaining disclosure conventions stay
+as above.

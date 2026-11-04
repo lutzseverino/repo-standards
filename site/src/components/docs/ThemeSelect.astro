@@ -5,23 +5,11 @@ import Select from "@astrojs/starlight/components/Select.astro";
 <docs-theme-select>
   <Select
     icon="laptop"
-    label={Astro.locals.t("themeSelect.accessibleLabel")}
+    label="Theme"
     options={[
-      {
-        label: Astro.locals.t("themeSelect.dark"),
-        selected: false,
-        value: "dark",
-      },
-      {
-        label: Astro.locals.t("themeSelect.light"),
-        selected: false,
-        value: "light",
-      },
-      {
-        label: Astro.locals.t("themeSelect.auto"),
-        selected: true,
-        value: "auto",
-      },
+      { label: "System", selected: true, value: "system" },
+      { label: "Light", selected: false, value: "light" },
+      { label: "Dark", selected: false, value: "dark" },
     ]}
     width="6.25em"
   />

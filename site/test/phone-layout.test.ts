@@ -25,13 +25,7 @@ import {
   type Locale,
 } from "../src/i18n/locales.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
-import {
-  Browser,
-  findBrowser,
-  type Key,
-  type Tab,
-  type View,
-} from "./browser.ts";
+import { Browser, findBrowser, type Key, Tab, type View } from "./browser.ts";
 import { measureLayout, type Layout } from "./layout-probe.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
@@ -205,7 +199,13 @@ const STATES: {
   {
     inside: NAV_PANEL,
     name: "the language list",
-    controls: "#nav-menu [data-slot=dropdown-menu-trigger]",
+    controls: "#nav-menu button:has(svg.lucide-languages)",
+    shows: "[data-slot=dropdown-menu-content]",
+  },
+  {
+    inside: NAV_PANEL,
+    name: "the theme choices",
+    controls: "#nav-menu button:has(svg.lucide-moon)",
     shows: "[data-slot=dropdown-menu-content]",
   },
   {
@@ -383,8 +383,8 @@ for (const page of pages)
                   s.steps[0].control === NAV_PANEL.controls &&
                   s.steps.length === 2,
               ).length,
-              1,
-              "the nested language list is measured",
+              2,
+              "the nested language and theme menus are measured",
             );
             assert.equal(
               states.filter(
@@ -531,7 +531,7 @@ test(
           "GitHub",
           "Support",
           "Language: English",
-          "Switch between the light and dark theme",
+          "Theme",
         ],
         page,
       );
@@ -664,9 +664,9 @@ const tap = (tab: Tab, name: string) =>
   tab.evaluate(async (name: string) => {
     const controls = [
       ...document.querySelectorAll(
-        "#nav-menu a, #nav-menu button, [data-slot=dropdown-menu-content] [role^=menuitem]",
+        "nav a, nav button, [data-slot=dropdown-menu-content] [role^=menuitem]",
       ),
-    ];
+    ].filter((el) => el.checkVisibility());
     (
       controls.find(
         (el) =>
@@ -764,7 +764,7 @@ test(
       assert.ok(toggle.top < selector.bottom && toggle.bottom > selector.top);
       assert.equal(selector.text, localeName(locale), page);
       assert.equal(toggle.text, "", page);
-      // the theme's long name is only its accessible name
+      // the theme's name is only its accessible name
       assert.ok(!panel.text.includes(toggle.name), page);
     }
   },
@@ -834,7 +834,7 @@ test(
 );
 
 test(
-  "the panel's theme icon switches and remembers the theme, and the panel stays open",
+  "the panel's theme menu remembers the chosen appearance, and the panel stays open",
   { skip },
   async () => {
     const tab = await openTab(
@@ -842,7 +842,8 @@ test(
       { width: 320, theme: "light" },
     );
     await tapMenu(tab);
-    await tap(tab, "Cambiar entre el tema claro y el oscuro");
+    await tap(tab, "Tema");
+    await tap(tab, "Oscuro");
     assert.deepEqual(
       await tab.evaluate(() => [
         document.documentElement.classList.contains("dark"),
@@ -985,7 +986,7 @@ test(
       width: 320,
       theme: "light",
     });
-    const THEME = "Switch between the light and dark theme";
+    const THEME = "Theme";
     const LANGUAGE = "Language: English";
     const closedList = ["false", false];
     /** A key pressed, then where focus is, the menu button's
@@ -1375,19 +1376,36 @@ async function keyboardNav(tab: Tab, page: Page, view: View) {
   await press("Enter", menu);
   await press("ArrowDown", docs);
   await press("End", theme);
-  await press("Enter", theme);
+  // The theme's menu is nested in the disclosure, just like the language
+  // list. Escape restores its trigger before dismissing the sheet.
+  await tab.press("Enter");
+  await still(tab);
+  const options = ["system", "light", "dark"] as const;
   assert.deepEqual(
-    await tab.evaluate(() => [
-      document.documentElement.classList.contains("dark"),
-      localStorage.getItem("theme"),
+    await tab.evaluate(() =>
+      [...document.querySelectorAll("[role=menuitemradio]")].map((el) => [
+        el.textContent.trim(),
+        el.getAttribute("aria-checked"),
+      ]),
+    ),
+    options.map((option) => [
+      t(`common.theme.${option}`),
+      String(option === view.theme),
     ]),
-    [view.theme !== "dark", view.theme === "dark" ? "light" : "dark"],
-    `${context}: theme operates with panel open`,
+    context,
   );
-  await press(" ", theme);
-  assert.equal(
-    await tab.evaluate(() => localStorage.getItem("theme")),
-    view.theme,
+  await tab.press("Home");
+  await tab.press("Enter");
+  await still(tab);
+  assert.equal(await tab.evaluate(() => localStorage.getItem("theme")), null);
+  await tab.press("Enter");
+  await still(tab);
+  await tab.press("Escape");
+  await still(tab);
+  assert.deepEqual(
+    await focusOf(tab),
+    { focus: theme, panel: "true", list: closedList },
+    context,
   );
 
   // Find the next page stop independently of the panel's event handler.
@@ -1528,7 +1546,7 @@ test(
           "How it works",
           "GitHub",
           "Language: English",
-          "Switch between the light and dark theme",
+          "Theme",
           "English",
           "Español",
           "Català",
@@ -1757,5 +1775,334 @@ test(
       ["clipped", "scroll", "clipped"],
       report(layout),
     );
+  },
+);
+
+// Preference behavior is exercised through each real control, not by calling
+// the theme core. New tabs have their own document memory and shared storage.
+const themeSurfaces = [
+  { route: "/", width: 1280, docs: false },
+  { route: "/how-it-works/", width: 320, docs: false },
+  { route: "/docs/", width: 320, docs: true },
+];
+
+async function themePage(
+  surface: (typeof themeSurfaces)[number],
+  stored: string | null,
+  dark: boolean,
+  failure: "read" | "write" | null = null,
+) {
+  const { targetId } = await browser!.send("Target.createTarget", {
+    url: "about:blank",
+  });
+  const { sessionId } = await browser!.send("Target.attachToTarget", {
+    targetId,
+    flatten: true,
+  });
+  const tab = new Tab(browser!, targetId as string, sessionId as string);
+  await tab.send("Page.enable");
+  await tab.send("Runtime.enable");
+  await tab.resize(surface.width);
+  await systemScheme(tab, dark);
+  // Only this document's setup: subsequent navigations really read the choice
+  // made by the previous surface, without a test script replacing it.
+  const { identifier } = await tab.send(
+    "Page.addScriptToEvaluateOnNewDocument",
+    {
+      source: `localStorage.clear(); localStorage.setItem("story-seen", "1");
+      ${stored === null ? "" : `localStorage.setItem("theme", ${JSON.stringify(stored)});`}
+      ${failure === "read" ? 'Storage.prototype.getItem = () => { throw new Error("Storage unavailable"); };' : ""}
+      ${failure ? 'Storage.prototype.setItem = Storage.prototype.removeItem = () => { throw new Error("Storage unavailable"); };' : ""}`,
+    },
+  );
+  await tab.goto(base.production + surface.route);
+  await tab.send("Page.removeScriptToEvaluateOnNewDocument", { identifier });
+  return tab;
+}
+
+async function systemScheme(tab: Tab, dark: boolean) {
+  await tab.send("Emulation.setEmulatedMedia", {
+    features: [
+      { name: "prefers-color-scheme", value: dark ? "dark" : "light" },
+    ],
+  });
+  await tab.settle();
+}
+
+async function preferenceState(tab: Tab) {
+  await tab.settle();
+  return tab.evaluate(() => ({
+    preference: document.documentElement.dataset.themePreference,
+    appearance: document.documentElement.dataset.theme,
+    dark: document.documentElement.classList.contains("dark"),
+  }));
+}
+
+async function openDocsTheme(tab: Tab) {
+  await tab.evaluate(() => {
+    const selects = [
+      ...document.querySelectorAll<HTMLSelectElement>(
+        "docs-theme-select select",
+      ),
+    ];
+    if (!selects.some((select) => select.checkVisibility()))
+      document.querySelector<HTMLButtonElement>(".sl-menu-button")!.click();
+  });
+  await still(tab);
+}
+
+async function choosePreference(
+  tab: Tab,
+  docs: boolean,
+  choice: "system" | "light" | "dark",
+) {
+  if (docs) {
+    await openDocsTheme(tab);
+    await tab.evaluate((choice: string) => {
+      const select = [
+        ...document.querySelectorAll<HTMLSelectElement>(
+          "docs-theme-select select",
+        ),
+      ].find((select) => select.checkVisibility())!;
+      select.value = choice;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }, choice);
+  } else {
+    if (
+      await tab.evaluate(
+        () =>
+          !!document
+            .querySelector("nav button[aria-controls=nav-menu]")
+            ?.checkVisibility() && !document.getElementById("nav-menu"),
+      )
+    )
+      await tapMenu(tab);
+    await tap(tab, "Theme");
+    await tap(
+      tab,
+      choice === "system" ? "System" : choice === "light" ? "Light" : "Dark",
+    );
+  }
+  await still(tab);
+}
+
+for (const surface of themeSurfaces) {
+  test(
+    `theme defaults and existing choices: ${surface.route} at ${surface.width}px`,
+    { skip },
+    async () => {
+      for (const dark of [false, true]) {
+        for (const stored of [
+          null,
+          "invalid",
+          "system",
+          "light",
+          "dark",
+          "unreadable",
+        ]) {
+          const tab = await themePage(
+            surface,
+            stored,
+            dark,
+            stored === "unreadable" ? "read" : null,
+          );
+          try {
+            const preference =
+              stored === "light" || stored === "dark" ? stored : "system";
+            const appearance =
+              preference === "system" ? (dark ? "dark" : "light") : preference;
+            assert.deepEqual(
+              await preferenceState(tab),
+              { preference, appearance, dark: appearance === "dark" },
+              `${stored}, OS dark=${dark}`,
+            );
+            if (surface.docs) {
+              assert.deepEqual(
+                await tab.evaluate(() => {
+                  const select = document.querySelector<HTMLSelectElement>(
+                    "docs-theme-select select",
+                  )!;
+                  return [
+                    select.value,
+                    ...[...select.options].map((option) => option.textContent),
+                  ];
+                }),
+                [preference, "System", "Light", "Dark"],
+              );
+            } else {
+              if (surface.width < 800) await tapMenu(tab);
+              await tap(tab, "Theme");
+              assert.deepEqual(
+                await tab.evaluate(() =>
+                  [...document.querySelectorAll("[role=menuitemradio]")].map(
+                    (el) => [
+                      el.textContent.trim(),
+                      el.getAttribute("aria-checked"),
+                    ],
+                  ),
+                ),
+                ["system", "light", "dark"].map((option) => [
+                  option[0].toUpperCase() + option.slice(1),
+                  String(option === preference),
+                ]),
+              );
+            }
+          } finally {
+            await tab.close();
+          }
+        }
+      }
+    },
+  );
+
+  test(
+    `theme choices follow the OS and survive failed storage: ${surface.route} at ${surface.width}px`,
+    { skip },
+    async () => {
+      for (const failure of [null, "write", "read"] as const) {
+        const tab = await themePage(surface, "dark", false, failure);
+        try {
+          for (const choice of ["light", "dark", "system"] as const) {
+            await choosePreference(tab, surface.docs, choice);
+            for (const dark of [true, false, true, false]) {
+              await systemScheme(tab, dark);
+              const appearance =
+                choice === "system" ? (dark ? "dark" : "light") : choice;
+              assert.deepEqual(
+                await preferenceState(tab),
+                { preference: choice, appearance, dark: appearance === "dark" },
+                `${failure}, ${choice}, OS dark=${dark}`,
+              );
+            }
+            if (!failure)
+              assert.equal(
+                await tab.evaluate(() => localStorage.getItem("theme")),
+                choice === "system" ? null : choice,
+              );
+            if (failure === "write")
+              assert.equal(
+                await tab.evaluate(() => localStorage.getItem("theme")),
+                "dark",
+              );
+          }
+        } finally {
+          await tab.close();
+        }
+      }
+    },
+  );
+}
+
+test(
+  "theme preferences survive real navigation and reload between main site and docs",
+  { skip },
+  async () => {
+    const tab = await themePage(themeSurfaces[0], null, false);
+    try {
+      for (const choice of ["dark", "light", "system"] as const) {
+        await choosePreference(tab, false, choice);
+        await tab.goto(base.production + "/docs/");
+        assert.equal((await preferenceState(tab)).preference, choice);
+        assert.equal(
+          await tab.evaluate(
+            () =>
+              document.querySelector<HTMLSelectElement>(
+                "docs-theme-select select",
+              )!.value,
+          ),
+          choice,
+        );
+        await choosePreference(
+          tab,
+          true,
+          choice === "dark" ? "light" : choice === "light" ? "dark" : "system",
+        );
+        const expected =
+          choice === "dark" ? "light" : choice === "light" ? "dark" : "system";
+        await tab.goto(base.production + "/");
+        assert.equal((await preferenceState(tab)).preference, expected);
+        await tab.goto(base.production + "/");
+        assert.equal((await preferenceState(tab)).preference, expected);
+      }
+    } finally {
+      await tab.close();
+    }
+  },
+);
+
+test(
+  "theme menus support keyboard selection and nested Escape, with visible focus",
+  { skip },
+  async () => {
+    for (const width of [320, 1280]) {
+      const tab = await themePage({ ...themeSurfaces[0], width }, null, false);
+      try {
+        if (width < 800) await tapMenu(tab);
+        await tab.evaluate(() =>
+          [
+            ...document.querySelectorAll<HTMLButtonElement>(
+              'button[aria-label="Theme"]',
+            ),
+          ]
+            .find((el) => el.checkVisibility())!
+            .focus(),
+        );
+        for (const key of ["Enter", " "] as const) {
+          await tab.press(key);
+          await still(tab);
+          await tab.press("Home");
+          for (const name of ["System", "Light", "Dark"]) {
+            if (name !== "System") await tab.press("ArrowDown");
+            const ring = await ringsOf(tab);
+            assert.equal(ring.focused.name, name);
+            assert.ok(ring.focused.visible);
+            assert.ok(
+              ring.focused.shadow !== "none" || ring.focused.outline !== "none",
+            );
+          }
+          await tab.press("Escape");
+          await still(tab);
+          assert.equal(
+            await tab.evaluate(() =>
+              document.activeElement!.getAttribute("aria-label"),
+            ),
+            "Theme",
+          );
+          if (width < 800) assert.equal((await panelOf(tab)).expanded, "true");
+        }
+        await tab.press("Enter");
+        await still(tab);
+        await tab.press("Home");
+        await tab.press("ArrowDown");
+        await tab.press("Enter");
+        await still(tab);
+        assert.equal((await preferenceState(tab)).preference, "light");
+        if (width < 800) {
+          await tab.press("Escape");
+          await still(tab);
+          assert.equal((await panelOf(tab)).expanded, "false");
+        }
+      } finally {
+        await tab.close();
+      }
+    }
+    const tab = await themePage(themeSurfaces[2], null, false);
+    try {
+      await openDocsTheme(tab);
+      await tab.evaluate(() =>
+        [
+          ...document.querySelectorAll<HTMLSelectElement>(
+            "docs-theme-select select",
+          ),
+        ]
+          .find((select) => select.checkVisibility())!
+          .focus(),
+      );
+      await tab.press("ArrowDown");
+      await tab.press("Tab");
+      assert.equal((await preferenceState(tab)).preference, "light");
+    } finally {
+      await tab.close();
+    }
   },
 );
