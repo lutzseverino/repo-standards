@@ -36,8 +36,8 @@
     "source": "6ef8c3f2"
   },
   "theme.toggle": {
-    "message": "Cambiar entre el tema claro y el oscuro",
-    "source": "b9265208"
+    "message": "Tema",
+    "source": "efb52e71"
   },
   "language.label": {
     "message": "Idioma",
@@ -46,5 +46,17 @@
   "language.current": {
     "message": "Idioma: {$language}",
     "source": "86ec9565"
+  },
+  "theme.system": {
+    "message": "Sistema",
+    "source": "6725e7bb"
+  },
+  "theme.light": {
+    "message": "Claro",
+    "source": "dbcd5e7b"
+  },
+  "theme.dark": {
+    "message": "Oscuro",
+    "source": "60acc53f"
   }
 }

@@ -2,7 +2,7 @@
 
 Amended by [ADR 0032](0032-open-the-phone-nav-as-a-sheet-under-the-header.md):
 on a phone, the menu opens a sheet under the header, whose language selector
-shows the language's name and whose theme toggle is an icon.
+shows the language's name and whose theme control is an icon menu.
 
 The homepage, How it works and the source pages each built their own nav, and
 they drifted apart in alignment, order, controls and phone layout. Every page
@@ -47,3 +47,9 @@ the language or the theme. Option A kept every destination visible on a
 phone, in a second row that grew to a third at 320 px in Spanish and Catalan.
 Option B kept the language and theme in the phone row, beside a plate that
 nearly touched them at 320 px.
+
+Amended for [#463](https://github.com/lutzseverino/repo-standards/issues/463)
+by the owner's 2026-11-03 choice: the theme icon opens System, Light and Dark,
+in that order, in both the wide bar and phone sheet. The menu indicates the
+selected preference separately from its resolved appearance. This replaces
+the two-way theme toggle; the remaining nav structure and order stay as above.

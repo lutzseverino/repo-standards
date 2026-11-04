@@ -921,7 +921,7 @@ test("theme choices survive navigation between the homepage and docs in both dir
       },
     };
     const controls = [0, 1].map(() => ({
-      value: "auto",
+      value: "system",
       change: () => {},
       addEventListener(_event: string, listener: () => void) {
         this.change = listener;
@@ -1003,12 +1003,12 @@ test("theme choices survive navigation between the homepage and docs in both dir
   assert.equal(returned.root.dataset.theme, "light");
   assert.ok(!returned.classes.has("dark"));
   assert.deepEqual([...storage.keys()], ["theme"]);
-  docs.controls[0].value = "auto";
+  docs.controls[0].value = "system";
   docs.controls[0].change();
   assert.equal(storage.size, 0);
   const automatic = navigate(read("docs/index.html"), true);
   assert.equal(automatic.root.dataset.theme, "dark");
-  assert.equal(automatic.controls[0].value, "auto");
+  assert.equal(automatic.controls[0].value, "system");
   automatic.changeSystem(false);
   assert.equal(automatic.root.dataset.theme, "light");
   assert.ok(!automatic.classes.has("dark"));

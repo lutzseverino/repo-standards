@@ -36,8 +36,8 @@
     "source": "6ef8c3f2"
   },
   "theme.toggle": {
-    "message": "Canvia entre el tema clar i el fosc",
-    "source": "b9265208"
+    "message": "Tema",
+    "source": "efb52e71"
   },
   "language.label": {
     "message": "Llengua",
@@ -46,5 +46,17 @@
   "language.current": {
     "message": "Llengua: {$language}",
     "source": "86ec9565"
+  },
+  "theme.system": {
+    "message": "Sistema",
+    "source": "6725e7bb"
+  },
+  "theme.light": {
+    "message": "Clar",
+    "source": "dbcd5e7b"
+  },
+  "theme.dark": {
+    "message": "Fosc",
+    "source": "60acc53f"
   }
 }

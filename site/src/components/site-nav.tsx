@@ -11,12 +11,12 @@ import { Button, buttonVariants } from "@/components/app/button";
 import type { Strings } from "@/i18n/ids";
 import { localePath, type Locale, type SiteLocale } from "@/i18n/locales";
 import { cn } from "@/lib/utils";
-import { useTheme, type Theme } from "@/lib/theme";
+import { useTheme, type ThemePreference } from "@/lib/theme";
 import { DOCS_LINK_STRINGS, DocsLink } from "./docs-link";
 import { LANGUAGE_STRINGS, LanguageMenu } from "./language-menu";
 import { Plate } from "./plate";
 import { SUPPORT_STRINGS, SupportMenu } from "./support";
-import { ThemeToggle } from "./theme-toggle";
+import { THEME_STRINGS, ThemeToggle } from "./theme-toggle";
 
 export const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
 
@@ -24,7 +24,7 @@ export const SITE_NAV_STRINGS = [
   ...DOCS_LINK_STRINGS,
   "common.nav.how-it-works",
   "common.nav.menu",
-  "common.theme.toggle",
+  ...THEME_STRINGS,
   ...SUPPORT_STRINGS,
   ...LANGUAGE_STRINGS,
 ] as const;
@@ -52,7 +52,7 @@ const pressed = "aria-[current=page]:bg-muted";
 export function SiteNav(props: NavProps) {
   const { locale, alternates, language, current, onHowItWorks, strings } =
     props;
-  const [theme, setTheme] = useTheme();
+  const [, setTheme, preference] = useTheme();
   return (
     <nav className="relative flex h-14 items-center gap-4 border-b px-4 text-[15px] min-[50rem]:h-16 min-[50rem]:px-6">
       {current !== "home" && (
@@ -90,12 +90,12 @@ export function SiteNav(props: NavProps) {
             strings={strings}
           />
           <ThemeToggle
-            theme={theme}
+            preference={preference}
             onChange={setTheme}
-            label={strings["common.theme.toggle"]}
+            strings={strings}
           />
         </div>
-        <NavMenu {...props} theme={theme} onTheme={setTheme} />
+        <NavMenu {...props} preference={preference} onTheme={setTheme} />
       </div>
     </nav>
   );
@@ -118,9 +118,12 @@ function NavMenu({
   current,
   onHowItWorks,
   strings,
-  theme,
+  preference,
   onTheme,
-}: NavProps & { theme: Theme | null; onTheme: (theme: Theme) => void }) {
+}: NavProps & {
+  preference: ThemePreference | null;
+  onTheme: (theme: ThemePreference) => void;
+}) {
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -163,7 +166,7 @@ function NavMenu({
   // before the controls' own handlers see them, so the language selector's
   // Dropdown Menu, which opens on the arrow keys, never gets them
   const onPanelKeyDown = (event: KeyboardEvent) => {
-    // the open language list belongs to the panel in React's tree only; it
+    // the open preference menu belongs to the panel in React's tree only; it
     // keeps its own keys, and its Escape closes only the list
     if (!panel.current?.contains(event.target as Node)) return;
     if (event.key === "Escape") return close();
@@ -277,9 +280,9 @@ function NavMenu({
                 strings={strings}
               />
               <ThemeToggle
-                theme={theme}
+                preference={preference}
                 onChange={onTheme}
-                label={strings["common.theme.toggle"]}
+                strings={strings}
               />
             </div>
           </div>
