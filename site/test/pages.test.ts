@@ -882,7 +882,7 @@ test("every site page's nav has a language menu naming the page's language, whic
       triggers,
       [
         names[locale as keyof typeof names],
-        format(locale, "common.theme.toggle"),
+        format(locale as Locale, "common.theme.toggle"),
       ],
       file,
     );
