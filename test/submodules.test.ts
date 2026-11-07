@@ -191,6 +191,64 @@ test("nested observation executes no hooks, filters, fsmonitor or submodule acqu
   assert.equal(lstatSync(sentinel, { throwIfNoEntry: false }), undefined);
 });
 
+for (const nested of [false, true]) {
+  test(`${nested ? "nested" : "single"} missing promisor objects block without executing a transport or acquiring objects`, async (t) => {
+    const f = await fixture(t, nested);
+    writeFileSync(join(f.child, "tracked.txt"), "local loose commit");
+    commit(f.child);
+    if (nested) commit(join(f.root, "vendor/protocol"));
+    commit(f.root);
+    const eligible = f.inspect();
+    assert.equal(eligible.start.eligible, true);
+    const object = git(f.child, "rev-parse", "HEAD");
+    const objectPath = resolve(
+      f.child,
+      git(
+        f.child,
+        "rev-parse",
+        "--git-path",
+        `objects/${object.slice(0, 2)}/${object.slice(2)}`,
+      ),
+    );
+    const sentinel = join(f.remote.support.root, "TRANSPORT_EXECUTED");
+    const script = join(f.remote.support.root, "transport");
+    writeFileSync(
+      script,
+      `#!/bin/sh\nprintf executed > '${sentinel}'\nexit 99\n`,
+    );
+    chmodSync(script, 0o755);
+    git(f.child, "config", "remote.origin.promisor", "true");
+    git(f.child, "config", "extensions.partialClone", "origin");
+    git(f.child, "config", "remote.origin.url", `ext::${script}`);
+    git(f.child, "config", "protocol.ext.allow", "always");
+    rmSync(objectPath);
+    // Prove that this local fixture triggers Git's implicit acquisition path.
+    const unguarded: NodeJS.ProcessEnv = { ...f.env };
+    delete unguarded.GIT_ALLOW_PROTOCOL;
+    delete unguarded.GIT_NO_LAZY_FETCH;
+    const raw = spawnSync(
+      "git",
+      ["-C", f.child, "rev-parse", "--verify", "HEAD^{commit}"],
+      { env: unguarded },
+    );
+    assert.notEqual(raw.status, 0);
+    assert.equal(readFileSync(sentinel, "utf8"), "executed");
+    rmSync(sentinel);
+    const before = snapshot(f.root);
+    const inspection = f.inspect();
+    assert.equal(inspection.start.eligible, false);
+    assert.ok(
+      inspection.start.blockers.some(
+        (b) => b.code === "SUBMODULE_STATE" && b.path === f.path,
+      ),
+    );
+    assert.equal(f.run(startArgs(eligible.identity)).status, 1);
+    assert.deepEqual(snapshot(f.root), before);
+    assert.equal(lstatSync(objectPath, { throwIfNoEntry: false }), undefined);
+    assert.equal(lstatSync(sentinel, { throwIfNoEntry: false }), undefined);
+  });
+}
+
 for (const change of ["dirt", "initialization", "checkout", "target"]) {
   for (const command of ["inspect", "start"]) {
     test(`${command} rejects nested ${change} changes during observation without additional mutation`, async (t) => {
@@ -235,6 +293,7 @@ if (args[args.indexOf('-C') + 1] === ${JSON.stringify(f.child)} && args.includes
   }
   writeFileSync(${JSON.stringify(marker)}, JSON.stringify(snapshot(${JSON.stringify(f.root)})));
 }
+
 process.stdout.write(result.stdout);
 process.stderr.write(result.stderr);
 process.exit(result.status ?? 1);
@@ -266,6 +325,44 @@ process.exit(result.status ?? 1);
     });
   }
 }
+
+test("a failed final recursive Git read cannot return an eligible inspection from unchanged snapshots", async (t) => {
+  const f = await fixture(t, true);
+  const realGit = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+  const bin = join(f.remote.support.root, "bin");
+  const counter = join(f.remote.support.root, "index-reads");
+  mkdirSync(bin);
+  writeFileSync(
+    join(bin, "git"),
+    `#!${process.execPath}
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args[args.indexOf('-C') + 1] === ${JSON.stringify(f.child)} && args.includes('ls-files') && args.includes('--stage')) {
+  const file = ${JSON.stringify(counter)};
+  const count = (existsSync(file) ? Number(readFileSync(file, 'utf8')) : 0) + 1;
+  writeFileSync(file, String(count));
+  // Fail recursive enumeration after the final sample captured index/status.
+  if (count === 4) process.exit(128);
+}
+const result = spawnSync(${JSON.stringify(realGit)}, args, {stdio: 'inherit'});
+process.exit(result.status ?? 1);
+`,
+  );
+  chmodSync(join(bin, "git"), 0o755);
+  const before = snapshot(f.root);
+  const result = f.run(inspectionArgs, {
+    ...f.env,
+    PATH: `${bin}:${process.env.PATH}`,
+  });
+  assert.equal(readFileSync(counter, "utf8"), "4");
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.equal(
+    (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+    "OBSERVATION_UNSTABLE",
+  );
+  assert.deepEqual(snapshot(f.root), before);
+});
 
 test("start rejects a new target gitlink after an eligible inspection", async (t) => {
   const f = await fixture(t, true);

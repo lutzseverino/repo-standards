@@ -134,6 +134,11 @@ function gitBase(project: string) {
 const gitProcessEnvironment = () => ({
   ...gitEnvironment(),
   GIT_OPTIONAL_LOCKS: "0",
+  // Resolving objects in a partial clone can otherwise launch a promisor
+  // fetch, even for rev-parse. The empty protocol whitelist also protects
+  // supported older Git versions that do not honor GIT_NO_LAZY_FETCH.
+  GIT_ALLOW_PROTOCOL: "",
+  GIT_NO_LAZY_FETCH: "1",
 });
 
 export function git(

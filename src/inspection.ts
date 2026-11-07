@@ -298,7 +298,11 @@ export async function inspectForStart(
       );
     const start = observeGitStart(root);
     const { head, status } = start;
-    const blockers = preservedStartBlockers(start.blockers, lookup, preserved);
+    const blockers = preservedStartBlockers(
+      [...start.blockers],
+      lookup,
+      preserved,
+    );
     const index = git(root, ["ls-files", "--stage", "-z"]);
     if (index.status !== 0)
       throw new ProductError("PROJECT_READ", "Cannot inspect the Git index.");
@@ -943,7 +947,8 @@ export async function inspectForStart(
         finalStart.status.stdout !== status.stdout ||
         JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden) ||
         JSON.stringify(finalStart.submodules) !==
-          JSON.stringify(start.submodules)
+          JSON.stringify(start.submodules) ||
+        JSON.stringify(finalStart.blockers) !== JSON.stringify(start.blockers)
       )
         throw new ProductError(
           "OBSERVATION_UNSTABLE",
