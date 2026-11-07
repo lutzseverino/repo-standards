@@ -548,7 +548,21 @@ normal workflow.
 Start requires the same content-derived inspection identity, an existing
 commit, clean index and working tree, no non-ignored untracked files, safe targets,
 and recoverable replacement content. Git flags
-that hide changes and nested submodules block this initial journey. Existing
+that hide changes block start. Submodules outside adoption targets are allowed
+only when initialized, recursively clean, and at each immediate parent's
+recorded gitlink commit. Uninitialized submodules require manual initialization;
+dirty, mismatched, unsafe or unreadable nested state blocks with its path.
+Observation disables hooks, filters and fsmonitor, makes no network request,
+and writes no index refresh or lock files. The CLI never initializes, fetches,
+resets or cleans submodules. Discovery excludes their contents; targets at,
+inside, or containing a gitlink, and targets changing `.gitmodules`, are rejected,
+including replacement and removal targets without checkout metadata. Inspection
+rechecks recursive state before returning, and start freshly revalidates before
+project writes, including when an older inspection was eligible. These checks
+do not bind every clean submodule commit to the content-derived identity.
+See the [inspection submodule policy](inspection.md#inspect-with-an-already-installed-exact-cli)
+for the state matrix and safety boundary; standards-source submodules remain
+unsupported. Existing
 exact files and skill directories whose complete inventory, bytes, and
 executable state match the supplied content are matched without rewriting and
 recorded in the new baselines. This includes a system skill when it matches

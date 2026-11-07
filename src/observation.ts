@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { lstatSync, readdirSync, readFileSync, readlinkSync } from "node:fs";
-import { join } from "node:path";
+import {
+  lstatSync,
+  readdirSync,
+  readFileSync,
+  readlinkSync,
+  realpathSync,
+} from "node:fs";
+import { isAbsolute, join } from "node:path";
 import { gitEnvironment, hash } from "./acquisition.js";
 import { ProductError } from "./errors.js";
 import { foldPath } from "./paths.js";
@@ -112,7 +118,17 @@ export function observe(
 }
 
 function gitBase(project: string) {
-  return ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", project];
+  return [
+    "--no-optional-locks",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "core.untrackedCache=false",
+    "-C",
+    project,
+  ];
 }
 
 const gitProcessEnvironment = () => ({
@@ -234,7 +250,134 @@ export function observeGitStart(root: string) {
       message:
         "Commit or reconcile all index, working tree, and untracked changes before starting adoption.",
     });
-  return { head, status, blockers };
+  const submodules = observeSubmodules(root, blockers);
+  return { head, status, blockers, submodules };
+}
+
+// Gitlinks belong to the immediate parent's index, independently of whether
+// their worktrees exist. Never use .gitmodules or checkout metadata as the
+// authority for target boundaries.
+export function indexedSubmodules(root: string) {
+  const index = git(root, ["ls-files", "--stage", "-z"]);
+  if (index.status !== 0)
+    throw new ProductError("PROJECT_READ", "Cannot inspect the Git index.");
+  return index.stdout
+    .split("\0")
+    .filter((entry) => entry.startsWith("160000 "))
+    .map((entry) => ({
+      path: entry.slice(entry.indexOf("\t") + 1),
+      commit: entry.split(" ")[1]!,
+    }));
+}
+
+function observeSubmodules(root: string, blockers: Blocker[]) {
+  const states: {
+    path: string;
+    commit: string;
+    head?: string;
+    index?: string;
+    status?: string;
+    hidden?: string[];
+  }[] = [];
+  function visit(parent: string, prefix: string) {
+    for (const entry of indexedSubmodules(parent)) {
+      const path = prefix + entry.path;
+      const state: (typeof states)[number] = { path, commit: entry.commit };
+      states.push(state);
+      const block = (message: string) =>
+        blockers.push({ code: "SUBMODULE_STATE", path, message });
+      try {
+        const parts = entry.path.split("/");
+        if (
+          isAbsolute(entry.path) ||
+          parts.some((part) => !part || part === "." || part === "..")
+        )
+          throw new Error("Unsafe gitlink path");
+        let directory = parent;
+        let missing = false;
+        for (const part of parts) {
+          directory = join(directory, part);
+          const stat = lstatSync(directory, { throwIfNoEntry: false });
+          if (!stat) {
+            missing = true;
+            break;
+          }
+          if (!stat.isDirectory() || stat.isSymbolicLink())
+            throw new Error("Unsafe submodule worktree");
+        }
+        const metadata = missing
+          ? undefined
+          : lstatSync(join(directory, ".git"), { throwIfNoEntry: false });
+        if (!metadata) {
+          block(
+            `Initialize submodule ${path} manually with git submodule update --init --recursive -- '${entry.path.replaceAll("'", "'\\''")}' from its parent repository, then inspect again. Adoption never initializes or fetches submodules.`,
+          );
+          continue;
+        }
+        if (
+          metadata.isSymbolicLink() ||
+          (!metadata.isFile() && !metadata.isDirectory())
+        )
+          throw new Error("Unsafe Git metadata");
+        const location = git(directory, ["rev-parse", "--show-toplevel"]);
+        if (
+          location.status !== 0 ||
+          realpathSync(location.stdout.replace(/\n$/, "")) !== directory
+        )
+          throw new Error("Submodule is not its own worktree");
+        const head = git(directory, ["rev-parse", "--verify", "HEAD^{commit}"]);
+        const index = git(directory, ["ls-files", "--stage", "-z"]);
+        const status = git(directory, [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--untracked-files=all",
+          "--ignore-submodules=all",
+        ]);
+        if (head.status !== 0 || index.status !== 0 || status.status !== 0)
+          throw new Error("Unreadable submodule Git state");
+        state.head = head.stdout.trim();
+        state.index = index.stdout;
+        state.status = status.stdout;
+        state.hidden = hiddenIndexPaths(directory);
+        if (state.head !== entry.commit)
+          block(
+            `Check out the commit recorded by the parent gitlink for ${path}, then inspect again; adoption never resets submodules.`,
+          );
+        if (status.stdout)
+          block(
+            `Commit or reconcile staged, unstaged and non-ignored untracked changes in submodule ${path}, then inspect again.`,
+          );
+        if (state.hidden.length)
+          block(
+            `Clear assume-unchanged or skip-worktree flags in submodule ${path} and reconcile local content, then inspect again; Git status may hide changes.`,
+          );
+        visit(directory, path + "/");
+      } catch {
+        block(
+          `Cannot safely establish Git state for submodule ${path}. Repair its worktree and Git metadata manually, then inspect again.`,
+        );
+      }
+    }
+  }
+  visit(root, "");
+  return states;
+}
+
+export function submoduleTarget(root: string, target: string) {
+  const folded = foldPath(target);
+  return (
+    folded === ".gitmodules" ||
+    folded.startsWith(".gitmodules/") ||
+    indexedSubmodules(root).some(({ path }) => {
+      const boundary = foldPath(path);
+      return (
+        folded === boundary ||
+        folded.startsWith(boundary + "/") ||
+        boundary.startsWith(folded + "/")
+      );
+    })
+  );
 }
 
 // Include staged, unstaged and untracked paths, and both ends of a rename.

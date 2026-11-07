@@ -100,11 +100,35 @@ output and `--json` provide the complete indented JSON report; `--json` also mak
 failures structured JSON on stdout. `--summary` renders the report as
 [Markdown](#markdown-summary) instead.
 
-Git observation disables fsmonitor and clean/process filters and prevents index
+Git observation disables hooks, fsmonitor and clean/smudge/process filters and prevents index
 refresh writes. Because author-defined normalization cannot run during inspection,
 filtered working content may be reported as differing from the index even when
-ordinary Git status considers it clean. Nested submodule state remains a start
-blocker in this initial journey; inspection does not execute nested Git behavior.
+ordinary Git status considers it clean.
+
+Adopting-project submodules are permitted outside adoption targets when every
+submodule is initialized, clean recursively, and checked out at the commit its
+immediate parent records in the index gitlink. Inspection observes initialized
+submodules with the same sanitized, read-only Git commands as the parent: no
+hooks, filters, fsmonitor, network access, index refresh writes or lock files.
+Staged or unstaged changes, non-ignored untracked files, hidden index flags,
+checkout mismatches and unsafe or unreadable Git state block start, with the
+affected project-relative submodule path. Ignored files retain their normal
+treatment. Parent or submodule ignore-submodule settings cannot hide dirt.
+
+An uninitialized or deinitialized submodule blocks with a manual
+`git submodule update --init --recursive -- <path>` prerequisite, run from its
+immediate parent repository. Inspection never initializes, fetches, resets,
+cleans or repairs a submodule. If its state cannot be established, it fails closed.
+It rechecks recursive state before returning a usable report, and start freshly
+validates it again before writing, even with a previously eligible identity.
+
+Discovery excludes submodule contents. Explicit and discovered targets may not
+be at, inside, or contain a gitlink, even if its checkout is absent; replacement
+and removal targets have the same restriction. `.gitmodules` cannot be a target.
+Read-only observation grants no installation or contextual-write authority
+inside submodules. Adopting from inside a submodule is unsupported. This policy
+concerns the adopting project; standards-source acquisition still rejects
+submodules.
 
 Only public HTTPS GitHub repository URLs are accepted. A trailing `.git` or `/`
 is normalized through GitHub's canonical metadata. The version must name an

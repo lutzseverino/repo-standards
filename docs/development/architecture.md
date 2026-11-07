@@ -518,6 +518,21 @@ the same content starts a run in another
 ([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
 inventories and diffs, not file bytes.
 
+Adopting-project submodules outside adoption targets are eligible only when
+initialized, recursively clean and at each immediate parent's indexed gitlink
+commit. Sanitized read-only Git observations disable hooks, filters and
+fsmonitor, perform no network access and prevent index refresh writes and lock
+files. Hidden index flags, dirt, mismatch, unsafe boundaries and unreadable state
+block with the affected nested project-relative path. Uninitialized submodules
+require manual initialization; the product never initializes, fetches, resets,
+cleans or repairs them. Discovery excludes submodule contents. Targets at,
+inside, or containing gitlinks and targets changing `.gitmodules` are rejected,
+including replacement and removal targets without checkout metadata. Inspection
+rechecks recursive state before returning a usable result; start freshly
+revalidates before project writes. Clean submodule commits add no separate
+confirmation-identity binding. Adoption inside submodules and standards-source
+submodules remain unsupported.
+
 Asking to adopt or update is the maintainer's consent. The agent reviews and
 confirms discarded edits, which Git can restore; only a fix's remote setting
 overwrite waits for the maintainer's decision

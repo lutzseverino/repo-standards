@@ -13,7 +13,7 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { hash } from "./acquisition.js";
 import { ProductError } from "./errors.js";
-import { git } from "./observation.js";
+import { git, submoduleTarget } from "./observation.js";
 import { foldPath } from "./paths.js";
 import { dictionary } from "./records.js";
 
@@ -136,6 +136,12 @@ export function observeScope(
   named: string[] = [],
   options: { execution?: boolean; directories?: string[] } = {},
 ) {
+  for (const path of [...named, ...(options.directories ?? [])])
+    if (submoduleTarget(root, path))
+      throw new ProductError(
+        "UNSAFE_TARGET",
+        `Scope cannot change .gitmodules or be at, inside, or contain a submodule gitlink: ${path}.`,
+      );
   let bytes = 0;
   let count = 0;
   const deadline = Date.now() + 30_000;
@@ -361,7 +367,7 @@ export function observeScope(
             "OBSERVATION_LIMIT",
             "Discovery directory observation exceeds the depth limit.",
           );
-        // Gitlinks are reported as blockers by inspection; never traverse them.
+        // Gitlinks are eligibility boundaries, never discovery contents.
         if (!known.has(path)) {
           directories.add(path);
           pending.push(path);

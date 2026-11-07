@@ -18,6 +18,7 @@ import {
   observe,
   observeGitStart,
   productStateObservation,
+  submoduleTarget,
   targetObservation,
 } from "./observation.js";
 import type { Blocker, HashInventory, Observation } from "./observation.js";
@@ -318,17 +319,17 @@ export async function inspectForStart(
         .map((entry) => entry.slice(entry.indexOf("\t") + 1)),
       ...(preserved?.recorded ?? []),
     ]);
-    for (const entry of index.stdout
-      .split("\0")
-      .filter((entry) => entry.startsWith("160000 ")))
+    const productSubmodule = submoduleTarget(root, ".repo-standards");
+    if (productSubmodule)
       blockers.push({
-        code: "SUBMODULE_STATE",
-        path: entry.slice(entry.indexOf("\t") + 1),
+        code: "UNSAFE_TARGET",
+        path: ".repo-standards",
         message:
-          "Initial inspection cannot establish clean nested submodule state without running nested Git behavior.",
+          "Product state cannot be at, inside, or contain a submodule gitlink.",
       });
-    const productState =
-      previous || retiredRecords.length || preserved
+    const productState = productSubmodule
+      ? { type: "unsafe" as const }
+      : previous || retiredRecords.length || preserved
         ? productStateObservation(root, blockers)
         : targetObservation(root, ".repo-standards", blockers);
     // Each target is observed once, keeping its safety blockers for its block;
@@ -341,8 +342,18 @@ export async function inspectForStart(
       let target = observed.get(path);
       if (!target) {
         const safety: Blocker[] = [];
+        const submodule = submoduleTarget(root, path);
+        if (submodule)
+          safety.push({
+            code: "UNSAFE_TARGET",
+            path,
+            message:
+              "Targets cannot change .gitmodules or be at, inside, or contain a submodule gitlink.",
+          });
         target = {
-          value: targetObservation(root, path, safety, undefined, link),
+          value: submodule
+            ? { type: "unsafe" }
+            : targetObservation(root, path, safety, undefined, link),
           safety,
         };
         observed.set(path, target);
@@ -895,48 +906,6 @@ export async function inspectForStart(
           : { authored: validation.source["adopter-action"] }),
       },
     };
-    if (scopeObservation) {
-      const finalHead = git(
-        root,
-        ["rev-parse", "--verify", "HEAD"],
-        undefined,
-        30_000,
-      );
-      const finalIndex = git(
-        root,
-        ["ls-files", "--stage", "-z"],
-        undefined,
-        30_000,
-      );
-      const finalStatus = git(
-        root,
-        [
-          "status",
-          "--porcelain=v1",
-          "-z",
-          "--untracked-files=all",
-          "--ignore-submodules=all",
-        ],
-        undefined,
-        30_000,
-      );
-      if (finalIndex.status !== 0 || finalStatus.status !== 0)
-        throw new ProductError(
-          "OBSERVATION_READ",
-          "Cannot completely recheck Git project state.",
-        );
-      if (
-        finalHead.status !== head.status ||
-        finalHead.stdout !== head.stdout ||
-        finalIndex.stdout !== index.stdout ||
-        finalStatus.stdout !== status.stdout ||
-        JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)
-      )
-        throw new ProductError(
-          "OBSERVATION_UNSTABLE",
-          "Git project state changed during discovery inspection. Inspect again.",
-        );
-    }
     if (
       scopeObservation &&
       JSON.stringify(scopeObservation) !== JSON.stringify(observeScope(root))
@@ -954,6 +923,33 @@ export async function inspectForStart(
         "OBSERVATION_UNSTABLE",
         "Named scope observations changed during inspection. Inspect again.",
       );
+    {
+      const finalStart = observeGitStart(root);
+      const finalIndex = git(
+        root,
+        ["ls-files", "--stage", "-z"],
+        undefined,
+        30_000,
+      );
+      if (finalIndex.status !== 0)
+        throw new ProductError(
+          "OBSERVATION_READ",
+          "Cannot completely recheck Git project state.",
+        );
+      if (
+        finalStart.head.status !== head.status ||
+        finalStart.head.stdout !== head.stdout ||
+        finalIndex.stdout !== index.stdout ||
+        finalStart.status.stdout !== status.stdout ||
+        JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden) ||
+        JSON.stringify(finalStart.submodules) !==
+          JSON.stringify(start.submodules)
+      )
+        throw new ProductError(
+          "OBSERVATION_UNSTABLE",
+          "Git project or submodule state changed during inspection. Inspect again.",
+        );
+    }
     return {
       report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
       materials: {
