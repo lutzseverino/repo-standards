@@ -72,9 +72,7 @@ before(() =>
         fixture.defer("browser wrapper removal", () =>
           fs.rmSync(wrapper, { recursive: true, force: true }),
         );
-        let group = 0;
-
-        const pidFile = path.join(wrapper, "pid");
+        pidFile = path.join(wrapper, "pid");
         launcher = path.join(wrapper, "browser.mjs");
         fs.writeFileSync(
           launcher,
