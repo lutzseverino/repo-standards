@@ -1,3 +1,5 @@
+import type { CheckLocation } from "./check-locations.js";
+
 // A trusted script as checks, fixes, readiness probes and discovery scripts
 // declare it.
 export interface Script {
@@ -22,6 +24,8 @@ interface DeclarationBase {
   // The one hosting platform the declaration applies on; without it, it
   // applies on every platform of its profile.
   platform?: string;
+  // Without a filter it applies at every location offered by the profile.
+  "check-locations"?: CheckLocation[];
   checks: Operation[];
   fixes: Operation[];
 }
@@ -64,17 +68,18 @@ export type SourceDeclaration =
 export interface SourceProfile {
   description: string;
   platforms: string[];
+  "check-locations": CheckLocation[];
   declarations: SourceDeclaration[];
 }
 
-// A source profile on its selected platform: the declarations that apply
+// A source profile on its selected platform and check location: the declarations that apply
 // there, before scope.
 export interface SelectedProfile {
   description: string;
   declarations: SourceDeclaration[];
 }
 
-// A profile resolved for one selected platform: its declarations are those
+// A profile resolved for one selected platform and check location: its declarations are those
 // that apply on that platform.
 export interface ResolvedProfile {
   description: string;

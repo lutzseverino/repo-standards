@@ -26,7 +26,7 @@ returned, so one invocation reports them all.
 
 `check` exits 0 when every check passed and 1 when any did not, or when the
 checks could not run at all; invalid usage exits 2. `--json` prints the
-[`repo-standards/check/v2` report](../reference/check.md#report) for scripts.
+[`repo-standards/check/v3` report](../reference/check.md#report) for scripts.
 
 ## Fix a failure
 

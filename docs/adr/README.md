@@ -130,3 +130,6 @@ alternatives.
   the Astro trial passed for content and static sites, which use Astro, while
   client-side apps use Vite with React; `site/` is in Repo Canon's
   `typescript-astro` stack.
+- [Select check location beside platform](0034-select-check-location-beside-platform.md):
+  profiles offer one independent check-location choice and declarations filter
+  on it before scope, preserving legacy GitHub behavior.

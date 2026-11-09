@@ -15,7 +15,7 @@ Neither protocol needs to be read to start with `adopt`.
 ## The `adopt` command
 
 The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
-[--profile <name>] [--platform <name>] [--answers <file>]
+[--profile <name>] [--platform <name>] [--checks <value>] [--answers <file>]
 [--project <directory>] [--json]`. In an
 adopted project, `adopt` without a source updates the current selection. When
 the source cannot be reached, it proposes the current version and profile and
@@ -74,7 +74,7 @@ same exact CLI through `npx`, except for the
 recover the run with it. With an active run,
 `adopt --answers <file>` continues it, advancing it by at most one step: a
 confirmed fix, or submitted assessments. A source, version, profile, or
-platform that differs from the active run's selection fails with `ACTIVE_RUN`.
+platform or check location that differs from the active run's selection fails with `ACTIVE_RUN`.
 
 ### Choose the hosting platform
 
@@ -105,6 +105,31 @@ changed selection component that replaces the previous platform's
 declarations. An inspection or confirmation of another platform does not start
 a run. A selection recorded before platforms existed is read as `github`, and
 the next run records it.
+
+### Choose the check location
+
+Select exactly one offered [check location](author-format.md#check-locations)
+with `--checks github|runner|self-reported` or the answers-file `checks`
+question. These are alternatives: pass one value, not the pipe-separated list.
+A sole offered value needs no question; otherwise a supported recorded choice
+carries forward, and without one `adopt` asks. A terminal presents the same
+choice. Hosting platform detection never chooses a check location.
+An explicit unknown or unoffered value fails with `UNKNOWN_CHECK_LOCATION`
+before adoption writes; flag/answer conflicts fail under the ordinary selection
+answer validation. Omitting the profile's offer means `github` alone.
+
+The selection, lock, inspection identity, run, status, retained inputs and
+script requests carry `checks`. A supported previous selection without it
+means `github`, and the next completed run writes it explicitly. Retained and
+offline adoption preserve it. An inspection or confirmation for one location
+cannot start another; an active run cannot change it. A deliberate update
+re-resolves declarations, reports `checks` as a changed component and reports
+the resulting additions and removals under ordinary target ownership.
+
+A headless update keeps the recorded check location while supported; otherwise
+it stops for an explicit `checks` answer before writes, even when the new
+profile offers only one location. It rejects `--checks`, just as it rejects
+`--platform`. Continue the report's answers file with ordinary `adopt`.
 
 ### Reused answers
 
@@ -204,7 +229,7 @@ over an active run only reports it.
 
 ## Answers file
 
-The answers file, `repo-standards/answers/v1`, is the JSON object `adopt`
+The answers file, `repo-standards/answers/v2`, is the JSON object `adopt`
 prints: `format`, the `source` URL, and `questions`. Each question has an `id`,
 the `question` to ask, its `context`, optional `choices` and `details`, and an
 `answer`, which is `null` until answered. `adopt` reads only each question's
@@ -214,17 +239,18 @@ fields, an ID of no question kind below, a repeated ID, and an answer of the
 wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 `ANSWERS_LOCATION`. A file of at most 2 MiB is read.
 
-| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `platform`                 | Once a profile that supports several platforms is chosen.                        | A platform from `choices`, the profile's platforms. The recorded platform is carried forward while the profile supports it, and otherwise the `origin` remote's platform is proposed, with `details.detected`; without either, `details.reason` is `no-remote` or `unsupported`. See [Choose the hosting platform](#choose-the-hosting-platform).                                                                                                                                                                                                                                                                                                                                       |
-| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed, and it stays missing in every mode, the template included, while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
-| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and a recorded deferral whose probe changed, or beside remote setup it never deferred, is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                                                             |
-| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. When the inspection requires confirmation, a run starts only when it names the current inspection, and a new or changed inspection is printed again for review first. Otherwise it is never missing: the run binds the fresh inspection, whatever identity the answer names. A terminal always asks before starting.                                                                                                                                                                                                                                                                                               |
-| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit. A [reused](#reused-answers) recorded judgment is answered; one proposed for review stays missing until the answers file carries an answer.                                                                                                                                                                                                                                                                                      |
+| `id`                       | Asked when                                                                                   | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                  | Always; the template proposes the newest stable release.                                     | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `profile`                  | Always; proposed for an update or a single profile.                                          | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `platform`                 | Once a profile that supports several platforms is chosen.                                    | A platform from `choices`, the profile's platforms. The recorded platform is carried forward while the profile supports it, and otherwise the `origin` remote's platform is proposed, with `details.detected`; without either, `details.reason` is `no-remote` or `unsupported`. See [Choose the hosting platform](#choose-the-hosting-platform).                                                                                                                                                                                                                                                                                                                                       |
+| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope.             | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed, and it stays missing in every mode, the template included, while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
+| `checks`                   | When the profile offers several locations, or a headless update loses its recorded location. | One offered location: `github`, `runner` or `self-reported`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `remote-setup`             | When a remote setup probe is not ready.                                                      | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and a recorded deferral whose probe changed, or beside remote setup it never deferred, is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                                                             |
+| `confirmation`             | When the inspection requires confirmation.                                                   | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `inspection`               | Once inspected; the template carries the identity.                                           | The identity of the inspection the answers file was written against. When the inspection requires confirmation, a run starts only when it names the current inspection, and a new or changed inspection is printed again for review first. Otherwise it is never missing: the run binds the fresh inspection, whatever identity the answer names. A terminal always asks before starting.                                                                                                                                                                                                                                                                                               |
+| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                                 | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `assessment:<declaration>` | For each declaration of contextual work.                                                     | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit. A [reused](#reused-answers) recorded judgment is answered; one proposed for review stays missing until the answers file carries an answer.                                                                                                                                                                                                                                                                                      |
 
 The question's ID names the declaration of a `scope:` or `assessment:`
 answer; an `id` inside the answer is ignored. An answers file confirms a
@@ -242,7 +268,7 @@ answers, blockers, the inspection summary with each discarded edit's diff, or wh
 discovery and adoption guidance of discovery declarations, the run and its
 failed checks, each contextual declaration's installed rules and adoption
 guidance, the reused answers, the answers file, and the next steps. `--json`
-prints the same as a `repo-standards/adopt/v2` report, whose `reused` lists
+prints the same as a `repo-standards/adopt/v3` report, whose `reused` lists
 each [reused answer](#reused-answers) by question `id`, `kind`, and the
 `evidence` that made it eligible. A [headless update's](#update-headlessly)
 report also carries `headless: true` and `deferred`, each fix its run defers,
@@ -436,7 +462,7 @@ readiness.
 
 An update is one inspected run from the current selection to a
 candidate selection. The candidate can change the CLI pin, the standards pin,
-the source, the profile, any combination of them, or none of them. The
+the source, the profile, the platform, the check location, any combination of them, or none of them. The
 inspection report lists every changed component together with the previous
 selection. `adopt` drives the same inspect and start sequence, with
 [confirmation](#confirmation-required-changes) only when the report requires it.
@@ -639,7 +665,7 @@ Review and commit these files through the adopting project's normal workflow:
 
 | Path                                                        | Recorded material                                                                                                                                                                                                                     |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, profile, and platform.                                                                                                                                       |
+| `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, profile, platform, and check location (`checks`).                                                                                                            |
 | `.repo-standards/lock.json`                                 | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state.                                                                  |
 | `.repo-standards/state.json`                                | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
 | `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted.                                  |
@@ -658,8 +684,8 @@ source-resolved declarations, discovery guidance, proposal, rationale, evidence
 paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability, as `repo-standards/scope-history/v6` in the
-`repo-standards/inspection/v9` report, and `status` reports its scope change.
+source availability, as `repo-standards/scope-history/v7` in the
+`repo-standards/inspection/v10` report, and `status` reports its scope change.
 It also keeps each discovery script's draft that the confirmed entry was
 decided from, which a later update compares with the fresh draft to
 [reuse the scope answer](#reused-answers).
@@ -695,11 +721,11 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Artifact                                                             | Format                                                           |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Durable state, `.repo-standards/state.json`                          | `repo-standards/state/v8`                                        |
-| Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v1`                                         |
-| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v6`                                |
-| Run record, local run report, and archived abandoned report          | `repo-standards/run/v7`                                          |
-| `status` report                                                      | `repo-standards/status/v9`                                       |
-| Inspection report                                                    | `repo-standards/inspection/v9`                                   |
+| Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v2`                                         |
+| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v7`                                |
+| Run record, local run report, and archived abandoned report          | `repo-standards/run/v8`                                          |
+| `status` report                                                      | `repo-standards/status/v10`                                      |
+| Inspection report                                                    | `repo-standards/inspection/v10`                                  |
 | Work request and assessment                                          | `repo-standards/work-request/v5`, `repo-standards/assessment/v3` |
 
 An update also reads `repo-standards/state/v7` and
@@ -739,7 +765,7 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v7` JSON report. Its fields include `id`,
+`start` prints a `repo-standards/run/v8` JSON report. Its fields include `id`,
 `inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `deferred`, `reused`, `assessments`, and contextual
 `workRequest` when required. `reused` lists each [reused answer](#reused-answers)
@@ -891,7 +917,7 @@ The JSON status record of a complete discovery-backed adoption includes
 run made relative to the run before it, read from the retained scope evidence,
 or every confirmed path for the first discovery-backed run.
 
-Every `status --json` report uses `repo-standards/status/v9` (raised from v8 for
+Every `status --json` report uses `repo-standards/status/v10` (raised from v8 for
 `reused`) and includes
 `scopeProposal`: the last complete run's confirmed proposal, in the public
 `repo-standards/scope/v2` format, or null when that run had no confirmed proposal
@@ -946,7 +972,7 @@ older format, inspecting with `--source`, `--standards-version`, and
 first. Nothing in the retired state is read or converted, and the selection is
 inspected as an initial adoption. Each of those records that is present must
 still carry its own artifact's current or retired format, as a
-`repo-standards/lock/v1` lock beside retired state does; any other content
+current or readable previous lock beside retired state does; any other content
 there fails with `STATE_INTEGRITY`, and nothing is removed:
 
 - `retiredState` in the report, and **Retired product state** in its summary,
@@ -993,7 +1019,7 @@ one, and its `resume --retry` and `abandon`, which can still continue or end
 the run; this CLI can't:
 
 ```text
-[RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v7. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
+[RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v8. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
 ```
 
 An archived report in `repo-standards/run/v6`, the run format CLI 9.0.0 wrote,
@@ -1159,7 +1185,7 @@ installation, and each uncommitted path outside product state in the state the
 run's last observation recorded. The Git start blockers exempt exactly those
 paths. Any other uncommitted change still blocks with `DIRTY_PROJECT`, naming
 its path, and the agent stops and tells the maintainer. Selecting another CLI,
-source, version, profile, or platform does not adopt in place. The last complete
+source, version, profile, platform, or check location does not adopt in place. The last complete
 adoption an update replaces is read from the HEAD the run started from, since
 the checkout's product state is the run's own.
 

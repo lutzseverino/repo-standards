@@ -172,7 +172,7 @@ function fixture(
                 2,
               );
               const report = {
-                format: "repo-standards/adopt/v2",
+                format: "repo-standards/adopt/v3",
                 outcome: options.outcome ?? "complete",
                 selection: { ...selection, cli: "10.0.0", platform: "github" },
                 missing: [],
@@ -217,7 +217,7 @@ function fixture(
               inspection: { identity: "sha256:reviewed" },
               ...(baselineRounds === 2 ? { run: { id: "baseline" } } : {}),
               answers: {
-                format: "repo-standards/answers/v1",
+                format: "repo-standards/answers/v2",
                 source,
                 questions,
               },
@@ -231,7 +231,7 @@ function fixture(
             format:
               statuses === 1
                 ? "repo-standards/status/v8"
-                : "repo-standards/status/v9",
+                : "repo-standards/status/v10",
             readyToCommit: statuses === 1 ? true : (options.ready ?? true),
             selection: {
               cli: {

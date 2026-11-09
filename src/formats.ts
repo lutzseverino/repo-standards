@@ -7,11 +7,11 @@ import { ProductError } from "./errors.js";
 // fresh adoption.
 export const formats = {
   state: "repo-standards/state/v8",
-  lock: "repo-standards/lock/v1",
-  scopeHistory: "repo-standards/scope-history/v6",
-  run: "repo-standards/run/v7",
-  status: "repo-standards/status/v9",
-  inspection: "repo-standards/inspection/v9",
+  lock: "repo-standards/lock/v2",
+  scopeHistory: "repo-standards/scope-history/v7",
+  run: "repo-standards/run/v8",
+  status: "repo-standards/status/v10",
+  inspection: "repo-standards/inspection/v10",
   scope: "repo-standards/scope/v2",
   discovery: "repo-standards/discovery/v1",
   workRequest: "repo-standards/work-request/v5",
@@ -20,10 +20,10 @@ export const formats = {
   result: "repo-standards/result/v2",
   outdated: "repo-standards/outdated/v2",
   outdatedCache: "repo-standards/outdated-cache/v2",
-  check: "repo-standards/check/v2",
+  check: "repo-standards/check/v3",
   rules: "repo-standards/rules/v1",
-  answers: "repo-standards/answers/v1",
-  adopt: "repo-standards/adopt/v2",
+  answers: "repo-standards/answers/v2",
+  adopt: "repo-standards/adopt/v3",
 } as const;
 
 type RecordFormat =
@@ -38,7 +38,8 @@ type RecordFormat =
 // nothing writes them.
 export const previousFormats: Partial<Record<RecordFormat, string>> = {
   [formats.state]: "repo-standards/state/v7",
-  [formats.scopeHistory]: "repo-standards/scope-history/v5",
+  [formats.scopeHistory]: "repo-standards/scope-history/v6",
+  [formats.lock]: "repo-standards/lock/v1",
 };
 
 // Public CLI 9's archived run reports stay as opaque local history. This is

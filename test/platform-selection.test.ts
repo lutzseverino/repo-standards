@@ -424,7 +424,7 @@ test("with several platforms, detection proposes one, an override is honored, an
   const check = cli.run(["check"], f.root, f.env);
   assert.match(
     check.stdout,
-    /^Checks of \S+ v1\.0\.0, profile work, platform forgejo: none declared\./,
+    /^Checks of \S+ v1\.0\.0, profile work, platform forgejo, checks github: none declared\./,
   );
 });
 
@@ -538,7 +538,7 @@ test("a recorded selection without a platform is read as github and behaves as b
   assert.equal(check.status, 0, check.stderr);
   assert.match(
     check.stdout,
-    /, profile work, platform github: none declared\./,
+    /, profile work, platform github, checks github: none declared\./,
   );
   const retained = f.json<Inspection>(["inspect", "--json"]).report;
   assert.equal(retained.selection.platform, "github");

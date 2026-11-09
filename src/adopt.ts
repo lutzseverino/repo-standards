@@ -1,4 +1,10 @@
 import {
+  atCheckLocation,
+  defaultCheckLocation,
+  type CheckLocation,
+} from "./check-locations.js";
+
+import {
   existsSync,
   lstatSync,
   mkdtempSync,
@@ -111,6 +117,7 @@ export interface AdoptOptions {
   standardsVersion?: string;
   profile?: string;
   platform?: string;
+  checks?: string;
   answers?: string;
   project: string;
   // A headless update of the established adoption, which asks nobody.
@@ -149,6 +156,7 @@ export interface AdoptReport {
     version: string | null;
     profile: string | null;
     platform: string | null;
+    checks: CheckLocation | null;
   };
   // The questions still unanswered, by ID.
   missing: string[];
@@ -199,7 +207,7 @@ export type Answers = Map<string, unknown>;
 type Mode = "template" | "answers" | "terminal" | "headless";
 
 const questionId =
-  /^(?:version|profile|platform|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
+  /^(?:version|profile|platform|checks|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
 const questionKeys = ["id", "question", "context", "choices", "details"];
 
 function malformed(message: string): never {
@@ -316,6 +324,10 @@ function recordedSelection(root: string) {
             typeof value.platform === "string"
               ? value.platform
               : defaultPlatform,
+          checks:
+            typeof value.checks === "string"
+              ? value.checks
+              : defaultCheckLocation,
         }
       : undefined;
   } catch {
@@ -432,6 +444,7 @@ export async function adopt(
     ["--standards-version", "version", options.standardsVersion],
     ["--profile", "profile", options.profile],
     ["--platform", "platform", options.platform],
+    ["--checks", "checks", options.checks],
   ] as const)
     if (
       value !== undefined &&
@@ -525,6 +538,7 @@ async function prepare(
           ["version", preserved.run.selection.standards.version],
           ["profile", preserved.run.selection.profile],
           ["platform", preserved.run.selection.platform],
+          ["checks", preserved.run.selection.checks],
           ...(
             preserved.installation.report.discovery?.proposal?.declarations ??
             []
@@ -564,6 +578,7 @@ async function prepare(
   let version = options.standardsVersion ?? answered("version");
   let profile: string | undefined;
   let platform: string | undefined;
+  let checks: CheckLocation | undefined;
   let releases: string[] | undefined;
   let lookupFailure: string | undefined;
   if (version === undefined) {
@@ -615,6 +630,7 @@ async function prepare(
         version: version ?? null,
         profile: profile ?? null,
         platform: platform ?? null,
+        checks: checks ?? null,
       },
       questions,
     ),
@@ -654,6 +670,7 @@ async function prepare(
   }
   let profileQuestion: Question;
   let platformChoice: PlatformChoice | undefined;
+  let checksChoice: { checks?: CheckLocation; question?: Question } | undefined;
   let discovery: NonNullable<AdoptReport["discovery"]> = [];
   // The discovery declarations whose scope may be no scope.
   const optional = new Set<string>();
@@ -724,6 +741,14 @@ async function prepare(
         mode === "headless",
       );
       platform = platformChoice.platform;
+      checksChoice = chooseChecks(
+        profile,
+        profiles[profile]!["check-locations"],
+        options.checks ?? answered("checks"),
+        recorded?.checks,
+        mode === "headless",
+      );
+      checks = checksChoice.checks;
     }
     // The discovery and adoption guidance of each declaration whose scope
     // the adopter decides, from the acquired source, on the chosen platform.
@@ -732,8 +757,11 @@ async function prepare(
       content: readFileSync(join(acquired.root, path), "utf8"),
     });
     const declarations =
-      profile !== undefined && platform !== undefined
-        ? onPlatform(profiles[profile]!.declarations, platform)
+      profile !== undefined && platform !== undefined && checks !== undefined
+        ? atCheckLocation(
+            onPlatform(profiles[profile]!.declarations, platform),
+            checks,
+          )
         : [];
     for (const declaration of declarations)
       if ("discovery" in declaration && declaration.optional)
@@ -768,16 +796,32 @@ async function prepare(
     versionQuestion,
     profileQuestion,
     ...(platformChoice?.question ? [platformChoice.question] : []),
+    ...(checksChoice?.question ? [checksChoice.question] : []),
   ];
   if (
     platform === undefined ||
-    (mode === "terminal" && platformChoice?.detected)
+    checks === undefined ||
+    (mode === "terminal" && platformChoice?.detected) ||
+    (mode === "terminal" &&
+      checksChoice?.question &&
+      asking("checks", options.checks))
   )
     return withSteps(
       context,
       {
         ...report("answers-required", selectionQuestions),
-        missing: ["platform"],
+        missing: [
+          ...(platform === undefined ||
+          (mode === "terminal" && platformChoice?.detected)
+            ? ["platform"]
+            : []),
+          ...(checks === undefined ||
+          (mode === "terminal" &&
+            checksChoice?.question &&
+            asking("checks", options.checks))
+            ? ["checks"]
+            : []),
+        ],
         blockers: gitBlockers(),
       },
       mode === "template",
@@ -788,7 +832,8 @@ async function prepare(
     preserved &&
     (version !== preserved.run.selection.standards.version ||
       profile !== preserved.run.selection.profile ||
-      platform !== preserved.run.selection.platform)
+      platform !== preserved.run.selection.platform ||
+      checks !== preserved.run.selection.checks)
   )
     delete context.preserved;
 
@@ -860,6 +905,7 @@ async function prepare(
       standardsVersion: version,
       profile,
       platform,
+      checks,
       project: root,
       ...(scope ? { scope } : {}),
     };
@@ -1158,6 +1204,48 @@ async function prepare(
   }
 }
 
+// Unlike hosting platform, check location is never detected from a remote.
+function chooseChecks(
+  profile: string,
+  offered: CheckLocation[],
+  given: string | undefined,
+  recorded: string | undefined,
+  headless: boolean,
+): { checks?: CheckLocation; question?: Question } {
+  if (given !== undefined && !offered.includes(given as CheckLocation))
+    throw new ProductError(
+      "UNKNOWN_CHECK_LOCATION",
+      `Profile ${profile} does not offer check location ${given}. Its check-locations: ${offered.join(", ")}.`,
+    );
+  const unsupported =
+    headless &&
+    recorded !== undefined &&
+    !offered.includes(recorded as CheckLocation);
+  const checks = unsupported
+    ? undefined
+    : ((given as CheckLocation | undefined) ??
+      (offered.length === 1
+        ? offered[0]
+        : offered.find((location) => location === recorded)));
+  if (offered.length === 1 && !unsupported) return { checks: offered[0]! };
+  return {
+    ...(checks === undefined ? {} : { checks }),
+    question: {
+      id: "checks",
+      question: "Where does the project run its checks?",
+      context:
+        `Profile ${profile} offers check-locations ${offered.join(", ")}. github means GitHub Actions; runner means a repository-named machine posting commit statuses; self-reported means the authoring agent sandbox. ` +
+        (unsupported
+          ? `It no longer supports the recorded check location, ${recorded}, so a headless update cannot choose one.`
+          : checks !== undefined && given === undefined
+            ? `The recorded check location, ${checks}, is carried forward.`
+            : "Choose exactly one location independently of the hosting platform."),
+      choices: offered,
+      answer: checks ?? null,
+    },
+  };
+}
+
 // How a profile's platform is chosen: its question, asked only of a profile
 // that supports several platforms, and the platform, unless an explicit
 // choice is required. A platform proposed by detection alone is confirmed in
@@ -1250,22 +1338,24 @@ async function continueRun(
   run: Run,
 ) {
   const { root, cliVersion, given } = context;
-  const { standards, profile, platform } = run.selection;
+  const { standards, profile, platform, checks } = run.selection;
   const source = options.source ?? file?.source;
   const version = options.standardsVersion ?? given.get("version");
   const chosen = options.profile ?? given.get("profile");
   const chosenPlatform = options.platform ?? given.get("platform");
+  const chosenChecks = options.checks ?? given.get("checks");
   if (
     (source !== undefined &&
       sourceKey(source) !== sourceKey(standards.repository)) ||
     (typeof version === "string" && version !== standards.version) ||
     (typeof chosen === "string" && chosen !== profile) ||
-    (typeof chosenPlatform === "string" && chosenPlatform !== platform)
+    (typeof chosenPlatform === "string" && chosenPlatform !== platform) ||
+    (typeof chosenChecks === "string" && chosenChecks !== checks)
   ) {
     const continuation = continuationCommand(root, cliVersion);
     throw new ProductError(
       "ACTIVE_RUN",
-      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} on ${platform} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
+      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} on ${platform} is active (checks ${checks}). Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
     );
   }
   // A run stopped for its scope and given a changed scope answer is replaced
@@ -1332,7 +1422,7 @@ function scopeQuestions(context: Context, run: Run): Question[] {
 
 // The report of a run, before describing what it asks.
 function runReport(run: Run): AdoptReport {
-  const { cli, standards, profile, platform } = run.selection;
+  const { cli, standards, profile, platform, checks } = run.selection;
   return skeleton(
     {
       cli: cli.version,
@@ -1340,6 +1430,7 @@ function runReport(run: Run): AdoptReport {
       version: standards.version,
       profile,
       platform,
+      checks,
     },
     [],
   );
@@ -1688,6 +1779,10 @@ function withSteps(
       steps.push(
         "Decide the answers from each question's context and choices, and record your decisions and reasons in the handoff. Choose the proposed newest stable version unless the maintainer requested another. Choose the profile from its descriptions, the request, and repository evidence; ask the maintainer only when these do not settle it.",
       );
+      if (ids.has("checks"))
+        steps.push(
+          "Answer `checks` with exactly one offered check location: github (GitHub Actions), runner (a repository-named machine posting commit statuses), or self-reported (the authoring agent sandbox), using the request and repository evidence.",
+        );
       if (ids.has("platform"))
         steps.push(
           "Answer `platform` with the hosting platform the project lives on, from the choices: keep a platform detected from the origin remote unless the maintainer's request names another, and ask the maintainer only when no remote or request settles it.",
@@ -1898,6 +1993,10 @@ export function adoptSummary(report: AdoptReport) {
             [
               "Platform",
               selection.platform ? code(selection.platform) : "unanswered",
+            ],
+            [
+              "Check location",
+              selection.checks ? code(selection.checks) : "unanswered",
             ],
           ],
         ),

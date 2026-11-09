@@ -110,6 +110,7 @@ test("adopt without an answers file prints a complete template and changes nothi
     version: "v1.1.0",
     profile: "work",
     platform: "github",
+    checks: "github",
   });
   assert.deepEqual(
     report.answers.questions.map(({ id, answer }) => [id, answer]),
@@ -274,7 +275,7 @@ test("a start that needs no confirmation binds the fresh inspection, whatever in
   writeFileSync(
     f.answersPath,
     JSON.stringify({
-      format: "repo-standards/answers/v1",
+      format: "repo-standards/answers/v2",
       source,
       questions: [
         ["version", "v1.0.0"],
@@ -1054,6 +1055,7 @@ test("adopt without a source updates an adopted project, offering the newest sta
     version: "v1.1.0",
     profile: "work",
     platform: "github",
+    checks: "github",
   });
   assert.deepEqual(question(update.report, "version").choices, [
     "v1.1.0",

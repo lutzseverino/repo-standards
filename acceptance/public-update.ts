@@ -11,8 +11,8 @@ const platform = "github";
 // Keep the candidate protocol pinned to this checkout without importing the
 // product runtime into a dependency-free release script. The types catch drift.
 const candidateFormats = {
-  adopt: "repo-standards/adopt/v2",
-  status: "repo-standards/status/v9",
+  adopt: "repo-standards/adopt/v3",
+  status: "repo-standards/status/v10",
 } satisfies Pick<
   typeof import("../src/formats.ts").formats,
   "adopt" | "status"

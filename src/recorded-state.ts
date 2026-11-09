@@ -52,6 +52,11 @@ import {
   type ExecutionEvidence,
 } from "./work-evidence.js";
 import { dictionary } from "./records.js";
+import {
+  defaultCheckLocation,
+  isCheckLocation,
+  type CheckLocation,
+} from "./check-locations.js";
 import { defaultPlatform } from "./platforms.js";
 
 // The one reader of a recorded adoption: everything the last complete adoption
@@ -69,14 +74,17 @@ export interface RecordedSelection {
   profile: string;
   // The hosting platform the project selected.
   platform: string;
+  checks: CheckLocation;
 }
 
 type Baseline = Pick<Content, "sha256" | "executable">;
 interface RecordedLock {
   format: string;
-  // A lock an earlier CLI wrote records no platform: its selection used
-  // github, the only platform there was.
-  selection: Omit<RecordedSelection, "platform"> & { platform?: unknown };
+  // Previous locks may omit platform and checks; both then mean github.
+  selection: Omit<RecordedSelection, "platform" | "checks"> & {
+    platform?: unknown;
+    checks?: unknown;
+  };
   inspection: string;
   files: Record<string, Baseline>;
   state: Baseline;
@@ -223,12 +231,15 @@ function decode(lock: Observation, observed: Observation) {
   }
   const state = decodeState(observed);
   if (
-    pinned?.format !== formats.lock ||
+    !readableFormat(pinned, formats.lock) ||
     pinned.state?.sha256 !== observed.sha256 ||
     pinned.state.executable !== observed.executable ||
     !pinned.selection ||
     (pinned.selection.platform !== undefined &&
       typeof pinned.selection.platform !== "string") ||
+    (pinned.format === formats.lock
+      ? !isCheckLocation(pinned.selection.checks)
+      : pinned.selection.checks !== undefined) ||
     !pinned.files
   ) {
     invalid();
@@ -555,6 +566,9 @@ function readFrom(
       ...pinned.selection,
       platform:
         (pinned.selection.platform as string | undefined) ?? defaultPlatform,
+      checks:
+        (pinned.selection.checks as CheckLocation | undefined) ??
+        defaultCheckLocation,
     },
     files: pinned.files,
     state: decoded.state,

@@ -160,16 +160,16 @@ test("a retired state, scope evidence, or run record format is rejected with the
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
   assert.equal(state.format, "repo-standards/state/v8");
-  assert.equal(scope.format, "repo-standards/scope-history/v6");
+  assert.equal(scope.format, "repo-standards/scope-history/v7");
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v9",
+    "repo-standards/status/v10",
   );
   const retainedInspection = f.run<Inspection>(["inspect", "--json"]).report;
-  assert.equal(retainedInspection.format, "repo-standards/inspection/v9");
+  assert.equal(retainedInspection.format, "repo-standards/inspection/v10");
   assert.equal(
     retainedInspection.historicalScope!.format,
-    "repo-standards/scope-history/v6",
+    "repo-standards/scope-history/v7",
   );
 
   const runRecord = join(
@@ -190,7 +190,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
   const retired = [
     {
       format: "repo-standards/lock/v0",
-      current: "repo-standards/lock/v1",
+      current: "repo-standards/lock/v2",
       path: ".repo-standards/lock.json",
       plant: (format: string) =>
         writeFileSync(
@@ -207,7 +207,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
     })),
     ...["v1", "v4"].map((version) => ({
       format: `repo-standards/scope-history/${version}`,
-      current: "repo-standards/scope-history/v6",
+      current: "repo-standards/scope-history/v7",
       path: ".repo-standards/inputs/scope-history.json",
       plant: (format: string) =>
         rewriteRetainedInput(
@@ -218,7 +218,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
     })),
     ...["v1", "v6"].map((version) => ({
       format: `repo-standards/run/${version}`,
-      current: "repo-standards/run/v7",
+      current: "repo-standards/run/v8",
       path: relative(root, runRecord),
       plant: (format: string) =>
         writeFileSync(
@@ -286,7 +286,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
   }
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v9",
+    "repo-standards/status/v10",
   );
 
   // An archived report of an abandoned run is a run record too.
@@ -316,7 +316,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
     assert.deepEqual(rejected.report.errors[0]!.details, {
       path: relative(root, archived),
       format: "repo-standards/run/v1",
-      expected: "repo-standards/run/v7",
+      expected: "repo-standards/run/v8",
     });
     assert.deepEqual(
       snapshot(root),
@@ -446,7 +446,7 @@ test("archive exclusion requires an exact object marker in a regular file and pr
     f.run<ErrorReport>(["status", "--json"]).report.errors[0]!.code,
     "RETIRED_FORMAT",
   );
-  writeFileSync(join(reports, "z.json"), '{"format":"repo-standards/run/v8"}');
+  writeFileSync(join(reports, "z.json"), '{"format":"repo-standards/run/v9"}');
   const future = snapshot(f.root);
   for (const args of [
     ["inspect", "--json"],
@@ -507,23 +507,23 @@ test("newer record formats require the pinned CLI without fresh-adoption advice 
     },
     {
       path: join(root, ".repo-standards/inputs/scope-history.json"),
-      format: "repo-standards/scope-history/v7",
-      expected: "repo-standards/scope-history/v6",
+      format: "repo-standards/scope-history/v8",
+      expected: "repo-standards/scope-history/v7",
     },
     {
       path: runRecord,
-      format: "repo-standards/run/v8",
-      expected: "repo-standards/run/v7",
+      format: "repo-standards/run/v9",
+      expected: "repo-standards/run/v8",
     },
     {
       path: archived,
-      format: "repo-standards/run/v8",
-      expected: "repo-standards/run/v7",
+      format: "repo-standards/run/v9",
+      expected: "repo-standards/run/v8",
     },
     {
       path: join(root, ".repo-standards/lock.json"),
-      format: "repo-standards/lock/v2",
-      expected: "repo-standards/lock/v1",
+      format: "repo-standards/lock/v3",
+      expected: "repo-standards/lock/v2",
     },
   ];
   for (const { path, format, expected } of records) {
@@ -1184,7 +1184,7 @@ test("a retired active run record blocks the fresh-adoption preview and its star
     assert.deepEqual(diagnostic!.details, {
       path: relative(root, runRecord),
       format: "repo-standards/run/v5",
-      expected: "repo-standards/run/v7",
+      expected: "repo-standards/run/v8",
       cli: "3.2.0",
     });
     assert.deepEqual(
@@ -1312,7 +1312,7 @@ test("a committed record that is neither current nor retired beside retired stat
         readFileSync(join(root, ".repo-standards/lock.json"), "utf8"),
       ) as Lock
     ).format,
-    "repo-standards/lock/v1",
+    "repo-standards/lock/v2",
   );
   const inspection = f.run<Inspection>(inspectionArgs).report;
   assert.equal(inspection.start.eligible, true);

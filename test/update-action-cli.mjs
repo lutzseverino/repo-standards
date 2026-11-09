@@ -106,7 +106,7 @@ function outdated() {
 
 function headless(version) {
   const report = {
-    format: "repo-standards/adopt/v2",
+    format: "repo-standards/adopt/v3",
     headless: true,
     selection: {
       cli: version,
@@ -145,7 +145,7 @@ function headless(version) {
       missing: [],
       blockers: [],
       answers: {
-        format: "repo-standards/answers/v1",
+        format: "repo-standards/answers/v2",
         source,
         questions: [],
       },
@@ -159,7 +159,7 @@ function headless(version) {
       { code: "SOURCE_CHANGED", message: "The source moved its tag." },
     ],
     answers: {
-      format: "repo-standards/answers/v1",
+      format: "repo-standards/answers/v2",
       source,
       questions: [
         {

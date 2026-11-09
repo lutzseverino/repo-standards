@@ -63,6 +63,11 @@ import {
 import { unifiedDiff } from "./unified-diff.js";
 import { compareUpdate } from "./update-comparison.js";
 import { dictionary } from "./records.js";
+import {
+  atCheckLocation,
+  checkLocations,
+  type CheckLocation,
+} from "./check-locations.js";
 import { defaultPlatform, onPlatform } from "./platforms.js";
 
 // Guidance, discovery guidance and scripts are referenced by path and hash.
@@ -170,6 +175,7 @@ export interface InspectOptions {
   // The hosting platform, which may be omitted for a profile that supports
   // only one.
   platform?: string;
+  checks?: string;
   project: string;
   scope?: string;
 }
@@ -270,6 +276,7 @@ export async function inspectForStart(
       version: options.standardsVersion,
       profile: options.profile,
       ...(options.platform === undefined ? {} : { platform: options.platform }),
+      ...(options.checks === undefined ? {} : { checks: options.checks }),
     })
       ? lookup.preserved
       : undefined;
@@ -414,11 +421,30 @@ export async function inspectForStart(
       sourceProfile.platforms,
       options.platform,
     );
-    // The profile on its platform: the declarations for other platforms are
-    // left out before scope, and nothing after reads them.
+    const offeredChecks = sourceProfile["check-locations"];
+    if (
+      options.checks !== undefined &&
+      !offeredChecks.includes(options.checks as CheckLocation)
+    )
+      throw new ProductError(
+        "UNKNOWN_CHECK_LOCATION",
+        `Profile ${options.profile} does not offer check location ${options.checks}. Its check-locations: ${offeredChecks.join(", ")}. Supported values: ${checkLocations.join(", ")}.`,
+      );
+    const checks =
+      (options.checks as CheckLocation | undefined) ??
+      (offeredChecks.length === 1 ? offeredChecks[0] : undefined);
+    if (checks === undefined)
+      throw new ProductError(
+        "CHECK_LOCATION_REQUIRED",
+        `Profile ${options.profile} offers several check-locations: ${offeredChecks.join(", ")}. Select one with --checks.`,
+      );
+    // Both filters apply before scope; later stages never see excluded declarations.
     const profile = {
       description: sourceProfile.description,
-      declarations: onPlatform(sourceProfile.declarations, platform),
+      declarations: atCheckLocation(
+        onPlatform(sourceProfile.declarations, platform),
+        checks,
+      ),
     };
     const discoveryDeclarations = profile.declarations.filter(
       (declaration) => "discovery" in declaration,
@@ -430,7 +456,7 @@ export async function inspectForStart(
     // observation, and the durable product state it excludes from that
     // observation. Git HEAD, the index, and the project root are not bound.
     const requestIdentity = scopeObservation
-      ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile, platform }, productState: hashInventory(productState), observation: scopeObservation }))}`
+      ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile, platform, checks }, productState: hashInventory(productState), observation: scopeObservation }))}`
       : undefined;
     const scope = validateScope({
       root,
@@ -445,6 +471,7 @@ export async function inspectForStart(
       standards: source.identity,
       profile: options.profile,
       platform,
+      checks,
     };
     // Without a proposal, each declared discovery script drafts its
     // declaration's entry for the agent or person to review and complete.
@@ -490,6 +517,7 @@ export async function inspectForStart(
       profiles: {
         [options.profile]: {
           description: profile.description,
+          "check-locations": [checks],
           ...(platform === defaultPlatform ? {} : { platforms: [platform] }),
           declarations: Object.fromEntries(
             profile.declarations.map(({ id, ...declaration }) => [

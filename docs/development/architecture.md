@@ -23,7 +23,7 @@ The product supports both journeys:
 2. An adopting project inspects one complete profile, adopts it, commits the
    resulting material through its own workflow, and later deliberately updates
    its selection, in any combination of its pins, source, profile, and
-   platform, through
+   platform and check location, through
    one run; the agent reviews discarded edits recoverable from Git, and the
    maintainer confirms a remote setting overwrite.
 
@@ -307,6 +307,13 @@ the existing disjoint ownership rules. Explicit directory targets remain disjoin
 there is no protection language, exact-descendant subtraction, or additional
 ownership model. A discovery script only drafts a proposal; it never decides
 scope.
+
+Check location is an independent selection component beside platform, as
+[ADR 0034](../adr/0034-select-check-location-beside-platform.md) records. Profiles
+offer `check-locations` (default `[github]`); declarations optionally filter on
+that same key. Selection, answers and CLI use `checks`, while declaration
+`checks` remains operations. Apply both filters before scope and compare target
+conflicts only where applicability overlaps on an offered location.
 
 ## Publication and compatibility
 
@@ -928,6 +935,18 @@ the meaning or accepted values of existing input. The optional-input exception
 does not apply to persisted records or public reports. Raise each format at
 most once per release; a branch that rebases onto a merge that already raised a
 format keeps that raise and does not raise it again.
+
+Check-location selection raises `lock/v2`, `scope-history/v7`, `run/v8`,
+`inspection/v10`, `status/v10`, `check/v3`, `answers/v2` and `adopt/v3`.
+The previous `lock/v1` and `scope-history/v6` remain readable; a previous lock
+without `checks` means `github`, and the next completed adoption writes the
+choice explicitly. Current locks require a supported value. Durable state
+keeps `state/v8` (and its existing previous reader), and work requests keep
+`work-request/v5`: their keys do not change and the work request's selection
+digest binds the location. Operation and discovery requests add optional
+`checks` under the author-input exception, keeping their formats. Active runs
+still require their current format; an older active run finishes or is
+abandoned with its earlier pinned CLI.
 
 ### Committed evidence
 

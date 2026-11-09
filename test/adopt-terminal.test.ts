@@ -68,7 +68,7 @@ test("adopt --json in a terminal prints its report and starts the run like any a
   };
   assert.equal(report.outcome, "complete");
   assert.match(report.inspection.identity, /^sha256:/);
-  assert.equal(report.answers.format, "repo-standards/answers/v1");
+  assert.equal(report.answers.format, "repo-standards/answers/v2");
   assert.equal(status(f).readyToCommit, true);
 });
 

@@ -936,6 +936,7 @@ async function retainedInspection(
       standardsVersion: selection.standards.version,
       profile: selection.profile,
       platform: selection.platform,
+      checks: selection.checks,
     },
     cliVersion,
     recorded,

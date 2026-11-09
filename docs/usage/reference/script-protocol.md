@@ -55,6 +55,7 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
   },
   "profile": "work",
   "platform": "github",
+  "checks": "github",
   "declarations": [],
   "allowedTargets": { "paths": ["README.md"], "directories": [] },
   "overwriteAllowed": false,
@@ -64,7 +65,12 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
 
 `platform` is the hosting platform the project selected, which a script may
 read to act on that platform; the declarations of other platforms are not
-active. `declarations` contains every active, fully resolved declaration,
+active. The optional `checks` request field names the selected check location;
+its absence in requests from earlier CLIs means `github`. It is independent of
+platform, and does not change declarations' executable `checks` arrays. The
+operation and discovery input formats retain their versions under the optional
+author-input rule; scripts must ignore fields they do not use.
+`declarations` contains every active, fully resolved declaration,
 including its ID, any `platform` it names, and complete checks/fixes lists; the
 empty array above is abbreviated.
 `operation.phase` is `fixes` or `checks`, or `probes` for a
@@ -248,7 +254,8 @@ retained source. The script reads one JSON object on stdin:
     "commit": "40-character-resolved-commit-sha"
   },
   "profile": "work",
-  "platform": "github"
+  "platform": "github",
+  "checks": "github"
 }
 ```
 

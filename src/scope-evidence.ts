@@ -38,8 +38,7 @@ export interface RetainedDiscovery {
   proposal?: unknown;
   absence?: unknown;
   // The draft of each declaration with a discovery script, which its
-  // confirmed entry was decided from. Scope evidence the previous release
-  // wrote keeps none.
+  // confirmed entry was decided from. Both readable formats retain them.
   drafts?: unknown[];
   // A confirmed proposal carries one; the recorded value may be absent.
   namedObservation?: ScopeObservation | undefined;
@@ -149,15 +148,13 @@ function compactEvidence(stored: Record<string, unknown>) {
     !Object.hasOwn(discovery, "evidence") &&
     !Object.hasOwn(discovery, "namedObservation") &&
     !Object.hasOwn(observation, "evidence") &&
-    // The current format keeps the drafts; the previous release's does not.
-    (stored.format === formats.scopeHistory
-      ? Array.isArray(discovery.drafts)
-      : !Object.hasOwn(discovery, "drafts"))
+    // Both readable formats retain the discovery drafts.
+    Array.isArray(discovery.drafts)
   );
 }
 
 // Retained scope evidence is read in its committed format, or in the previous
-// release's, which keeps no drafts.
+// release's, which lacks check-location filters.
 function committedEvidence(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") unreadable();
   requireFormat(evidencePath, value, formats.scopeHistory);

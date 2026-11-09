@@ -235,9 +235,12 @@ export class Paths {
     }
   }
 
-  // Targets of declarations for different platforms never conflict.
+  // Targets conflict only where both platform and check-location filters overlap.
   conflicts(
-    targets: (Target & { platform?: string | undefined })[],
+    targets: (Target & {
+      platform?: string | undefined;
+      "check-locations"?: string[];
+    })[],
     profile: string,
   ) {
     for (let index = 0; index < targets.length; index++) {
@@ -247,6 +250,14 @@ export class Paths {
           target.platform !== undefined &&
           previous.platform !== undefined &&
           target.platform !== previous.platform
+        )
+          continue;
+        if (
+          target["check-locations"] &&
+          previous["check-locations"] &&
+          !target["check-locations"].some((location) =>
+            previous["check-locations"]!.includes(location),
+          )
         )
           continue;
         if (overlaps(foldPath(target.path), foldPath(previous.path))) {
