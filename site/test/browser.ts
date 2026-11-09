@@ -7,6 +7,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { BrowserFixture } from "./fixture.ts";
 
 const COMMANDS = [
   "google-chrome-stable",
@@ -63,7 +64,8 @@ export type Key = keyof typeof KEYS;
 export class Browser {
   #process: ChildProcess;
   #profile: string;
-  #socket: WebSocket;
+  #socket: WebSocket | undefined;
+  #fixture: BrowserFixture;
   #next = 0;
   #pending = new Map<
     number,
@@ -75,12 +77,19 @@ export class Browser {
   #listeners = new Set<(message: Message) => void>();
 
   private constructor(
-    process: ChildProcess,
+    child: ChildProcess,
     profile: string,
-    socket: WebSocket,
+    fixture: BrowserFixture,
   ) {
-    this.#process = process;
+    this.#process = child;
     this.#profile = profile;
+    this.#fixture = fixture;
+    fixture.ownProcess(child);
+    fixture.ownDirectory(profile);
+    fixture.defer("browser close", () => this.close());
+  }
+
+  #connect(socket: WebSocket) {
     this.#socket = socket;
     socket.addEventListener("message", (event) => {
       const message = JSON.parse(String(event.data)) as Message;
@@ -98,7 +107,10 @@ export class Browser {
   /** Starts `executable` headless, reaching only this machine's own
    * servers, so pages load no third-party scripts such as the analytics
    * beacon. */
-  static async launch(executable: string): Promise<Browser> {
+  static async launch(
+    executable: string,
+    fixture: BrowserFixture,
+  ): Promise<Browser> {
     const profile = mkdtempSync(path.join(tmpdir(), "site-browser-"));
     const child = spawn(
       executable,
@@ -115,18 +127,23 @@ export class Browser {
         ...(process.platform === "linux" ? ["--no-sandbox"] : []),
         "about:blank",
       ],
-      { stdio: ["ignore", "ignore", "pipe"] },
+      { detached: true, stdio: ["ignore", "ignore", "pipe"] },
     );
+    const browser = new Browser(child, profile, fixture);
     const endpoint = await new Promise<string>((resolve, reject) => {
       let output = "";
       const timer = setTimeout(
         () => reject(new Error(`${executable} did not start:\n${output}`)),
         30_000,
       );
-      child.once("exit", (code) =>
-        reject(new Error(`${executable} exited with ${code}:\n${output}`)),
-      );
-      child.once("error", reject);
+      child.once("exit", (code) => {
+        clearTimeout(timer);
+        reject(new Error(`${executable} exited with ${code}:\n${output}`));
+      });
+      child.once("error", (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
       child.stderr.on("data", (chunk: Buffer) => {
         output += chunk.toString();
         const match = /DevTools listening on (ws:\/\/\S+)/.exec(output);
@@ -138,11 +155,12 @@ export class Browser {
     });
     child.stderr.resume();
     const socket = new WebSocket(endpoint);
+    browser.#connect(socket);
     await new Promise((resolve, reject) => {
       socket.addEventListener("open", resolve, { once: true });
       socket.addEventListener("error", reject, { once: true });
     });
-    return new Browser(child, profile, socket);
+    return browser;
   }
 
   send(
@@ -151,7 +169,7 @@ export class Browser {
     sessionId?: string,
   ): Promise<Record<string, unknown>> {
     const id = ++this.#next;
-    this.#socket.send(JSON.stringify({ id, method, params, sessionId }));
+    this.#socket!.send(JSON.stringify({ id, method, params, sessionId }));
     // a browser that stops answering fails the command instead of hanging
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -231,15 +249,26 @@ export class Browser {
   }
 
   async close() {
-    this.#socket.close();
-    if (this.#process.exitCode === null && this.#process.signalCode === null) {
-      const exited = new Promise((resolve) =>
-        this.#process.once("exit", resolve),
+    await this.#fixture.attempt("browser socket close", () => {
+      for (const pending of this.#pending.values())
+        pending.reject(new Error("browser closed during command"));
+      this.#pending.clear();
+      this.#socket?.close();
+    });
+    await this.#fixture.attempt("browser process exit", async () => {
+      if (this.#process.exitCode !== null || this.#process.signalCode !== null)
+        return;
+      // A failed spawn has no process to wait for.
+      if (!this.#process.pid) return;
+      const exited = new Promise<void>((resolve) =>
+        this.#process.once("exit", () => resolve()),
       );
       this.#process.kill();
       await exited;
-    }
-    rmSync(this.#profile, { recursive: true, force: true });
+    });
+    await this.#fixture.attempt("browser profile removal", () =>
+      rmSync(this.#profile, { recursive: true, force: true }),
+    );
   }
 }
 

@@ -22,6 +22,7 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { preview } from "astro";
 import { Browser, findBrowser, type Tab } from "./browser.ts";
+import { BrowserFixture } from "./fixture.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
 const WIDTHS = [1440, 320, 360, 390];
@@ -33,35 +34,39 @@ const skip = executable
 
 process.env.SITE_SEARCH_RECORDING = path.join(site, "fixtures/search");
 
+const fixture = new BrowserFixture();
 let browser: Browser | undefined;
 let output = "";
 let server: Awaited<ReturnType<typeof preview>> | undefined;
 let base = "";
 
-before(async () => {
-  if (!executable) return;
-  output = mkdtempSync(path.join(site, "node_modules/.site-clamps-"));
-  execFileSync(
-    process.execPath,
-    ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
-    { cwd: site, timeout: 120_000, stdio: "pipe" },
-  );
-  server = await preview({
-    root: site,
-    outDir: output,
-    logLevel: "error",
-    server: { host: "127.0.0.1", port: 0 },
-  });
-  base = `http://127.0.0.1:${server.port}`;
-  browser = await Browser.launch(executable);
-});
+before(() =>
+  fixture.setup(async () => {
+    if (!executable) return;
+    output = mkdtempSync(path.join(site, "node_modules/.site-clamps-"));
+    fixture.ownDirectory(output);
+    fixture.defer("build output removal", () =>
+      rmSync(output, { recursive: true, force: true }),
+    );
+    execFileSync(
+      process.execPath,
+      ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
+      { cwd: site, timeout: 120_000, stdio: "pipe" },
+    );
+    server = await preview({
+      root: site,
+      outDir: output,
+      logLevel: "error",
+      server: { host: "127.0.0.1", port: 0 },
+    });
+    fixture.defer("preview server stop", () => server!.stop());
+    base = `http://127.0.0.1:${server.port}`;
+    browser = await Browser.launch(executable, fixture);
+  }),
+);
 
 // whatever `before` reached before it failed
-after(async () => {
-  await browser?.close();
-  await server?.stop();
-  if (output) rmSync(output, { recursive: true, force: true });
-});
+after(() => fixture.close());
 
 test("a browser measures the clamps in CI", () => {
   assert.ok(executable || !process.env.CI, skip || "");
