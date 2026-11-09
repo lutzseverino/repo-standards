@@ -462,8 +462,8 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: input.o
   assert.equal(question(again, "fix:agent-guidance/labels").answer, null);
 });
 
-// Rewrites the adoption's records as CLI 9.0.0 writes them: state/v7 without
-// reused answers, assessed scopes or impact, and scope-history/v6 with discovery drafts.
+// Rewrites records to supported earlier formats: state/v7 without reused
+// answers, assessed scopes or impact, and scope-history/v6 retaining drafts.
 function previousRelease(f: ReuseFixture) {
   const {
     reused: _reused,

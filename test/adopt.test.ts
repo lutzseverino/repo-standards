@@ -161,7 +161,7 @@ test("adopt without an answers file prints a complete template and changes nothi
         text.stdout.startsWith(`${heading}\n`),
       heading,
     );
-  assert.match(text.stdout, /"format": "repo-standards\/answers\/v1"/);
+  assert.match(text.stdout, /"format": "repo-standards\/answers\/v2"/);
   assert.match(
     text.stdout,
     new RegExp(
