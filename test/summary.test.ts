@@ -199,6 +199,7 @@ ${status.changeSet!.map(({ path }) => `- Changed path is not among the uncommitt
 | Standards commit | \`${selection!.standards.commit}\` |
 | Profile | \`${selection!.profile}\` |
 | Platform | \`${selection!.platform}\` |
+| Check location | \`${selection!.checks}\` |
 
 ## Operations
 
