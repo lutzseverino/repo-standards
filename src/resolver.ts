@@ -9,6 +9,7 @@ import type { SourceProfile } from "./model.js";
 import { isRootLicense, Paths, type SourcePaths } from "./paths.js";
 import { validateSkillInvocation } from "./skill-invocation.js";
 import { dictionary } from "./records.js";
+import { defaultCheckLocation, readCheckLocations } from "./check-locations.js";
 import { defaultPlatform } from "./platforms.js";
 
 export function validateSource(
@@ -224,6 +225,7 @@ function resolveDocument(
     const profileFields = fields.map(profile, [
       "description",
       "platforms",
+      "check-locations",
       "declarations",
     ]);
     const profileDescription = fields.string(
@@ -234,6 +236,10 @@ function resolveDocument(
     const platforms = platformsValue
       ? profilePlatforms(platformsValue, fields, declarations)
       : [defaultPlatform];
+    const locationsValue = profileFields.get("check-locations");
+    const locations = locationsValue
+      ? readCheckLocations(locationsValue, fields)
+      : [defaultCheckLocation];
     const replacements = declarations.read(
       fields.get(profile, "declarations"),
       inherited,
@@ -242,6 +248,7 @@ function resolveDocument(
     profiles[id] = {
       description: profileDescription ?? "",
       platforms,
+      "check-locations": locations,
       declarations: [...resolved.entries()]
         .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
         .flatMap(([, declaration]) =>
@@ -257,6 +264,11 @@ function resolveDocument(
           : (declarations.locations.get(declaration) ?? []).map((target) => ({
               ...target,
               platform: declaration.platform,
+              "check-locations": locations.filter(
+                (location) =>
+                  !declaration["check-locations"] ||
+                  declaration["check-locations"].includes(location),
+              ),
             })),
       ),
       id,

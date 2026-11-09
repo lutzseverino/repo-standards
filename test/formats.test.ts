@@ -34,9 +34,13 @@ test("current and explicitly supported previous record formats remain readable",
   );
   assert.equal(
     readableFormat(
-      { format: "repo-standards/scope-history/v5" },
+      { format: "repo-standards/scope-history/v6" },
       formats.scopeHistory,
     ),
+    true,
+  );
+  assert.equal(
+    readableFormat({ format: "repo-standards/lock/v1" }, formats.lock),
     true,
   );
   for (const expected of recordFormats)

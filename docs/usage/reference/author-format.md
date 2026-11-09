@@ -147,6 +147,50 @@ another platform is supported, published files stay GitHub-shaped.
 Declarations for different platforms never apply together, so their targets
 may overlap; targets of declarations that can apply together may not.
 
+## Check locations
+
+A profile may offer `check-locations: [github, runner, self-reported]`, or any
+nonempty subset. `github` means hosted GitHub Actions, `runner` a
+repository-named machine posting commit statuses, and `self-reported` the
+authoring agent's sandbox. Omitting the profile key means `[github]`.
+The project selects exactly one through `--checks` or an answers-file `checks`
+answer, independently of its hosting platform; see
+[choose the check location](adoption-run.md#choose-the-check-location).
+
+Any declaration, in defaults or a profile, may filter applicability through
+`check-locations: [...]`. Without that key it applies at every location the
+profile offers. Both arrays must contain unique supported strings and be
+nonempty. Invalid types, empty arrays, duplicates and unknown values name the
+offending field and, for an invalid entry, its value.
+
+```yaml
+profiles:
+  work:
+    description: Work projects
+    check-locations: [github, runner, self-reported]
+    declarations:
+      ci-workflow:
+        kind: file
+        platform: github
+        check-locations: [github]
+        target: .github/workflows/check.yml
+        exact: content/check.yml
+```
+
+Platform and check-location filters apply together before scope: a declaration
+left out installs nothing, contributes no rules, executes no checks, fixes or
+discovery script, and asks for no scope. This is distinct from confirming an
+optional declaration with no scope. Defaults, whole replacements and exclusions
+keep their usual meaning; an exclusion accepts only `exclude: true`.
+Declarations that cannot apply together on any offered location and platform
+may share targets; overlapping applicability keeps the usual target conflicts.
+Declaration `checks` still names executable operations, never a location filter.
+
+Sources using either optional author key must set `requires.repo-standards` to
+an open-ended minimum CLI release that understands check locations. Older CLIs
+reject the keys. The optional author keys keep `repo-standards/v2` because
+sources that omit them keep their meaning.
+
 ## Declarations
 
 All four forms may contain optional `checks` and `fixes` lists. Omitted lists
@@ -463,9 +507,9 @@ output lists profiles; human errors go to stderr as
 With `--json`, stdout is one JSON object, and expected validation failures do
 not write stderr. A successful report contains `valid: true`, `errors: []`,
 normalized root `source` metadata, and `profiles`, keyed by profile name. Each
-profile has its description, its `platforms`, and the complete source-resolved
+profile has its description, its `platforms`, its offered `check-locations`, and the complete source-resolved
 declarations array, which holds the declarations of every platform.
-Declarations include their `id`, any `platform`, and explicit `checks` and
+Declarations include their `id`, any `platform` and `check-locations` filter, and explicit operation `checks` and
 `fixes` arrays; a remote setup fix keeps its `remote-setup` probe.
 The source retains its authored format identity. A successful report also includes
 `scope.verified` describing the source-owned facts checked, `scope.limitations`
@@ -489,35 +533,37 @@ fields point to their containing mapping; unreadable root documents use 1:1
 and an empty path. Independent errors are collected across all profiles;
 structurally invalid YAML may limit what can be determined.
 
-| Code                        | Meaning                                                                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SOURCE_READ`               | Source document or referenced material cannot be read                                                                                            |
-| `YAML_SYNTAX`               | Invalid YAML, unsupported tag, or multiple documents                                                                                             |
-| `YAML_STRUCTURE`            | Unresolved/recursive alias or YAML expansion/depth limit                                                                                         |
-| `DUPLICATE_IDENTITY`        | Duplicate YAML key, operation ID, or platform of a profile                                                                                       |
-| `UNKNOWN_FIELD`             | Field outside the author schema                                                                                                                  |
-| `REQUIRED_FIELD`            | Required field omitted                                                                                                                           |
-| `INVALID_TYPE`              | Wrong mapping, list, scalar, or string type                                                                                                      |
-| `INVALID_FORMAT`            | Format identity other than `repo-standards/v2`                                                                                                   |
-| `INVALID_VERSION`           | Malformed SemVer range                                                                                                                           |
-| `INCOMPATIBLE_CLI`          | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                                                      |
-| `EMPTY_PROFILES`            | No complete named profile                                                                                                                        |
-| `UNSUPPORTED_PLATFORM`      | A profile or declaration names a platform this CLI does not support                                                                              |
-| `EMPTY_PLATFORMS`           | A profile's `platforms` list is empty                                                                                                            |
-| `INVALID_ID`                | Declaration, skill, or operation identity is malformed                                                                                           |
-| `INVALID_DECLARATION`       | Unknown kind, file without exactly one content mode, repository guidance without exactly one scope mode, or a discovery script without discovery |
-| `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values                                    |
-| `INVALID_EXCLUSION`         | Invalid exclusion value, level, or default identity                                                                                              |
-| `INVALID_EXECUTABLE`        | Executable violates the documented name/path syntax                                                                                              |
-| `INVALID_TIMEOUT`           | Timeout is not a positive safe integer                                                                                                           |
-| `EMPTY_TARGETS`             | Repository guidance has no targets                                                                                                               |
-| `UNSAFE_PATH`               | Path can escape its root or uses unsupported path syntax                                                                                         |
-| `MISSING_REFERENCE`         | Referenced file or directory does not exist                                                                                                      |
-| `REFERENCE_TYPE`            | Referenced entry has the wrong filesystem type                                                                                                   |
-| `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                                                          |
-| `RESERVED_NAME`             | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`                                               |
-| `RESERVED_TARGET`           | Target overlaps reserved storage                                                                                                                 |
-| `TARGET_OVERLAP`            | Two resolved targets that can apply on one platform overlap, including folded collisions                                                         |
+| Code                         | Meaning                                                                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SOURCE_READ`                | Source document or referenced material cannot be read                                                                                            |
+| `YAML_SYNTAX`                | Invalid YAML, unsupported tag, or multiple documents                                                                                             |
+| `YAML_STRUCTURE`             | Unresolved/recursive alias or YAML expansion/depth limit                                                                                         |
+| `DUPLICATE_IDENTITY`         | Duplicate YAML key, operation ID, or platform of a profile                                                                                       |
+| `UNKNOWN_FIELD`              | Field outside the author schema                                                                                                                  |
+| `REQUIRED_FIELD`             | Required field omitted                                                                                                                           |
+| `INVALID_TYPE`               | Wrong mapping, list, scalar, or string type                                                                                                      |
+| `INVALID_FORMAT`             | Format identity other than `repo-standards/v2`                                                                                                   |
+| `INVALID_VERSION`            | Malformed SemVer range                                                                                                                           |
+| `INCOMPATIBLE_CLI`           | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                                                      |
+| `EMPTY_PROFILES`             | No complete named profile                                                                                                                        |
+| `UNSUPPORTED_PLATFORM`       | A profile or declaration names a platform this CLI does not support                                                                              |
+| `UNSUPPORTED_CHECK_LOCATION` | A `check-locations` array names an unsupported value                                                                                             |
+| `EMPTY_CHECK_LOCATIONS`      | A profile or declaration has an empty `check-locations` array                                                                                    |
+| `EMPTY_PLATFORMS`            | A profile's `platforms` list is empty                                                                                                            |
+| `INVALID_ID`                 | Declaration, skill, or operation identity is malformed                                                                                           |
+| `INVALID_DECLARATION`        | Unknown kind, file without exactly one content mode, repository guidance without exactly one scope mode, or a discovery script without discovery |
+| `SKILL_INVOCATION_MISMATCH`  | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values                                    |
+| `INVALID_EXCLUSION`          | Invalid exclusion value, level, or default identity                                                                                              |
+| `INVALID_EXECUTABLE`         | Executable violates the documented name/path syntax                                                                                              |
+| `INVALID_TIMEOUT`            | Timeout is not a positive safe integer                                                                                                           |
+| `EMPTY_TARGETS`              | Repository guidance has no targets                                                                                                               |
+| `UNSAFE_PATH`                | Path can escape its root or uses unsupported path syntax                                                                                         |
+| `MISSING_REFERENCE`          | Referenced file or directory does not exist                                                                                                      |
+| `REFERENCE_TYPE`             | Referenced entry has the wrong filesystem type                                                                                                   |
+| `SOURCE_SYMLINK`             | Source document or selected material contains a symlink                                                                                          |
+| `RESERVED_NAME`              | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`                                               |
+| `RESERVED_TARGET`            | Target overlaps reserved storage                                                                                                                 |
+| `TARGET_OVERLAP`             | Two resolved targets that can apply on one platform and check location overlap, including folded collisions                                      |
 
 ## Alice's complete example
 

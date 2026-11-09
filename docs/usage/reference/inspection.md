@@ -38,7 +38,10 @@ it, and without `--platform` a profile that supports several fails with
 `PLATFORM_REQUIRED`. A platform the profile does not support fails with
 `UNKNOWN_PLATFORM`. The selected platform's declarations are inspected, and the
 others are left out before scope. Without source flags, inspection keeps the
-recorded platform, and `--platform` is a usage error. The
+recorded platform and check location, and `--platform` and `--checks` are usage errors.
+For a profile offering several check locations, add `--checks <value>`; missing
+and unoffered choices fail with `CHECK_LOCATION_REQUIRED` and
+`UNKNOWN_CHECK_LOCATION`, respectively. Both filters apply before discovery. The
 bootstrap needs the requested CLI package in the configured npm registry.
 The packed CLI also exposes `repo-standards-bootstrap`; installing the product
 package globally installs both executable names.
@@ -186,13 +189,13 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v9`. A profile
+Every report has the single format `repo-standards/inspection/v10`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
 | Field                | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, profile, and platform.                                                                                                                                                                                                                                                                                                                    |
+| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, profile, platform, and check location (`checks`).                                                                                                                                                                                                                                                                                         |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile on the selected platform.                                                                                                                                                                                                                                                                                                                                |
 | `exact`              | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption-run.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
 | `systemSkills`       | Each system skill adoption installs, `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                                                      |
@@ -217,8 +220,8 @@ prefixes a product skill's name with `system skill`.
 
 For an established adoption, the report is an update. `update` lists every
 changed selection component, in the order `cli`, `standards`, `source`,
-`profile`, and `platform`, and is empty for an unchanged selection. A recorded
-selection without a platform is read as `github`. The standards component
+`profile`, `platform`, and `checks`, and is empty for an unchanged selection. A recorded
+selection without a platform or check location reads that component as `github`. The standards component
 changes with the version tag or its commit. `previousSelection` records the
 current selection, and `retired` lists declarations that will leave governance.
 The installed targets of retired declarations, and any other installed target
@@ -427,7 +430,7 @@ rejects targets overlapping `.git`, `.repo-standards`, or a system skill.
 ## Inspect updates
 
 Every change to an established selection is one update: the CLI pin, the
-standards version, the source, the profile, the platform, or any combination.
+standards version, the source, the profile, the platform, the check location, or any combination.
 Pass all three source flags to select a standards version, source, or profile,
 and `--platform` with them to select a platform. With the project's pinned
 CLI:
@@ -520,7 +523,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v9` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v10` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -691,8 +694,8 @@ because their discovery guidance, rules and fresh draft are unchanged and their
 paths exist, and from the answers it asks for.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v9` and exposes `historicalScope` as
-`repo-standards/scope-history/v6`: the last complete run's accepted inspection
+`repo-standards/inspection/v10` and exposes `historicalScope` as
+`repo-standards/scope-history/v7`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,
 references, observation identities, and the draft of each discovery script the
@@ -707,14 +710,15 @@ The committed file holds that one run only; earlier runs stay in Git history. It
 stores the project observation without the evidence array it implies, and the
 named observation as the delta of the confirmed targets and any boundary entry
 naming them adds. Both are rebuilt on read with the product's existing
-derivation. Scope-history v6 is the only format written; an update also reads
-the previous release's scope-history v5, which keeps no drafts.
+derivation. Scope-history v7 is the only format written; an update also reads
+scope-history v6. Both readable formats retain discovery drafts.
 
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v8`, the only state format written, with the last
 complete run's [work evidence](script-protocol.md#observed-adoption-scope) as
-identities and deltas; `status` echoes it as `repo-standards/status/v9`. The
-previous release's `repo-standards/state/v7` and scope-history v5 are read as
+identities and deltas; `status` echoes it as `repo-standards/status/v10`. The
+older readable `repo-standards/state/v7`, `repo-standards/lock/v1` and
+scope-history v6 are read as
 the adoption an update replaces. Retained inspection rejects a committed state,
 retained scope history, or integrity lock in any other older format with
 `RETIRED_FORMAT` before reading anything else; nothing is converted. Inspecting a source instead previews a

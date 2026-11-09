@@ -747,6 +747,7 @@ profiles:
     inherited: {
       description: "Inherited discovery",
       platforms: ["github"],
+      "check-locations": ["github"],
       declarations: [
         {
           id: "documentation",
@@ -761,6 +762,7 @@ profiles:
     explicit: {
       description: "Complete explicit replacement",
       platforms: ["github"],
+      "check-locations": ["github"],
       declarations: [
         {
           id: "documentation",
@@ -775,6 +777,7 @@ profiles:
     excluded: {
       description: "No documentation governance",
       platforms: ["github"],
+      "check-locations": ["github"],
       declarations: [],
     },
   });

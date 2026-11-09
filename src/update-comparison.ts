@@ -60,6 +60,7 @@ const selectionComponents = [
   "source",
   "profile",
   "platform",
+  "checks",
 ] as const;
 type SelectionComponent = (typeof selectionComponents)[number];
 
@@ -307,6 +308,7 @@ export function compareUpdate(
     source: !sameSource,
     profile: candidate.selection.profile !== recorded.selection.profile,
     platform: candidate.selection.platform !== recorded.selection.platform,
+    checks: candidate.selection.checks !== recorded.selection.checks,
   };
   const blockers = productState
     ? stateIntegrityBlockers(recorded, productState)

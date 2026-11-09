@@ -23,7 +23,7 @@ The product supports both journeys:
 2. An adopting project inspects one complete profile, adopts it, commits the
    resulting material through its own workflow, and later deliberately updates
    its selection, in any combination of its pins, source, profile, and
-   platform, through
+   platform and check location, through
    one run; the agent reviews discarded edits recoverable from Git, and the
    maintainer confirms a remote setting overwrite.
 
@@ -280,7 +280,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v9` reports, and binds a complete eligible project
+`repo-standards/inspection/v10` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -307,6 +307,13 @@ the existing disjoint ownership rules. Explicit directory targets remain disjoin
 there is no protection language, exact-descendant subtraction, or additional
 ownership model. A discovery script only drafts a proposal; it never decides
 scope.
+
+Check location is an independent selection component beside platform, as
+[ADR 0034](../adr/0034-select-check-location-beside-platform.md) records. Profiles
+offer `check-locations` (default `[github]`); declarations optionally filter on
+that same key. Selection, answers and CLI use `checks`, while declaration
+`checks` remains operations. Apply both filters before scope and compare target
+conflicts only where applicability overlaps on an offered location.
 
 ## Publication and compatibility
 
@@ -851,11 +858,10 @@ nothing, is never preserved changes, and is never named by a diagnostic
 report in any other older run format fails with `RETIRED_FORMAT`, naming that
 report, which only the CLI that wrote it reads.
 
-The one exception is the update from the previous release: this CLI also
-reads `repo-standards/state/v7` and `repo-standards/scope-history/v5`, the
-durable state and retained scope evidence the previous release wrote, as the
-established adoption an update replaces, so that the update carries its
-recorded answers forward
+Updates also read the supported earlier committed formats:
+`repo-standards/state/v7`, `repo-standards/lock/v1` and
+`repo-standards/scope-history/v6`, as the established adoption an update
+replaces, so that the update carries its recorded answers forward
 ([ADR 0024](../adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md)).
 It treats the keys they lack as absent and writes only its own formats.
 
@@ -929,6 +935,18 @@ does not apply to persisted records or public reports. Raise each format at
 most once per release; a branch that rebases onto a merge that already raised a
 format keeps that raise and does not raise it again.
 
+Check-location selection raises `lock/v2`, `scope-history/v7`, `run/v8`,
+`inspection/v10`, `status/v10`, `check/v3`, `answers/v2` and `adopt/v3`.
+The previous `lock/v1` and `scope-history/v6` remain readable; a previous lock
+without `checks` means `github`, and the next completed adoption writes the
+choice explicitly. Current locks require a supported value. Durable state
+keeps `state/v8` (and its existing previous reader), and work requests keep
+`work-request/v5`: their keys do not change and the work request's selection
+digest binds the location. Operation and discovery requests add optional
+`checks` under the author-input exception, keeping their formats. Active runs
+still require their current format; an older active run finishes or is
+abandoned with its earlier pinned CLI.
+
 ### Committed evidence
 
 Committed evidence holds the current run only
@@ -963,12 +981,12 @@ in a `### Reused answers` subsection of its Operations section, adding no
 level-1 or level-2 heading.
 
 Retained scope evidence, `.repo-standards/inputs/scope-history.json` in
-`repo-standards/scope-history/v6`, is written by a run that discovers scope
+`repo-standards/scope-history/v7`, is written by a run that discovers scope
 and by every later run, and is one object:
 
 | Field                         | Content                                                                                                                                                                                                                                                                                             |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `evidence`          | `repo-standards/scope-history/v6` and `historical`.                                                                                                                                                                                                                                                 |
+| `format`, `evidence`          | `repo-standards/scope-history/v7` and `historical`.                                                                                                                                                                                                                                                 |
 | `inspection`                  | The inspection identity the run's start was bound to.                                                                                                                                                                                                                                               |
 | `resolved`                    | The run's resolved selection, with discovered scope materialized as concrete targets.                                                                                                                                                                                                               |
 | `sourceResolved`, `discovery` | Present when the run discovered scope: the source-resolved declarations, and the discovery identity, proposal, absence, declarations, project observation without derived evidence, named observation as a delta, and `drafts`, each discovery script's draft the confirmed entry was decided from. |
@@ -982,7 +1000,7 @@ run's `history`, or scope evidence with any other field or another `evidence`
 marker, fails state integrity; nothing reads an earlier run from committed
 evidence.
 
-`status --json`, in `repo-standards/status/v9`, also reports `scopeProposal`: the
+`status --json`, in `repo-standards/status/v10`, also reports `scopeProposal`: the
 last complete run's confirmed `repo-standards/scope/v2` proposal, or null when
 there is none, and `reused`: the reused answers of the active run, or else of
 the last complete run. It reads committed scope evidence, carries no identity, and is

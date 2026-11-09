@@ -53,6 +53,12 @@ selects its platform separately from its profile; a declaration may apply on
 one platform only.
 _Avoid_: Platform profile, forge, profile name as platform
 
+**Check location**:
+The one place an adopting project's checks run: hosted GitHub Actions, a
+repository-named machine posting commit statuses, or the authoring agent's
+sandbox, selected independently of its hosting platform.
+_Avoid_: Platform, check operation, per-group location
+
 **Declaration**:
 A named, complete unit of standards material and its associated checks and
 fixes that is inherited, wholly replaced, or excluded during resolution.
@@ -292,7 +298,7 @@ _Avoid_: Unknown format, legacy state
 
 **Selection**:
 The current CLI version, standards source, published standards version, and
-profile recorded for an adopting project.
+profile, hosting platform, and check location recorded for an adopting project.
 _Avoid_: Resolved selection, desired configuration
 
 **Resolved selection**:

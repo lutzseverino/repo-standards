@@ -6,6 +6,8 @@ import type { Paths, Target } from "./paths.js";
 import { skillLinkTarget, skillTarget, systemSkills } from "./targets.js";
 import { supportedPlatforms } from "./platforms.js";
 
+import { readCheckLocations } from "./check-locations.js";
+
 const identity = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function validExecutable(executable: string): boolean {
@@ -179,7 +181,17 @@ export class Declarations {
       // A declaration for one platform is left out on every other.
       const platformValue = entries.get("platform");
       const platform = platformValue ? this.platform(platformValue) : undefined;
-      const base = { id, ...(platform ? { platform } : {}), checks, fixes };
+      const locationsValue = entries.get("check-locations");
+      const locations = locationsValue
+        ? readCheckLocations(locationsValue, f)
+        : undefined;
+      const base = {
+        id,
+        ...(platform ? { platform } : {}),
+        ...(locations ? { "check-locations": locations } : {}),
+        checks,
+        fixes,
+      };
       // Rules are optional on every declaration but a skill. Installed rules
       // are named by declaration ID beside their README.md index, which the
       // ID readme would fold onto.
@@ -204,6 +216,7 @@ export class Declarations {
         f.map(declaration, [
           "kind",
           "platform",
+          "check-locations",
           "target",
           "exact",
           "guidance",
@@ -236,6 +249,7 @@ export class Declarations {
         f.map(declaration, [
           "kind",
           "platform",
+          "check-locations",
           "name",
           "source",
           "checks",
@@ -264,6 +278,7 @@ export class Declarations {
         f.map(declaration, [
           "kind",
           "platform",
+          "check-locations",
           "guidance",
           "rules",
           "targets",
@@ -352,6 +367,7 @@ export class Declarations {
         f.map(declaration, [
           "kind",
           "platform",
+          "check-locations",
           "target",
           "exact",
           "guidance",

@@ -1,3 +1,4 @@
+import type { RecordedSelection } from "./recorded-state.js";
 import { spawn } from "node:child_process";
 import { formats } from "./formats.js";
 import { join } from "node:path";
@@ -162,7 +163,7 @@ export function processError(outcome: OperationEvidence["process"]) {
 export async function execute(
   root: string,
   selected: SelectedOperation,
-  selection: { standards: unknown; profile: string; platform: string },
+  selection: RecordedSelection,
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
   {
@@ -184,6 +185,7 @@ export async function execute(
     standards: selection.standards,
     profile: selection.profile,
     platform: selection.platform,
+    checks: selection.checks,
     declarations: resolved.declarations,
     allowedTargets: declarationTargets(
       resolved.declarations.find((item) => item.id === declaration)!,

@@ -117,7 +117,7 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
     reused: unknown[];
     readyToCommit: boolean;
   };
-  assert.equal(status.format, "repo-standards/status/v9");
+  assert.equal(status.format, "repo-standards/status/v10");
   assert.deepEqual(status.reused, updated.report.reused);
   assert.equal(status.readyToCommit, true);
   // Every assessment was reused, so only the deferred remote setup is left.
@@ -152,7 +152,7 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
       "utf8",
     ),
   ) as { format: string; discovery: { drafts: unknown[] } };
-  assert.equal(history.format, "repo-standards/scope-history/v6");
+  assert.equal(history.format, "repo-standards/scope-history/v7");
   assert.deepEqual(history.discovery.drafts, [
     { id: "project-docs", ...entry },
   ]);
@@ -462,9 +462,8 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: input.o
   assert.equal(question(again, "fix:agent-guidance/labels").answer, null);
 });
 
-// Rewrites the adoption's records as CLI 9.0.0 writes them: state/v7 without
-// reused answers, assessed scopes or impact, and scope-history/v5 without
-// drafts.
+// Rewrites records to supported earlier formats: state/v7 without reused
+// answers, assessed scopes or impact, and scope-history/v6 retaining drafts.
 function previousRelease(f: ReuseFixture) {
   const {
     reused: _reused,
@@ -484,10 +483,9 @@ function previousRelease(f: ReuseFixture) {
   const history = JSON.parse(
     readFileSync(join(f.root, historyPath), "utf8"),
   ) as { discovery: { drafts?: unknown } };
-  delete history.discovery.drafts;
   rewriteRetainedInput(f.root, historyPath, {
     ...history,
-    format: "repo-standards/scope-history/v5",
+    format: "repo-standards/scope-history/v6",
   });
   commit(f.root);
 
@@ -506,7 +504,7 @@ test("an update from the previous release's state and scope evidence reuses ever
   );
   assert.equal(
     (updated.report.reused[0]!.evidence as { draft: string }).draft,
-    "recorded-entry",
+    "decided-from",
   );
   assert.deepEqual(ids(updated.report), [
     "scope:project-docs",
@@ -541,7 +539,7 @@ test("previous-release state reuses no assessment whose scope answer changed", a
   writeFileSync(
     f.answersPath,
     JSON.stringify({
-      format: "repo-standards/answers/v1",
+      format: "repo-standards/answers/v2",
       source,
       questions: [
         {

@@ -186,7 +186,7 @@ export function preservedStartBlockers(
   const stopped = lookup.preserved?.run ?? lookup.abandoned;
   if (!stopped) return blockers;
   const why = lookup.preserved
-    ? `Adopting again in place over them keeps that run's selection: CLI ${stopped.selection.cli.version}, ${stopped.selection.standards.repository} ${stopped.selection.standards.version}, profile ${stopped.selection.profile}, platform ${stopped.selection.platform}.`
+    ? `Adopting again in place over them keeps that run's selection: CLI ${stopped.selection.cli.version}, ${stopped.selection.standards.repository} ${stopped.selection.standards.version}, profile ${stopped.selection.profile}, platform ${stopped.selection.platform}, checks ${stopped.selection.checks}.`
     : `The checkout no longer holds them as the run recorded${lookup.mismatch ? `: ${lookup.mismatch}` : "."} Adopting again in place needs them as the run left them.`;
   return blockers.map((blocker) =>
     blocker.code === "DIRTY_PROJECT"
@@ -220,6 +220,7 @@ export function preservesSelection(
     version: string;
     profile: string;
     platform?: string;
+    checks?: string;
   },
 ): boolean {
   const key = (url: string) =>
@@ -227,13 +228,14 @@ export function preservesSelection(
       .toLowerCase()
       .replace(/\/$/, "")
       .replace(/\.git$/, "");
-  const { cli, standards, profile, platform } = preserved.run.selection;
+  const { cli, standards, profile, platform, checks } = preserved.run.selection;
   return (
     cli.version === selection.cli &&
     key(standards.repository) === key(selection.source) &&
     standards.version === selection.version &&
     profile === selection.profile &&
-    (selection.platform === undefined || platform === selection.platform)
+    (selection.platform === undefined || platform === selection.platform) &&
+    (selection.checks === undefined || checks === selection.checks)
   );
 }
 
