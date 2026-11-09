@@ -632,3 +632,28 @@ test("discovery requests expose the selected check location and bind it in their
   assert.notEqual(github.discovery!.identity, reported.discovery!.identity);
   assert.equal(existsSync(join(f.root, ".repo-standards")), false);
 });
+
+test("terminal updates carry a supported recorded check location without asking again", async (t) => {
+  const f = await fixture(
+    t,
+    standards({ "check-locations": ["github", "runner"] }),
+  );
+  const adopted = f.adopt(["--checks", "runner"]);
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.root);
+  const session = terminalSession(
+    join(cli.root, "node_modules/.bin/repo-standards"),
+    ["adopt", ...f.args],
+    { cwd: f.root, env: f.env },
+  );
+  t.after(() => session.close());
+  const shown = await session.expect("Start the run? [Y/n]: ");
+  assert.doesNotMatch(
+    shown,
+    /Where does the project run its checks|Check location \[runner\]:/,
+  );
+  session.type("");
+  await session.expect("The adoption is complete.");
+  assert.equal(await session.exit(), 0, session.rest());
+  assert.equal(f.lock().selection.checks, "runner");
+});

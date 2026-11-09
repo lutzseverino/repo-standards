@@ -1,3 +1,4 @@
+import type { RecordedSelection } from "./recorded-state.js";
 import { execute, probePrerequisite } from "./execution.js";
 import { ProductError } from "./errors.js";
 import type { Declaration, Operation, Script } from "./model.js";
@@ -117,12 +118,7 @@ function prerequisiteReason(
 export async function probeRemoteSetup(
   root: string,
   sourceRoot: string,
-  selection: {
-    standards: unknown;
-    profile: string;
-    platform: string;
-    checks: string;
-  },
+  selection: RecordedSelection,
   resolved: { declarations: Declaration[] },
 ): Promise<RemoteSetup[]> {
   const fixes = remoteSetupFixes(resolved.declarations);

@@ -710,14 +710,15 @@ The committed file holds that one run only; earlier runs stay in Git history. It
 stores the project observation without the evidence array it implies, and the
 named observation as the delta of the confirmed targets and any boundary entry
 naming them adds. Both are rebuilt on read with the product's existing
-derivation. Scope-history v6 is the only format written; an update also reads
-the previous release's scope-history v5, which keeps no drafts.
+derivation. Scope-history v7 is the only format written; an update also reads
+scope-history v6. Both readable formats retain discovery drafts.
 
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v8`, the only state format written, with the last
 complete run's [work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v10`. The
-previous release's `repo-standards/state/v7` and scope-history v5 are read as
+older readable `repo-standards/state/v7`, `repo-standards/lock/v1` and
+scope-history v6 are read as
 the adoption an update replaces. Retained inspection rejects a committed state,
 retained scope history, or integrity lock in any other older format with
 `RETIRED_FORMAT` before reading anything else; nothing is converted. Inspecting a source instead previews a

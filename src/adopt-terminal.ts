@@ -663,13 +663,13 @@ async function askSelection(
     case "checks":
     case "platform": {
       write(`\n${question.question}\n${question.context}\n`);
-      const platforms = question.choices as string[];
-      for (const [index, name] of platforms.entries())
+      const choices = question.choices as string[];
+      for (const [index, name] of choices.entries())
         write(`  ${index + 1}. ${name}\n`);
       return named(
         question.id === "checks" ? "Check location" : "Platform",
         question.answer as string | null,
-        platforms,
+        choices,
       );
     }
     case "remote-setup":

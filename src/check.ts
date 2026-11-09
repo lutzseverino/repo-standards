@@ -126,12 +126,7 @@ export async function checkContextual(
 async function runChecks(
   root: string,
   resolved: Pick<ResolvedProfile, "declarations">,
-  selection: {
-    standards: unknown;
-    profile: string;
-    platform: string;
-    checks: string;
-  },
+  selection: RecordedSelection,
   declaration?: string,
 ) {
   const cited = installedRules(resolved.declarations);

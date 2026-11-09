@@ -801,10 +801,7 @@ async function prepare(
   if (
     platform === undefined ||
     checks === undefined ||
-    (mode === "terminal" && platformChoice?.detected) ||
-    (mode === "terminal" &&
-      checksChoice?.question &&
-      asking("checks", options.checks))
+    (mode === "terminal" && platformChoice?.detected)
   )
     return withSteps(
       context,
@@ -815,12 +812,7 @@ async function prepare(
           (mode === "terminal" && platformChoice?.detected)
             ? ["platform"]
             : []),
-          ...(checks === undefined ||
-          (mode === "terminal" &&
-            checksChoice?.question &&
-            asking("checks", options.checks))
-            ? ["checks"]
-            : []),
+          ...(checks === undefined ? ["checks"] : []),
         ],
         blockers: gitBlockers(),
       },

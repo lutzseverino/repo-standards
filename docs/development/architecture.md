@@ -280,7 +280,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v9` reports, and binds a complete eligible project
+`repo-standards/inspection/v10` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -858,11 +858,10 @@ nothing, is never preserved changes, and is never named by a diagnostic
 report in any other older run format fails with `RETIRED_FORMAT`, naming that
 report, which only the CLI that wrote it reads.
 
-The one exception is the update from the previous release: this CLI also
-reads `repo-standards/state/v7` and `repo-standards/scope-history/v5`, the
-durable state and retained scope evidence the previous release wrote, as the
-established adoption an update replaces, so that the update carries its
-recorded answers forward
+Updates also read the supported earlier committed formats:
+`repo-standards/state/v7`, `repo-standards/lock/v1` and
+`repo-standards/scope-history/v6`, as the established adoption an update
+replaces, so that the update carries its recorded answers forward
 ([ADR 0024](../adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md)).
 It treats the keys they lack as absent and writes only its own formats.
 
@@ -982,12 +981,12 @@ in a `### Reused answers` subsection of its Operations section, adding no
 level-1 or level-2 heading.
 
 Retained scope evidence, `.repo-standards/inputs/scope-history.json` in
-`repo-standards/scope-history/v6`, is written by a run that discovers scope
+`repo-standards/scope-history/v7`, is written by a run that discovers scope
 and by every later run, and is one object:
 
 | Field                         | Content                                                                                                                                                                                                                                                                                             |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `evidence`          | `repo-standards/scope-history/v6` and `historical`.                                                                                                                                                                                                                                                 |
+| `format`, `evidence`          | `repo-standards/scope-history/v7` and `historical`.                                                                                                                                                                                                                                                 |
 | `inspection`                  | The inspection identity the run's start was bound to.                                                                                                                                                                                                                                               |
 | `resolved`                    | The run's resolved selection, with discovered scope materialized as concrete targets.                                                                                                                                                                                                               |
 | `sourceResolved`, `discovery` | Present when the run discovered scope: the source-resolved declarations, and the discovery identity, proposal, absence, declarations, project observation without derived evidence, named observation as a delta, and `drafts`, each discovery script's draft the confirmed entry was decided from. |
@@ -1001,7 +1000,7 @@ run's `history`, or scope evidence with any other field or another `evidence`
 marker, fails state integrity; nothing reads an earlier run from committed
 evidence.
 
-`status --json`, in `repo-standards/status/v9`, also reports `scopeProposal`: the
+`status --json`, in `repo-standards/status/v10`, also reports `scopeProposal`: the
 last complete run's confirmed `repo-standards/scope/v2` proposal, or null when
 there is none, and `reused`: the reused answers of the active run, or else of
 the last complete run. It reads committed scope evidence, carries no identity, and is

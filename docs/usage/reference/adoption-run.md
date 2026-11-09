@@ -143,9 +143,8 @@ provably unchanged:
   rules are hash-identical to the recorded ones, its discovery script's fresh
   draft equals the draft the recorded entry was decided from, and every
   candidate and evidence path the entry names still exists. A declaration
-  without a discovery script has no draft. Scope evidence the previous release
-  recorded keeps no drafts, so a fresh draft then matches only the recorded
-  entry itself. The inspection binds a reused entry as it binds any scope
+  without a discovery script has no draft. Both readable scope-evidence formats
+  retain the drafts. The inspection binds a reused entry as it binds any scope
   answer.
 - The `remote-setup` answer `defer`, when every remote setup that is not ready
   was deferred as remote setup and its probe, with an unchanged script,
@@ -155,8 +154,7 @@ provably unchanged:
 - An `assessment:<declaration>` answer, when the declaration's rules, or its
   adoption guidance when it has no rules, and the files in its scope are
   unchanged since the last complete adoption, judged after the run's fixes, so
-  a fix that changes a scoped file makes it ineligible. Durable state the
-  previous release recorded proves this only by the whole project's work
+  a fix that changes a scoped file makes it ineligible. The older readable `state/v7` proves this only by the whole project's work
   snapshot. When every assessment is reused, the run goes straight to its
   checks.
 
@@ -728,9 +726,8 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Inspection report                                                    | `repo-standards/inspection/v10`                                  |
 | Work request and assessment                                          | `repo-standards/work-request/v5`, `repo-standards/assessment/v3` |
 
-An update also reads `repo-standards/state/v7` and
-`repo-standards/scope-history/v5`, the formats the previous release wrote, as
-the adoption it updates, so that it [reuses](#reused-answers) what those
+An update also reads `repo-standards/state/v7`, `repo-standards/lock/v1` and
+`repo-standards/scope-history/v6` as the adoption it updates, so that it [reuses](#reused-answers) what those
 records prove. Every other earlier format is retired: it is not read,
 converted, or compacted. A project whose committed files carry one
 [adopts fresh](#adopt-fresh-from-a-retired-format), and a run record in one
