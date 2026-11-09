@@ -70,7 +70,11 @@ async function run(scenario: string) {
       false,
       `outer watchdog caught escaped stall:\n${output}`,
     );
-    assert.equal(code, scenario === "success" ? 0 : 1, output);
+    assert.equal(
+      code,
+      ["success", "delayed-exit", "closed-stderr"].includes(scenario) ? 0 : 1,
+      output,
+    );
     for (const match of output.matchAll(/OWNED_PID=(\d+)/g))
       assert.equal(
         live(Number(match[1]), true),
@@ -112,7 +116,14 @@ test(
   "successful teardown and isolated cleanup failures",
   { skip },
   async (t) => {
-    for (const scenario of ["success", "profile", "server", "partial"])
+    for (const scenario of [
+      "success",
+      "delayed-exit",
+      "closed-stderr",
+      "profile",
+      "server",
+      "partial",
+    ])
       await t.test(scenario, async () => {
         const { output } = await run(scenario);
         if (scenario === "profile" || scenario === "server") {

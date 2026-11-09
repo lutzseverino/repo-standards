@@ -66,6 +66,7 @@ export class Browser {
   #profile: string;
   #socket: WebSocket | undefined;
   #fixture: BrowserFixture;
+  #closed: Promise<void>;
   #next = 0;
   #pending = new Map<
     number,
@@ -84,6 +85,9 @@ export class Browser {
     this.#process = child;
     this.#profile = profile;
     this.#fixture = fixture;
+    this.#closed = new Promise((resolve) =>
+      child.once("close", () => resolve()),
+    );
     fixture.ownProcess(child);
     fixture.ownDirectory(profile);
     fixture.defer("browser close", () => this.close());
@@ -256,15 +260,12 @@ export class Browser {
       this.#socket?.close();
     });
     await this.#fixture.attempt("browser process exit", async () => {
-      if (this.#process.exitCode !== null || this.#process.signalCode !== null)
-        return;
-      // A failed spawn has no process to wait for.
-      if (!this.#process.pid) return;
-      const exited = new Promise<void>((resolve) =>
-        this.#process.once("exit", () => resolve()),
-      );
-      this.#process.kill();
-      await exited;
+      if (this.#process.exitCode === null && this.#process.signalCode === null)
+        this.#process.kill();
+      // `exit` covers only the leader. Descendants can still own stderr and
+      // write the profile; some close stderr before exiting themselves.
+      await this.#closed;
+      await this.#fixture.waitForProcessGroup(this.#process);
     });
     await this.#fixture.attempt("browser profile removal", () =>
       rmSync(this.#profile, { recursive: true, force: true }),

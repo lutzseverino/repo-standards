@@ -66,6 +66,13 @@ export class BrowserFixture {
     this.#watchdog.send({ type: "directory", directory });
   }
 
+  async waitForProcessGroup(child: ChildProcess) {
+    if (!child.pid) return;
+    const drained = this.#reply(`drained:${child.pid}`);
+    this.#watchdog.send({ type: "drain", pid: child.pid });
+    await drained;
+  }
+
   /** Log original errors now; Node's spec reporter may defer its summary. */
   async attempt(stage: string, cleanup: Cleanup) {
     this.#watchdog.send({ type: "start", stage });

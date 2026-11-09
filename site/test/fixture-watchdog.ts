@@ -11,6 +11,29 @@ const failures = new Set<string>();
 let timer: NodeJS.Timeout | undefined;
 let finished = false;
 
+function liveGroups() {
+  return new Set(
+    execFileSync("ps", ["-axo", "pgid=,stat="], { encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .flatMap((line) => {
+        const [group, state] = line.trim().split(/\s+/);
+        return state.startsWith("Z") ? [] : [Number(group)];
+      }),
+  );
+}
+
+function drain(group: number) {
+  if (finished) return;
+  try {
+    if (liveGroups().has(group)) setTimeout(() => drain(group), 10);
+    else process.send?.(`drained:${group}`);
+  } catch (error) {
+    console.error("[site fixture] browser process group observation", error);
+    enforce("could not observe browser process group exit");
+  }
+}
+
 function signal(pid: number, name: NodeJS.Signals) {
   try {
     process.kill(pid, name);
@@ -66,7 +89,14 @@ function enforce(reason: string) {
 
 type Message = {
   type:
-    "process" | "directory" | "start" | "end" | "failure" | "arm" | "finish";
+    | "process"
+    | "directory"
+    | "start"
+    | "end"
+    | "failure"
+    | "drain"
+    | "arm"
+    | "finish";
   pid: number;
   directory: string;
   stage: string;
@@ -90,6 +120,9 @@ process.on("message", (message: Message) => {
     case "end":
       stages.delete(message.stage);
       break;
+    case "drain":
+      drain(message.pid);
+      break;
     case "arm":
       timer = setTimeout(
         () => enforce("60-second total teardown budget exhausted"),
@@ -100,15 +133,7 @@ process.on("message", (message: Message) => {
     case "finish":
       // A leader exiting is insufficient: Chromium can leave descendants in
       // its private process group. Never turn forced cleanup into a pass.
-      if (
-        execFileSync("ps", ["-axo", "pgid=,stat="], { encoding: "utf8" })
-          .trim()
-          .split("\n")
-          .some((line) => {
-            const [group, state] = line.trim().split(/\s+/);
-            return groups.has(Number(group)) && !state.startsWith("Z");
-          })
-      ) {
+      if ([...liveGroups()].some((group) => groups.has(group))) {
         enforce("browser process group remains after cleanup");
         break;
       }

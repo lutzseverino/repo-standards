@@ -1,9 +1,11 @@
 // Runs only in the isolated subprocess regressions, never as a site test file.
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import { createServer } from "node:http";
 import { syncBuiltinESMExports } from "node:module";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { after, before, test } from "node:test";
 import { Browser, findBrowser } from "../browser.ts";
 import { BrowserFixture } from "../fixture.ts";
@@ -59,7 +61,64 @@ before(() =>
     else {
       const executable = findBrowser();
       assert.ok(executable, "subprocess regression requires a browser");
-      const browser = await Browser.launch(executable, fixture);
+      let launcher = executable;
+      let pidFile = "";
+      let group = 0;
+      if (scenario === "delayed-exit" || scenario === "closed-stderr") {
+        const wrapper = fs.mkdtempSync(
+          path.join(tmpdir(), "site-browser-parent-"),
+        );
+        fixture.ownDirectory(wrapper);
+        fixture.defer("browser wrapper removal", () =>
+          fs.rmSync(wrapper, { recursive: true, force: true }),
+        );
+        let group = 0;
+
+        const pidFile = path.join(wrapper, "pid");
+        launcher = path.join(wrapper, "browser.mjs");
+        fs.writeFileSync(
+          launcher,
+          `#!${process.execPath}
+import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
+const browser = spawn(${JSON.stringify(executable)}, process.argv.slice(2), { stdio: ["ignore", "ignore", ${JSON.stringify(scenario === "closed-stderr" ? "pipe" : "inherit")}] });
+browser.stderr?.pipe(process.stderr);
+writeFileSync(${JSON.stringify(pidFile)}, String(process.pid));
+process.on("SIGTERM", () => {
+  spawn(process.execPath, ["-e", "setTimeout(() => process.kill(" + browser.pid + ", 'SIGTERM'), 300)"], { stdio: ["ignore", "ignore", ${JSON.stringify(scenario === "closed-stderr" ? "ignore" : "inherit")}] });
+  process.exit(0);
+});
+`,
+          { mode: 0o755 },
+        );
+        const remove = fs.rmSync;
+        fs.rmSync = (file, options) => {
+          if (
+            String(file).includes("/site-browser-") &&
+            !String(file).includes("site-browser-parent-")
+          ) {
+            const rows = execFileSync("ps", ["-axo", "pgid=,stat="], {
+              encoding: "utf8",
+            });
+            if (
+              rows.split("\n").some((row) => {
+                const [id, state] = row.trim().split(/\s+/);
+                return Number(id) === group && !state.startsWith("Z");
+              })
+            )
+              throw Object.assign(
+                new Error(
+                  "profile removed while browser descendant is still alive",
+                ),
+                { code: "ENOTEMPTY" },
+              );
+          }
+          return remove(file, options);
+        };
+        syncBuiltinESMExports();
+      }
+      const browser = await Browser.launch(launcher, fixture);
+      if (pidFile) group = Number(fs.readFileSync(pidFile, "utf8"));
       const tab = await browser.open("about:blank", {
         width: 320,
         theme: "light",
