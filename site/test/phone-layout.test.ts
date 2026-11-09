@@ -27,6 +27,7 @@ import {
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 import { Browser, findBrowser, type Key, Tab, type View } from "./browser.ts";
 import { measureLayout, type Layout } from "./layout-probe.ts";
+import { BrowserFixture } from "./fixture.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
 const WIDTHS = [320, 360, 390];
@@ -73,6 +74,7 @@ const pages: Page[] = [
   })),
 ];
 
+const fixture = new BrowserFixture();
 let browser: Browser | undefined;
 let output = "";
 let production: Awaited<ReturnType<typeof preview>> | undefined;
@@ -80,84 +82,91 @@ let development: Awaited<ReturnType<typeof dev>> | undefined;
 const base = { production: "", development: "" };
 const measurements: Record<string, unknown>[] = [];
 
-before(async () => {
-  if (!executable) return;
-  output = mkdtempSync(path.join(site, "node_modules/.site-phone-"));
-  // in a process of its own: a build leaves production React loaded, which
-  // the development server below cannot render with
-  execFileSync(
-    process.execPath,
-    ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
-    { cwd: site, timeout: 120_000, stdio: "pipe" },
-  );
-  // the preview server sets NODE_ENV for the process, which would make the
-  // development server render as production, without the pseudo-locale
-  const mode = process.env.NODE_ENV;
-  production = await preview({
-    root: site,
-    outDir: output,
-    logLevel: "error",
-    server: { host: "127.0.0.1", port: 0 },
-  });
-  if (mode === undefined) delete process.env.NODE_ENV;
-  else process.env.NODE_ENV = mode;
-  base.production = `http://127.0.0.1:${production.port}`;
-  // without the toolbar, which development alone draws over the page
-  development = await dev({
-    root: site,
-    logLevel: "error",
-    server: { host: "127.0.0.1", port: 0 },
-    devToolbar: { enabled: false },
-  });
-  base.development = `http://127.0.0.1:${development.address.port}`;
-  browser = await Browser.launch(executable);
-  // A throwaway page, so no test's page reloads under it. On a fresh
-  // checkout, Astro 7's startup content sync writes `.astro/data-store.json`
-  // and then sends a `full-reload` before any page is connected; Vite buffers
-  // it for the first page that connects. Vite sends a connecting page
-  // `connected`, which its client logs, then the buffered message, and forgets
-  // it, so once this page has logged "[vite] connected." no other page gets
-  // the reload. Remove this once a fixed Astro 7 release ships.
-  const { targetId } = await browser.send("Target.createTarget", {
-    url: "about:blank",
-  });
-  const { sessionId } = (await browser.send("Target.attachToTarget", {
-    targetId,
-    flatten: true,
-  })) as { sessionId: string };
-  await browser.send("Runtime.enable", {}, sessionId);
-  const connected = (async () => {
-    for (;;) {
-      const { args } = (await browser.event(
-        "Runtime.consoleAPICalled",
+before(() =>
+  fixture.setup(async () => {
+    if (!executable) return;
+    output = mkdtempSync(path.join(site, "node_modules/.site-phone-"));
+    fixture.ownDirectory(output);
+    fixture.defer("build output removal", () =>
+      rmSync(output, { recursive: true, force: true }),
+    );
+    // in a process of its own: a build leaves production React loaded, which
+    // the development server below cannot render with
+    execFileSync(
+      process.execPath,
+      ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
+      { cwd: site, timeout: 120_000, stdio: "pipe" },
+    );
+    // the preview server sets NODE_ENV for the process, which would make the
+    // development server render as production, without the pseudo-locale
+    const mode = process.env.NODE_ENV;
+    production = await preview({
+      root: site,
+      outDir: output,
+      logLevel: "error",
+      server: { host: "127.0.0.1", port: 0 },
+    });
+    fixture.defer("preview server stop", () => production!.stop());
+    if (mode === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = mode;
+    base.production = `http://127.0.0.1:${production.port}`;
+    // without the toolbar, which development alone draws over the page
+    development = await dev({
+      root: site,
+      logLevel: "error",
+      server: { host: "127.0.0.1", port: 0 },
+      devToolbar: { enabled: false },
+    });
+    fixture.defer("development server stop", () => development!.stop());
+    base.development = `http://127.0.0.1:${development.address.port}`;
+    browser = await Browser.launch(executable, fixture);
+    // A throwaway page, so no test's page reloads under it. On a fresh
+    // checkout, Astro 7's startup content sync writes `.astro/data-store.json`
+    // and then sends a `full-reload` before any page is connected; Vite buffers
+    // it for the first page that connects. Vite sends a connecting page
+    // `connected`, which its client logs, then the buffered message, and forgets
+    // it, so once this page has logged "[vite] connected." no other page gets
+    // the reload. Remove this once a fixed Astro 7 release ships.
+    const { targetId } = await browser.send("Target.createTarget", {
+      url: "about:blank",
+    });
+    const { sessionId } = (await browser.send("Target.attachToTarget", {
+      targetId,
+      flatten: true,
+    })) as { sessionId: string };
+    await browser.send("Runtime.enable", {}, sessionId);
+    const connected = (async () => {
+      for (;;) {
+        const { args } = (await browser.event(
+          "Runtime.consoleAPICalled",
+          sessionId,
+        ).next) as { args: { value?: unknown }[] };
+        if (args[0]?.value === "[vite] connected.") return;
+      }
+    })();
+    await Promise.all([
+      connected,
+      browser.send(
+        "Page.navigate",
+        { url: base.development + localePath(PSEUDO_LOCALE, "/") },
         sessionId,
-      ).next) as { args: { value?: unknown }[] };
-      if (args[0]?.value === "[vite] connected.") return;
-    }
-  })();
-  await Promise.all([
-    connected,
-    browser.send(
-      "Page.navigate",
-      { url: base.development + localePath(PSEUDO_LOCALE, "/") },
-      sessionId,
-    ),
-  ]);
-  await browser.send("Target.closeTarget", { targetId });
-  if (reportTo) mkdirSync(reportTo, { recursive: true });
-});
+      ),
+    ]);
+    await browser.send("Target.closeTarget", { targetId });
+    if (reportTo) mkdirSync(reportTo, { recursive: true });
+  }),
+);
 
 // whatever `before` reached before it failed
 after(async () => {
-  await browser?.close();
-  await production?.stop();
-  await development?.stop();
-  if (output) rmSync(output, { recursive: true, force: true });
-  if (reportTo)
-    writeFileSync(
-      path.join(reportTo, "layout.json"),
-      `${JSON.stringify(measurements, null, 2)}\n`,
-    );
+  fixture.defer("layout report write", () => {
+    if (reportTo)
+      writeFileSync(
+        path.join(reportTo, "layout.json"),
+        `${JSON.stringify(measurements, null, 2)}\n`,
+      );
+  });
+  await fixture.close();
 });
 
 test("a browser measures the pages in CI", () => {
