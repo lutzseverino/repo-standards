@@ -707,6 +707,28 @@ const languageList = (tab: Tab) =>
     );
   });
 
+/** Measures the selector and list together, after the entrance motion. */
+async function assertLanguagePlacement(tab: Tab) {
+  await still(tab);
+  const { rects, entering } = await tab.evaluate(() => {
+    const list = document.querySelector("[data-slot=dropdown-menu-content]")!;
+    return {
+      entering: list.getAnimations().some((a) => a.playState !== "finished"),
+      rects: [
+        document.querySelector("#nav-menu [data-slot=dropdown-menu-trigger]")!,
+        list,
+      ].map((element) => {
+        const rect = element.getBoundingClientRect();
+        return { left: rect.left, top: rect.top, bottom: rect.bottom };
+      }),
+    };
+  });
+  assert.equal(entering, false, "entrance motion finished before measuring");
+  const [selector, list] = rects;
+  assert.ok(Math.abs(list.left - selector.left) <= 1, "start edge");
+  assert.ok(list.top >= selector.bottom, "below it");
+}
+
 /** Waits until `tab`'s page is at `url` and settled. */
 async function arrival(tab: Tab, url: string) {
   const deadline = Date.now() + 15_000;
@@ -799,19 +821,7 @@ test(
         "Català false",
       ]);
       // the list opens from the selector's start edge, over the dimmed page
-      const [selector, list] = await tab.evaluate(() =>
-        [
-          "#nav-menu [data-slot=dropdown-menu-trigger]",
-          "[data-slot=dropdown-menu-content]",
-        ].map((selector) => {
-          const rect = document
-            .querySelector(selector)!
-            .getBoundingClientRect();
-          return { left: rect.left, top: rect.top, bottom: rect.bottom };
-        }),
-      );
-      assert.ok(Math.abs(list.left - selector.left) <= 1, "start edge");
-      assert.ok(list.top >= selector.bottom, "below it");
+      await assertLanguagePlacement(tab);
       // the panel stays open behind it
       assert.equal((await panelOf(tab)).expanded, "true");
       // picking leaves the page, so the click waits for nothing
@@ -841,6 +851,51 @@ test(
     }
   },
 );
+
+for (const overlap of [false, true])
+  test(
+    overlap
+      ? "language list placement rejects a persistent overlap after settling"
+      : "language list placement waits for a prolonged entrance animation",
+    { skip },
+    async () => {
+      const tab = await openTab(
+        `${base.production}/how-it-works/#who-does-what`,
+        { width: 320, theme: "light" },
+      );
+      try {
+        await tab.evaluate((overlap: boolean) => {
+          const style = document.createElement("style");
+          style.textContent = `[data-slot=dropdown-menu-content] {
+            animation-duration: 1s !important;
+            ${overlap ? "translate: 0 -20px;" : ""}
+          }`;
+          document.head.append(style);
+        }, overlap);
+        await tapMenu(tab);
+        await tap(tab, "Language: English");
+        assert.ok(await languageList(tab));
+        // Visibility and tap's two frames still leave finite motion to await.
+        assert.ok(
+          await tab.evaluate(() =>
+            document
+              .querySelector("[data-slot=dropdown-menu-content]")!
+              .getAnimations()
+              .some((a) => a.playState === "running"),
+          ),
+          "the entrance is still running after the former wait",
+        );
+        if (overlap)
+          await assert.rejects(assertLanguagePlacement(tab), {
+            code: "ERR_ASSERTION",
+            message: "below it",
+          });
+        else await assertLanguagePlacement(tab);
+      } finally {
+        await tab.close();
+      }
+    },
+  );
 
 test(
   "the panel's theme menu remembers the chosen appearance, and the panel stays open",
