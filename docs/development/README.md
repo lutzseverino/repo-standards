@@ -8,6 +8,8 @@ Repo Standards CLI and website.
 Use TypeScript, ESM, stable Node.js 24 or 26 and pnpm. The default Node.js 24
 baseline and pnpm versions are in `.node-version` and `package.json`.
 Keep the bundled npm, Git 2.32 or newer and `python3` 3.9 or newer on `PATH`.
+The system `ps` utility must also be on `PATH` for process-group inspection;
+minimal Debian/Ubuntu containers need the `procps` package.
 Node.js 22, odd majors, prereleases and future majors are excluded. The Alice
 example test runs the example's `python3` check and needs that Python. Run
 `pnpm install --frozen-lockfile`; npm registry access or cached dependencies

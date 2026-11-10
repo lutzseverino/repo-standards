@@ -30,6 +30,7 @@ import {
   startArgs,
 } from "./remote-fixture.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
+import { processPath } from "./process-path.ts";
 
 const cli = installCli();
 const registry = await registryFixture(cli.root);
@@ -124,6 +125,127 @@ async function adopted(t: TestContext, profile = "work") {
     },
   };
 }
+
+test("check diagnoses missing system ps and succeeds when only real ps is restored", async (t) => {
+  const f = await adopted(t);
+  const { started } = f.adopt();
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  commit(f.project.root);
+  rmSync(join(f.project.root, ".repo-standards/local/checks"), {
+    recursive: true,
+    force: true,
+  });
+  const bin = processPath(t);
+  const result = cli.run(["check", "--json"], f.project.root, bin.env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+  assert.equal(error!.code, "PROCESS_STATE");
+  assert.match(error!.message, /ps.*unavailable.*PATH/);
+  assert.match(error!.message, /procps.*Debian\/Ubuntu.*retry/);
+  assert.doesNotMatch(error!.message, /Stop them|with live processes/);
+  assert.equal(
+    existsSync(join(f.project.root, ".repo-standards/local/checks/0.stderr")),
+    false,
+    "no check starts after the failed prerequisite inspection",
+  );
+  const readable = cli.run(["check"], f.project.root, bin.env);
+  assert.equal(readable.status, 1);
+  assert.match(readable.stderr, /PROCESS_STATE.*ps.*unavailable.*PATH/);
+  bin.restorePs();
+  const control = cli.run(["check", "--json"], f.project.root, bin.env);
+  assert.equal(control.status, 0, control.stdout + control.stderr);
+  const report = JSON.parse(control.stdout) as CheckReport;
+  assert.equal(report.outcome, "passed");
+  assert.equal(report.checks.length, 3);
+});
+
+test("check preserves failed ps invocation causes and the successful prerequisite outcome", async (t) => {
+  const f = await adopted(t);
+  const { started } = f.adopt();
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  commit(f.project.root);
+  for (const example of [
+    {
+      name: "nonzero exit",
+      script: 'console.error("census denied by fixture"); process.exit(23);',
+      cause: {
+        exitCode: 23,
+        signal: null,
+        stderr: "census denied by fixture\n",
+      },
+      message: /exit status 23.*census denied by fixture/s,
+    },
+    {
+      name: "signal",
+      script: 'process.kill(process.pid, "SIGTERM");',
+      cause: { exitCode: null, signal: "SIGTERM" },
+      message: /signal SIGTERM/,
+    },
+    {
+      name: "executable spawn failure",
+      script: "",
+      cause: { error: { code: "EACCES" }, exitCode: null, signal: null },
+      message: /EACCES.*spawnSync ps EACCES/,
+    },
+  ])
+    await t.test(example.name, (st) => {
+      const bin = processPath(st);
+      bin.failPs(example.script);
+      if (example.name === "executable spawn failure") chmodSync(bin.ps, 0o644);
+      const result = cli.run(["check", "--json"], f.project.root, bin.env);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+      assert.equal(error!.code, "PROCESS_STATE");
+      assert.match(error!.message, /A prerequisite probe.*ps -axo pgid=,stat=/);
+      assert.match(error!.message, example.message);
+      assert.partialDeepStrictEqual(error!.details, {
+        actor: "A prerequisite probe",
+        process: {
+          exitCode: 0,
+          signal: null,
+          error: "PROCESS_STATE",
+          timedOut: false,
+        },
+        cause: {
+          executable: "ps",
+          arguments: ["-axo", "pgid=,stat="],
+          ...example.cause,
+        },
+      });
+      const readable = cli.run(["check"], f.project.root, bin.env);
+      assert.equal(readable.status, 1);
+      assert.match(readable.stderr, example.message);
+    });
+});
+
+test("check retains a ps failure after an operation and starts no later check", async (t) => {
+  const f = await adopted(t);
+  const { started } = f.adopt();
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  commit(f.project.root);
+  const bin = processPath(t);
+  bin.restorePs();
+  const replacement = `#!${process.execPath}\nconsole.error('operation census unavailable'); process.exit(19);`;
+  const result = cli.run(["check", "--json"], f.project.root, {
+    ...bin.env,
+    CHECK_MUTATION: `rmSync(${JSON.stringify(bin.ps)}); writeFileSync(${JSON.stringify(bin.ps)}, ${JSON.stringify(replacement)}, { mode: 0o755 });`,
+  });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+  assert.equal(error!.code, "PROCESS_STATE");
+  assert.match(
+    error!.message,
+    /Check instructions\/first.*exit status 19.*operation census unavailable/s,
+  );
+  assert.equal(
+    existsSync(join(f.project.root, ".repo-standards/local/checks/0.stderr")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(f.project.root, ".repo-standards/local/checks/1.stderr")),
+    false,
+  );
+});
 
 test("check runs every retained check with a run's inputs, reports each result, and changes nothing", async (t) => {
   const f = await adopted(t);

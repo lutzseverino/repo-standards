@@ -25,6 +25,7 @@ import {
   killAfterWrite,
 } from "./adoption-faults.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
+import { processPath } from "./process-path.ts";
 import {
   assertNoMachineLocation,
   committedState,
@@ -872,6 +873,57 @@ test("abandoning an interrupted completion preserves its candidate without claim
     readFileSync(join(f.project.root, "AGENTS.md"), "utf8"),
     "Expected instructions",
   );
+});
+
+test("unreadable process groups block adoption and recovery with the ps cause intact", async (t) => {
+  const f = await fixture(t, {
+    readme: {
+      kind: "file",
+      target: "README.md",
+      guidance: "guide.md",
+      fixes: [operation("prepare")],
+    },
+  });
+  const bin = processPath(t);
+  const env = { ...f.env, PATH: bin.env.PATH };
+  const started = f.run(f.startArgs, env);
+  assert.equal(started.status, 1, started.stdout + started.stderr);
+  const report = JSON.parse(started.stdout) as Run;
+  assert.equal(report.phase, "prerequisites", started.stdout + started.stderr);
+  assert.equal(report.outcome, "incomplete");
+  assert.match(report.reason, /PROCESS_STATE:.*ps.*unavailable.*PATH.*procps/s);
+  assert.deepEqual(report.prerequisites[0]!.process, {
+    exitCode: 0,
+    signal: null,
+    error: "PROCESS_STATE",
+    timedOut: false,
+  });
+  const journal = readFileSync(
+    join(f.project.root, ".git/repo-standards-run.lock"),
+    "utf8",
+  );
+  for (const args of [["status"], ["resume", "--retry"], ["abandon"]]) {
+    const result = f.run([...args, "--json"], env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, "PROCESS_STATE");
+    assert.match(error!.message, /ps.*unavailable.*PATH.*procps/s);
+  }
+  assert.equal(
+    readFileSync(join(f.project.root, ".git/repo-standards-run.lock"), "utf8"),
+    journal,
+  );
+  assert.equal(
+    readFileSync(join(f.project.root, "README.md"), "utf8"),
+    "Original project",
+  );
+  bin.restorePs();
+  const status = f.run(["status", "--json"], env);
+  assert.equal(status.status, 0, status.stdout + status.stderr);
+  assert.equal((JSON.parse(status.stdout) as Status).execution, "interrupted");
+  const abandoned = f.run(["abandon", "--json"], env);
+  assert.equal(abandoned.status, 0, abandoned.stdout + abandoned.stderr);
+  assert.equal((JSON.parse(abandoned.stdout) as Run).abandoned, true);
 });
 
 test("background descendants of returned fixes and prerequisite probes retain active execution", async (t) => {

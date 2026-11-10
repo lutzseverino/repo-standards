@@ -136,9 +136,15 @@ No later check runs after a change, and the changes are preserved for review:
 `check` restores nothing. Changes outside that observation are not detected.
 
 A probe or check that leaves its process group running stops `check` with
-`AUTHOR_PROCESS_ACTIVE`, or `PROCESS_STATE` when that cannot be established.
-`check` does not stop or record the group; stop it before running any command
-again.
+`AUTHOR_PROCESS_ACTIVE`. `check` does not stop or record the group; stop it
+before running any command again. When group inspection fails, `PROCESS_STATE`
+blocks further checks and identifies the cause, rather than confirming a live
+group. The system `ps` utility must be on `PATH`; if it is missing, provide it
+(`procps` on Debian/Ubuntu, including minimal containers) and retry. A failing
+`ps -axo pgid=,stat=` reports its available spawn error, exit status or signal,
+and diagnostic stderr. JSON diagnostics retain those details alongside the
+actor, group and original probe or check process outcome. Successful check
+reports are unchanged.
 
 `check` itself writes only two things: its output logs, under the ignored
 `.repo-standards/local/checks/`, and, while it runs, a worker registration in

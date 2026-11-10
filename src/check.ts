@@ -8,7 +8,12 @@ import {
   write,
 } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
-import { execute, operations, preflight } from "./execution.js";
+import {
+  execute,
+  operations,
+  preflight,
+  type OperationEvidence,
+} from "./execution.js";
 import { formats } from "./formats.js";
 import { requireSupportedGit } from "./observation.js";
 import { readOnlyGuard } from "./read-only.js";
@@ -143,11 +148,24 @@ async function runChecks(
     "Checks must leave project content unchanged",
   );
   let group: number | undefined;
-  const requireStopped = (actor: string, error: string | null) => {
-    if (error === "AUTHOR_PROCESS_ACTIVE" || error === "PROCESS_STATE")
+  let stateError: ProductError | undefined;
+  const onStateError = (error: ProductError) => {
+    stateError = error;
+  };
+  const requireStopped = (
+    actor: string,
+    outcome?: OperationEvidence["process"],
+  ) => {
+    if (outcome?.error === "PROCESS_STATE")
       throw new ProductError(
-        error,
-        `${actor} left author process group ${group} with live processes, or its state cannot be read. Stop them before checking again.`,
+        "PROCESS_STATE",
+        `${actor}: ${stateError?.message ?? `Cannot inspect author process group ${group}. Restore process-state inspection and retry.`}`,
+        { actor, group, process: outcome, cause: stateError?.details },
+      );
+    if (outcome?.error === "AUTHOR_PROCESS_ACTIVE")
+      throw new ProductError(
+        "AUTHOR_PROCESS_ACTIVE",
+        `${actor} left author process group ${group} with live processes. Stop them before checking again.`,
       );
   };
   const prerequisites = await preflight(
@@ -157,11 +175,9 @@ async function runChecks(
       group = spawned;
     },
     ["checks"],
+    onStateError,
   );
-  requireStopped(
-    "A prerequisite probe",
-    prerequisites.at(-1)?.process.error ?? null,
-  );
+  requireStopped("A prerequisite probe", prerequisites.at(-1)?.process);
   requireUnchanged("A prerequisite probe");
   if (prerequisites.some((probe) => probe.code))
     throw new ProductError(
@@ -182,7 +198,7 @@ async function runChecks(
       (spawned) => {
         group = spawned;
       },
-      { invocation: "check" },
+      { invocation: "check", onStateError },
     );
     const log = `${logs}/${checks.length}`;
     const keepLogs = () => {
@@ -192,7 +208,7 @@ async function runChecks(
     // Observe before keeping the logs, so a change the check made is
     // reported as its change; its logs are then kept where possible.
     try {
-      requireStopped(actor, evidence.process.error);
+      requireStopped(actor, evidence.process);
       requireUnchanged(actor);
     } catch (error) {
       try {
