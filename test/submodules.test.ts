@@ -54,6 +54,7 @@ function addSubmodule(root: string, path: string, from: string) {
     from,
     path,
   );
+  git(join(root, path), "config", "maintenance.auto", "false");
 }
 
 for (const initialized of [true, false]) {
@@ -498,6 +499,7 @@ async function fixture(t: TestContext, nested = false, yaml = source) {
     );
   commit(f.root);
   const path = nested ? "vendor/protocol/inner" : "vendor/protocol";
+  git(join(f.root, path), "config", "maintenance.auto", "false");
   return { ...f, path, child: join(f.root, path) };
 }
 
@@ -534,6 +536,45 @@ test("clean initialized submodules permit unrelated adoption and remain unchange
 });
 
 for (const nested of [false, true]) {
+  test(`${nested ? "nested" : "single"} submodule fixture commits start no automatic maintenance`, async (t) => {
+    const f = await fixture(t, nested);
+    const repositories = nested
+      ? [join(f.root, "vendor/protocol"), f.child]
+      : [f.child];
+    for (const [index, root] of repositories.entries()) {
+      const trace = join(f.remote.support.root, `commit-${index}.json`);
+      writeFileSync(trace, "");
+      writeFileSync(join(root, "commit.txt"), "scenario commit");
+      const previous = process.env.GIT_TRACE2_EVENT;
+      process.env.GIT_TRACE2_EVENT = trace;
+      try {
+        commit(root);
+      } finally {
+        if (previous === undefined) delete process.env.GIT_TRACE2_EVENT;
+        else process.env.GIT_TRACE2_EVENT = previous;
+      }
+      const events = readFileSync(trace, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as { event: string; argv?: string[] });
+      assert.ok(
+        events.some(
+          (event) => event.event === "start" && event.argv?.includes("commit"),
+        ),
+        "Trace must capture the real scenario commit",
+      );
+      assert.deepEqual(
+        events.filter(
+          (event) =>
+            event.event === "child_start" &&
+            event.argv?.includes("maintenance"),
+        ),
+        [],
+        "Scenario commit must not start automatic maintenance",
+      );
+    }
+  });
+
   test(`clean ${nested ? "nested" : "single"} submodules preserve ignored-file treatment`, async (t) => {
     const f = await fixture(t, nested);
     writeFileSync(join(f.child, "ignored.txt"), "ignored");
