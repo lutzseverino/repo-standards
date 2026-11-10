@@ -16,6 +16,12 @@ from <https://nodejs.org/en/download> or select it with your version manager.
 Author operations may require additional executables and versions; inspection
 discloses these, and start checks them before changing the project.
 
+The system `ps` utility must also be on `PATH` to inspect author process groups
+after prerequisite probes and operations, and during recovery. Minimal container
+images may omit it. On Debian/Ubuntu, provide it by installing `procps` in the
+image or environment, then retry. An unavailable or failing `ps` blocks execution
+with `PROCESS_STATE`; its diagnostic identifies the inspection failure.
+
 Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
 is outside the support policy; odd majors, prereleases and future majors are
 also excluded. Windows, private sources, SSH and Git hosts other than public

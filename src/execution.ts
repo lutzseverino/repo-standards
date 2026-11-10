@@ -7,6 +7,7 @@ import { processGroupAlive } from "./run-lock.js";
 import type { ResolvedProfile, Script } from "./model.js";
 import { declarationTargets } from "./targets.js";
 import { record } from "./records.js";
+import { ProductError } from "./errors.js";
 
 export function operations(
   resolved: Pick<ResolvedProfile, "declarations">,
@@ -43,12 +44,13 @@ export async function preflight(
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
   phases: ("fixes" | "checks")[] = ["fixes", "checks"],
+  onStateError?: (error: ProductError) => void,
 ): Promise<PrerequisiteEvidence[]> {
   const evidence: PrerequisiteEvidence[] = [];
   for (const { declaration, phase, operation } of phases.flatMap((phase) =>
     operations(resolved, phase),
   )) {
-    const { version, code, process } = await probePrerequisite(
+    const { version, code, process, stateError } = await probePrerequisite(
       root,
       operation,
       onSpawn,
@@ -62,6 +64,7 @@ export async function preflight(
       code,
       process,
     });
+    if (stateError) onStateError?.(stateError);
     if (
       process.error === "AUTHOR_PROCESS_ACTIVE" ||
       process.error === "PROCESS_STATE"
@@ -117,7 +120,14 @@ export async function probePrerequisite(
             ? "VERSION_INCOMPATIBLE"
             : null;
   const { stdout, stderr } = result;
-  return { version, code, process: result.outcome, stdout, stderr };
+  return {
+    version,
+    code,
+    process: result.outcome,
+    stdout,
+    stderr,
+    stateError: result.stateError,
+  };
 }
 
 export interface OperationEvidence {
@@ -170,10 +180,12 @@ export async function execute(
     overwriteAllowed = false,
     sourceRoot = join(root, ".repo-standards/inputs/source"),
     invocation = "run",
+    onStateError,
   }: {
     overwriteAllowed?: boolean;
     sourceRoot?: string;
     invocation?: "run" | "check";
+    onStateError?: (error: ProductError) => void;
   } = {},
 ) {
   const { declaration, phase, operation } = selected;
@@ -209,6 +221,7 @@ export async function execute(
     stdout: process.stdout,
     stderr: process.stderr,
   };
+  if (process.stateError) onStateError?.(process.stateError);
   if (!evidence.error) {
     try {
       const result = record(JSON.parse(process.stdout));
@@ -259,6 +272,8 @@ export function invoke(
     stdout: string;
     stderr: string;
     output: { stream: "stdout" | "stderr"; bytes: number }[];
+    // Transient cause, kept outside persisted process evidence and reports.
+    stateError?: ProductError;
   }>((resolve) => {
     const child = spawn(executable, args, {
       cwd,
@@ -278,6 +293,7 @@ export function invoke(
     };
     const sizes = { stdout: 0, stderr: 0 };
     const output: { stream: "stdout" | "stderr"; bytes: number }[] = [];
+    let stateError: ProductError | undefined;
     function kill() {
       if (child.pid)
         try {
@@ -326,14 +342,19 @@ export function invoke(
       try {
         if (child.pid && processGroupAlive(child.pid))
           outcome.error = "AUTHOR_PROCESS_ACTIVE";
-      } catch {
+      } catch (error) {
         outcome.error = "PROCESS_STATE";
+        stateError =
+          error instanceof ProductError
+            ? error
+            : new ProductError("PROCESS_STATE", (error as Error).message);
       }
       resolve({
         outcome,
         stdout: Buffer.concat(chunks.stdout).toString("utf8"),
         stderr: Buffer.concat(chunks.stderr).toString("utf8"),
         output,
+        ...(stateError && { stateError }),
       });
     });
     try {

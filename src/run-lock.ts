@@ -90,11 +90,33 @@ export function processGroupAlive(group: number, identity?: string) {
     encoding: "utf8",
     env: { ...process.env, LC_ALL: "C", TZ: "UTC" },
   });
-  if (result.error || result.status !== 0)
+  if (result.error || result.status !== 0) {
+    const spawnError: NodeJS.ErrnoException | undefined = result.error;
+    const cause = [
+      spawnError &&
+        `${spawnError.code ?? "spawn error"}: ${spawnError.message}`,
+      result.status !== null && `exit status ${result.status}`,
+      result.signal && `signal ${result.signal}`,
+      result.stderr?.trim() && `stderr: ${result.stderr.trim()}`,
+    ]
+      .filter(Boolean)
+      .join("; ");
     throw new ProductError(
       "PROCESS_STATE",
-      "Cannot establish whether an author process is still running.",
+      `Cannot inspect author process group ${group}: ${spawnError?.code === "ENOENT" ? "system ps is unavailable on PATH. Provide the system ps utility (procps on Debian/Ubuntu) and retry" : 'the invocation "ps -axo pgid=,stat=" failed'}. ${cause}`,
+      {
+        group,
+        executable: "ps",
+        arguments: ["-axo", "pgid=,stat="],
+        error: spawnError
+          ? { code: spawnError.code ?? null, message: spawnError.message }
+          : null,
+        exitCode: result.status,
+        signal: result.signal,
+        stderr: result.stderr ?? "",
+      },
     );
+  }
   return result.stdout.split("\n").some((line) => {
     const [id, state] = line.trim().split(/\s+/);
     return Number(id) === group && state && !state.startsWith("Z");

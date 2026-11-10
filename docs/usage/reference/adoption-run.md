@@ -1075,7 +1075,10 @@ conservatively as active while it has surviving members.
 `execution: interrupted` means durable incomplete progress
 remains without live execution. A normal contextual handoff also has no live
 execution. A second start is blocked until the run is resumed or abandoned.
-The CLI uses the system `ps` utility to inspect process-group membership. Worker
+The CLI uses the system `ps` utility on `PATH` to inspect process-group membership.
+Minimal Debian/Ubuntu containers need the `procps` package. An unavailable or
+unsuccessful `ps` blocks execution and recovery with `PROCESS_STATE`, identifying
+the invocation's failure; provide or repair the utility and retry. Worker
 and group-leader identities use kernel start values: boot identity and start
 ticks from Linux procfs, and microsecond start times from macOS libproc through
 the packaged Koffi binding. The macOS binding ships prebuilt for arm64 and x64;
