@@ -637,7 +637,7 @@ export function readCommittedScopeProposal(
     unreadable();
   }
   if (
-    lock?.format !== formats.lock ||
+    !readableFormat(lock, formats.lock) ||
     lock.inspection !== inspection ||
     !lock.files
   )
