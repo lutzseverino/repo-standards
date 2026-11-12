@@ -1,7 +1,7 @@
 {
-  "format": "repo-standards/scope-history/v6",
+  "format": "repo-standards/scope-history/v7",
   "evidence": "historical",
-  "inspection": "sha256:9e0e4570cefd68f86a215c8566183e2c41bdebda3ba42b979ac7efb3b0c194f9",
+  "inspection": "sha256:da83b62d1d599e329953e30e030eb9e109a6062411e1c210d0ca80ffe31b1cb7",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -28,6 +28,18 @@
         "kind": "file",
         "target": ".github/ISSUE_TEMPLATE/bug-report.yml",
         "exact": ".github/ISSUE_TEMPLATE/bug-report.yml"
+      },
+      {
+        "id": "comments",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/comments.md",
+        "rules": "rules/comments.md",
+        "targets": {
+          "paths": [],
+          "directories": []
+        }
       },
       {
         "id": "contribution-guidance",
@@ -105,6 +117,7 @@
             "docs/adr/0031-give-every-site-page-one-nav.md",
             "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
             "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+            "docs/adr/0034-select-check-location-beside-platform.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -150,17 +163,24 @@
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": ".factory/config.json",
-        "exact": ".factory/config.json"
+        "target": ".scriptorium/config.json",
+        "exact": ".scriptorium/config.json"
       },
       {
         "id": "factory-sandbox-image",
         "checks": [],
         "fixes": [],
-        "kind": "file",
-        "target": ".factory/Dockerfile",
+        "kind": "repository",
         "guidance": "guidance/factory-sandbox-image.md",
-        "rules": "rules/factory-sandbox-image.md"
+        "rules": "rules/factory-sandbox-image.md",
+        "targets": {
+          "paths": [
+            ".scriptorium/Dockerfile",
+            ".factory/Dockerfile",
+            ".factory/config.json"
+          ],
+          "directories": []
+        }
       },
       {
         "id": "factory-sandbox-image-workflow",
@@ -172,7 +192,26 @@
       },
       {
         "id": "factory-workflow",
-        "checks": [],
+        "checks": [
+          {
+            "id": "factory-model-policy",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-factory-model-policy.mjs",
+              "resources": [
+                "operations/lib/factory-model-policy.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/factory-workflow.md",
@@ -203,12 +242,30 @@
         "id": "github-repository-configuration",
         "checks": [
           {
+            "id": "required-checks",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-required-checks.mjs",
+              "resources": [
+                ".agents/skills/babysit/required-checks.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          },
+          {
             "id": "pull-request-reviewer",
             "run": {
               "executable": "node",
               "script": "operations/check-pull-request-reviewer.mjs",
               "resources": [
-                "operations/lib/pull-request-reviewer.mjs"
+                ".agents/skills/babysit/pull-request-reviewer.mjs"
               ],
               "arguments": []
             },
@@ -226,7 +283,7 @@
               "executable": "node",
               "script": "operations/check-factory-review-policy.mjs",
               "resources": [
-                "operations/lib/review-policy.mjs"
+                ".agents/skills/babysit/review-policy.mjs"
               ],
               "arguments": []
             },
@@ -367,12 +424,36 @@
         "exact": ".github/ISSUE_TEMPLATE/implementation-ticket.yml"
       },
       {
+        "id": "issue-contract-cutoff",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-cutoff.mjs",
+        "exact": "scripts/issue-contract-cutoff.mjs"
+      },
+      {
+        "id": "issue-contract-sources",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-sources.mjs",
+        "exact": "scripts/issue-contract-sources.mjs"
+      },
+      {
+        "id": "issue-contract-store",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-store.mjs",
+        "exact": "scripts/issue-contract-store.mjs"
+      },
+      {
         "id": "issue-contract-validator",
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": "scripts/validate-issue-contract.mjs",
-        "exact": "scripts/validate-issue-contract.mjs"
+        "target": "vendor/repo-canon/validate-issue-contract.mjs",
+        "exact": "vendor/repo-canon/validate-issue-contract.mjs"
       },
       {
         "id": "issue-contract-workflow",
@@ -637,6 +718,14 @@
         "source": ".agents/skills/domain-modeling"
       },
       {
+        "id": "skill-factory",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "factory",
+        "source": ".agents/skills/factory"
+      },
+      {
         "id": "skill-grill-with-docs",
         "checks": [],
         "fixes": [],
@@ -669,14 +758,6 @@
         "source": ".agents/skills/improve-codebase-architecture"
       },
       {
-        "id": "skill-orchestrate",
-        "checks": [],
-        "fixes": [],
-        "kind": "skill",
-        "name": "orchestrate",
-        "source": ".agents/skills/orchestrate"
-      },
-      {
         "id": "skill-pr",
         "checks": [],
         "fixes": [],
@@ -699,6 +780,14 @@
         "kind": "skill",
         "name": "research",
         "source": ".agents/skills/research"
+      },
+      {
+        "id": "skill-review",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "review",
+        "source": ".agents/skills/review"
       },
       {
         "id": "skill-tdd",
@@ -860,8 +949,8 @@
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": "scripts/validate.mjs",
-        "exact": "scripts/validate.mjs"
+        "target": "vendor/repo-canon/validate.mjs",
+        "exact": "vendor/repo-canon/validate.mjs"
       }
     ]
   },
@@ -891,6 +980,15 @@
         "kind": "file",
         "target": ".github/ISSUE_TEMPLATE/bug-report.yml",
         "exact": ".github/ISSUE_TEMPLATE/bug-report.yml"
+      },
+      {
+        "id": "comments",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/comments.md",
+        "rules": "rules/comments.md",
+        "discovery": "discovery/comments.md"
       },
       {
         "id": "contribution-guidance",
@@ -969,17 +1067,24 @@
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": ".factory/config.json",
-        "exact": ".factory/config.json"
+        "target": ".scriptorium/config.json",
+        "exact": ".scriptorium/config.json"
       },
       {
         "id": "factory-sandbox-image",
         "checks": [],
         "fixes": [],
-        "kind": "file",
-        "target": ".factory/Dockerfile",
+        "kind": "repository",
         "guidance": "guidance/factory-sandbox-image.md",
-        "rules": "rules/factory-sandbox-image.md"
+        "rules": "rules/factory-sandbox-image.md",
+        "targets": {
+          "paths": [
+            ".scriptorium/Dockerfile",
+            ".factory/Dockerfile",
+            ".factory/config.json"
+          ],
+          "directories": []
+        }
       },
       {
         "id": "factory-sandbox-image-workflow",
@@ -991,7 +1096,26 @@
       },
       {
         "id": "factory-workflow",
-        "checks": [],
+        "checks": [
+          {
+            "id": "factory-model-policy",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-factory-model-policy.mjs",
+              "resources": [
+                "operations/lib/factory-model-policy.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/factory-workflow.md",
@@ -1019,12 +1143,30 @@
         "id": "github-repository-configuration",
         "checks": [
           {
+            "id": "required-checks",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-required-checks.mjs",
+              "resources": [
+                ".agents/skills/babysit/required-checks.mjs"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+            },
+            "timeout-seconds": 30
+          },
+          {
             "id": "pull-request-reviewer",
             "run": {
               "executable": "node",
               "script": "operations/check-pull-request-reviewer.mjs",
               "resources": [
-                "operations/lib/pull-request-reviewer.mjs"
+                ".agents/skills/babysit/pull-request-reviewer.mjs"
               ],
               "arguments": []
             },
@@ -1042,7 +1184,7 @@
               "executable": "node",
               "script": "operations/check-factory-review-policy.mjs",
               "resources": [
-                "operations/lib/review-policy.mjs"
+                ".agents/skills/babysit/review-policy.mjs"
               ],
               "arguments": []
             },
@@ -1180,12 +1322,36 @@
         "exact": ".github/ISSUE_TEMPLATE/implementation-ticket.yml"
       },
       {
+        "id": "issue-contract-cutoff",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-cutoff.mjs",
+        "exact": "scripts/issue-contract-cutoff.mjs"
+      },
+      {
+        "id": "issue-contract-sources",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-sources.mjs",
+        "exact": "scripts/issue-contract-sources.mjs"
+      },
+      {
+        "id": "issue-contract-store",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "scripts/issue-contract-store.mjs",
+        "exact": "scripts/issue-contract-store.mjs"
+      },
+      {
         "id": "issue-contract-validator",
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": "scripts/validate-issue-contract.mjs",
-        "exact": "scripts/validate-issue-contract.mjs"
+        "target": "vendor/repo-canon/validate-issue-contract.mjs",
+        "exact": "vendor/repo-canon/validate-issue-contract.mjs"
       },
       {
         "id": "issue-contract-workflow",
@@ -1445,6 +1611,14 @@
         "source": ".agents/skills/domain-modeling"
       },
       {
+        "id": "skill-factory",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "factory",
+        "source": ".agents/skills/factory"
+      },
+      {
         "id": "skill-grill-with-docs",
         "checks": [],
         "fixes": [],
@@ -1477,14 +1651,6 @@
         "source": ".agents/skills/improve-codebase-architecture"
       },
       {
-        "id": "skill-orchestrate",
-        "checks": [],
-        "fixes": [],
-        "kind": "skill",
-        "name": "orchestrate",
-        "source": ".agents/skills/orchestrate"
-      },
-      {
         "id": "skill-pr",
         "checks": [],
         "fixes": [],
@@ -1507,6 +1673,14 @@
         "kind": "skill",
         "name": "research",
         "source": ".agents/skills/research"
+      },
+      {
+        "id": "skill-review",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "review",
+        "source": ".agents/skills/review"
       },
       {
         "id": "skill-tdd",
@@ -1744,19 +1918,25 @@
         "checks": [],
         "fixes": [],
         "kind": "file",
-        "target": "scripts/validate.mjs",
-        "exact": "scripts/validate.mjs"
+        "target": "vendor/repo-canon/validate.mjs",
+        "exact": "vendor/repo-canon/validate.mjs"
       }
     ]
   },
   "discovery": {
-    "identity": "sha256:f619559dc1b495592ba57f9865d17cc260b8a2b098e60b130be534eff7b36022",
+    "identity": "sha256:9d61d55cb8be00c22b2a1515000bca0038d30892836d9676bdbb9777ee5863a2",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
+          "id": "comments",
+          "coverage": "Intentionally empty content scope: comments governs issue and pull request posting throughout this repository, including tracker work that changes no file.",
+          "candidates": [],
+          "unresolved": []
+        },
+        {
           "id": "documentation",
-          "coverage": "Retain the previously confirmed docs documentation root and root GLOSSARY.md, add all current docs pages, including ADRs 0032 and 0033, and exclude docs/agents files owned by agent declarations. Carry the earlier exclusions of acceptance fixtures, example source inputs, packaged product skills and non-root README files; new files in those categories keep the earlier decisions. Website prose is product content, component AGENTS.md is generated-source guidance and site/test/fixtures is synthetic input; none becomes adopting-repository documentation. No documentation move or link repair is required.",
+          "coverage": "Retain the previously confirmed docs documentation root and root GLOSSARY.md, add all current docs pages, including ADRs 0032, 0033 and 0034, and exclude docs/agents files owned by agent declarations. Carry the earlier exclusions of acceptance fixtures, example source inputs, packaged product skills and non-root README files; new files in those categories keep the earlier decisions. Website prose is product content, component AGENTS.md is generated-source guidance and site/test/fixtures is synthetic input; none becomes adopting-repository documentation. No documentation move or link repair is required.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -2194,6 +2374,14 @@
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
                 "docs/adr/0033-keep-astro-for-content-and-static-sites.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0034-select-check-location-beside-platform.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0034-select-check-location-beside-platform.md"
               ]
             },
             {
@@ -2689,13 +2877,13 @@
         },
         {
           "id": "factory-workflow",
-          "coverage": "Intentionally empty content scope. The factory workflow declaration governs work throughout this factory-profile repository, including tracker work that changes no files. .factory/config.json stays owned by its separate exact declaration.",
+          "coverage": "Intentionally empty content scope: factory-workflow governs work throughout this factory-profile repository, including tracker-only work. The separate exact declaration owns .scriptorium/config.json; .factory/config.json is the legacy input to migrate under v0.27.0.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh is the owner's account with admin access. gh variable list returns only REPO_CANON_UPDATES=true; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
+          "coverage": "Intentionally empty content scope: this declaration owns remote configuration fixes and read-only validation of repository-owned policy files. origin names lutzseverino/repo-standards. The owner explicitly authorizes this adoption and ready remote setup with the supplied credential. Repository identity, visibility, permission and runner-variable evidence are recorded in the launch report.",
           "candidates": [],
           "unresolved": []
         },
@@ -2858,7 +3046,7 @@
       "targets": {
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "0c575ca4d85fb1f09a2f9b0ffc7ad1cfa83960446084122defadc91979214310",
+          "sha256": "d7dae2f6dc1673c5cd940f9f986a881a552fbef9783dca9109a914eb7b6d0b07",
           "executable": false
         },
         "docs/README.md": {
@@ -3018,12 +3206,12 @@
         },
         "docs/adr/0031-give-every-site-page-one-nav.md": {
           "type": "file",
-          "sha256": "20671cd7186ad5b732c325d3249845c8aa8371a6ccef2421a42fd31e212766e4",
+          "sha256": "b1e3a79f690bcabae3fcbea24e2fb71acf128631864f6ae0b163301ff2508369",
           "executable": false
         },
         "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
           "type": "file",
-          "sha256": "006eff0a983fd1c1a5812c5d26c34c036dbbd05f43dfdffdc47cb376768ad934",
+          "sha256": "906319de7e82ed305fc9508e2af9f487cde96eb4884e6adb9331151f29b8925f",
           "executable": false
         },
         "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
@@ -3031,19 +3219,24 @@
           "sha256": "e3ac2e95d12320525961ced10696419ebb70cfefd74ac13073d75bddc124e1b7",
           "executable": false
         },
+        "docs/adr/0034-select-check-location-beside-platform.md": {
+          "type": "file",
+          "sha256": "22a3656bfcd502b1996475f5bbf264dc982c3d8daa85da9ff8a624d387eca754",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "8cf18413f783a3b4c343e942201c7955f192d4b7996c59b0c418e36da5afc53f",
+          "sha256": "5b0846f949ab94d8f0e6ad7a10c1fb078f67a4ee97ba52ef03c108a2c7acd233",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "926bff6105509ac42d463a7c75f108cbf49487b59494a7d3ad72844e3a943bd9",
+          "sha256": "672fc675a384698230360d6790be3866dff7e441e969f99ac5e2f7c4a9a19aa1",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "0fb102e8e252a2f10fd11c9072950e90774af08a3f6d2d6042df691bd6b120d4",
+          "sha256": "53181b8df0d60bb5c2d3e9efa16ea1b54b7d1bd9b71787b6189303b82ab02efb",
           "executable": false
         },
         "docs/development/release.md": {
@@ -3108,12 +3301,12 @@
         },
         "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "1a12e4e1f652c56940df0504bebd8a42d55e4609cf5ae8680129adfcf83091d2",
+          "sha256": "14b788e0856e1ec8b1e58defc5b127e9da2d67a6cd37c77dc4257f33e6960e35",
           "executable": false
         },
         "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "25c5e7a318b64b21fee30d0a041bd654642f563c3e4f709da4f7d5a626e80612",
+          "sha256": "3dd2622278a315bf2cf9c3e93da8ed3d611e96f40c4e9a21741480318f7588a9",
           "executable": false
         },
         "docs/usage/guides/update.md": {
@@ -3128,7 +3321,7 @@
         },
         "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "af3d8d1ed87cc7b18a79200d4d5eb3853ab03448aebca1dd2b53000867a36fea",
+          "sha256": "72450d9e8d33f1e89b26012da095ef200f3f1b82ba9734ab080a9b6c554d56c7",
           "executable": false
         },
         "docs/usage/reference/assessment-protocol.md": {
@@ -3138,7 +3331,7 @@
         },
         "docs/usage/reference/author-format.md": {
           "type": "file",
-          "sha256": "6e382c8359c3e55dcab81bf94cfc8996cbf2c8a6259b5e2b40fffae621495eb8",
+          "sha256": "d8fe3848f81938fc7d186160728b33a8915551d6dc297057d43c1a3eff4a334b",
           "executable": false
         },
         "docs/usage/reference/available-updates.md": {
@@ -3148,7 +3341,7 @@
         },
         "docs/usage/reference/check.md": {
           "type": "file",
-          "sha256": "e2d7116b72b9bde160ca37ed7441ad79c58445a53815bbbfcb24370b758a43c6",
+          "sha256": "da03577bcdb80e68cbe2217b6f47b8facf4190da72f27502e80efbeacd6a2dab",
           "executable": false
         },
         "docs/usage/reference/github-requests.md": {
@@ -3158,7 +3351,7 @@
         },
         "docs/usage/reference/inspection.md": {
           "type": "file",
-          "sha256": "d4e2d19871563af64727f963ba1deb6904ab541991f4ab9f6a7697f45c16679e",
+          "sha256": "0b2cf1ae7a2d89dcedca6377be5c32e317b3417f50431254fbb5b8862e49de9b",
           "executable": false
         },
         "docs/usage/reference/rules.md": {
@@ -3168,12 +3361,12 @@
         },
         "docs/usage/reference/script-protocol.md": {
           "type": "file",
-          "sha256": "94f32833754646888f2dbcf1081d0b5f2a8d3e171423dc7ae2888450de9108ce",
+          "sha256": "20f368e1b4f9908eda6c4de1c9f2457090147b5916e5a58cd898d03b2bd49e6f",
           "executable": false
         },
         "package.json": {
           "type": "file",
-          "sha256": "8fe7c4b90eb71356ecd1eb746b653a9911b88b985c4901460bafb1c5fc4c0163",
+          "sha256": "d43bb4a0b5647b32aa70ba4ac35f50cb19e5607e56382bfcf6600b2dd181d0c3",
           "executable": false
         },
         "site/README.md": {
@@ -3514,6 +3707,14 @@
             ]
           },
           {
+            "path": "docs/adr/0034-select-check-location-beside-platform.md",
+            "decision": "include",
+            "reason": "A file under the documentation root `docs`.",
+            "evidence": [
+              "docs/adr/0034-select-check-location-beside-platform.md"
+            ]
+          },
+          {
             "path": "docs/adr/README.md",
             "decision": "include",
             "reason": "A file under the documentation root `docs`.",
@@ -3787,6 +3988,7 @@
           }
         ],
         "unresolved": [
+          "Which of these Markdown files under `.agents` are documentation this scope must cover, such as a document to move into a documentation category: `.agents/skills/orchestrate/CREDITS.md` and `.agents/skills/orchestrate/SKILL.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `acceptance` are documentation this scope must cover, such as a document to move into a documentation category: `acceptance/projects/bob/CONTRIBUTING.md`, `acceptance/projects/forge/INDEX.md`, `acceptance/projects/forge/groups/developer-tools.md`, `acceptance/projects/forge/guides/hammer.md`, `acceptance/projects/harbor/CONTRIBUTING.md`, `acceptance/projects/harbor/docs/operations.md`, `acceptance/projects/orchard/CATALOG.md`, `acceptance/projects/orchard/legacy/pear-operations.md`, `acceptance/projects/orchard/teams/runtime.md`, `acceptance/projects/relay/groups/messaging-runtime.md`, `acceptance/projects/relay/notes/relay-limitations.md`, `acceptance/sources/wayfinder/guidance/service-discovery.md`, and `acceptance/sources/wayfinder/guidance/service-readiness.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `examples` are documentation this scope must cover, such as a document to move into a documentation category: `examples/alice/defaults/files/AGENTS.md`, `examples/alice/defaults/files/CONTRIBUTING.md`, `examples/alice/defaults/guidance/readme.md`, `examples/alice/defaults/guidance/source-layout.md`, `examples/alice/defaults/skills/review/SKILL.md`, `examples/alice/profiles/work/files/AGENTS.md`, `examples/atlas/guidance/project-discovery.md`, `examples/atlas/guidance/project-documentation.md`, and `examples/mira/guidance/operations.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `site` are documentation this scope must cover, such as a document to move into a documentation category: `site/src/components/ui/AGENTS.md`, `site/src/i18n/prose/ca/how-it-works.md`, `site/src/i18n/prose/ca/repo-canon.md`, `site/src/i18n/prose/en/how-it-works.md`, `site/src/i18n/prose/en/repo-canon.md`, `site/src/i18n/prose/es/how-it-works.md`, `site/src/i18n/prose/es/repo-canon.md`, and `site/test/fixtures/docs/guides/nested/deep.md`? Include each one, with its destination when it moves.",
@@ -4071,6 +4273,12 @@
     ],
     "declarations": [
       {
+        "id": "comments",
+        "source": "discovery/comments.md",
+        "sha256": "2e8f42521e7dd6c22c2386bf8411689a470fd976722400f6c42474bcbea76c6d",
+        "executable": false
+      },
+      {
         "id": "documentation",
         "source": "discovery/documentation.md",
         "sha256": "6ddffc023dfc46f7d11f292a245f8b9ffeffb77dff2f102baa20256af1dc8bfc",
@@ -4079,7 +4287,7 @@
       {
         "id": "factory-workflow",
         "source": "discovery/factory-workflow.md",
-        "sha256": "6f8e546cfa909fd4fd090d8555de882d8a786975c088d649a490192f30ad3b7a",
+        "sha256": "0e23a4587d04ec99790ffe76f8a99f5477ccfa2428b3f46609327fcdef92d435",
         "executable": false
       },
       {
@@ -4125,14 +4333,24 @@
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
           "executable": false
         },
+        ".agents/skills/babysit/CREDITS.md": {
+          "type": "file",
+          "sha256": "3e818ff6a36fad53ee4e9c72a190f4c4f8a01d27320561841414a188ad3b286a",
+          "executable": false
+        },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "423fa02e5b9af190bead06d2875f53e4b33bce0ac331e7c48696d8d65132890e",
+          "sha256": "d5ad872bc16e66f328575704d65abc1cd60ef9b08e8214e6e8023421305292bf",
+          "executable": false
+        },
+        ".agents/skills/babysit/body-links.mjs": {
+          "type": "file",
+          "sha256": "01c984d07a0e1395daa6a111634f8a222b498c5dcb75ce20969699a0f0f7641e",
           "executable": false
         },
         ".agents/skills/babysit/merge.mjs": {
           "type": "file",
-          "sha256": "5a85197626db69f130cc45d889b363e89cdd29c655ce9f2edcffd7d90c34f1da",
+          "sha256": "52ec42a2592256b82ca2ee3474e93604eaf2d82169dbc8c087bf877bc23551e1",
           "executable": false
         },
         ".agents/skills/babysit/platform.mjs": {
@@ -4142,12 +4360,17 @@
         },
         ".agents/skills/babysit/pull-request-reviewer.mjs": {
           "type": "file",
-          "sha256": "2d9a9c62876ac00ef87ad820c5dbb2fbcd852aa6590273875d445d99fe21eb49",
+          "sha256": "d2b3ecf236b1758f299577cfd81ccdec3ec0980e46209fbec0cd06e9060c2f4a",
           "executable": false
         },
         ".agents/skills/babysit/request.mjs": {
           "type": "file",
-          "sha256": "54760df3ef658781331b776b141d3992315cc304b6fb4bbc5103b11cc7175ca6",
+          "sha256": "a293d000f9c190481e345a25bfe01ec7b894f263c0bb03917dde1f35db0b50c7",
+          "executable": false
+        },
+        ".agents/skills/babysit/review-outcome.mjs": {
+          "type": "file",
+          "sha256": "58632b2e8c8de4487204bdd14a5ff2208b6b824b53f49d3aa512ce606e940108",
           "executable": false
         },
         ".agents/skills/babysit/review-policy.mjs": {
@@ -4162,22 +4385,32 @@
         },
         ".agents/skills/babysit/trusted-review-config.mjs": {
           "type": "file",
-          "sha256": "f79d0065bffff1a8f5308cc769a730ff1b875db4e66761161ee16aaf6d6a19d4",
+          "sha256": "25d4cb7bf51366e305d2a741c0ebb4cf6f3dac510f2519e4d0f3977898821dc6",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "22d2988b5424888821cb54245a3cc7a8a8490dde655a6f756ac73e5d0e07ea93",
+          "sha256": "f865d885a46d5943823eeca7407fab40bf9d5eea90ab0b5697a18c6d26610f30",
+          "executable": false
+        },
+        ".agents/skills/code-review/CREDITS.md": {
+          "type": "file",
+          "sha256": "a8a1e5930513f2e4500ed539291ac173800a9e0cf55d9284d6fc4cf7cdf40476",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
           "type": "file",
-          "sha256": "47f4e52c21694def9c7c11cbfbf891ca35eac7a93e395797515be3c8a409ae50",
+          "sha256": "609b4a6d8e730dcea7ab239b9268160033dd192857587e065b6af716885f7c6f",
           "executable": false
         },
         ".agents/skills/code-review/agents/openai.yaml": {
           "type": "file",
           "sha256": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352",
+          "executable": false
+        },
+        ".agents/skills/codebase-design/CREDITS.md": {
+          "type": "file",
+          "sha256": "0a8a93ed13b6e8b65dd7c59a010c49558a1a670e4eb84b618976d2466e6437bc",
           "executable": false
         },
         ".agents/skills/codebase-design/DEEPENING.md": {
@@ -4192,7 +4425,7 @@
         },
         ".agents/skills/codebase-design/SKILL.md": {
           "type": "file",
-          "sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+          "sha256": "ba1a4f9c57ba7f52e0e88b2149d1293495858bcf0993352cc7e0df193bfb67ea",
           "executable": false
         },
         ".agents/skills/codebase-design/agents/openai.yaml": {
@@ -4200,9 +4433,14 @@
           "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
           "executable": false
         },
+        ".agents/skills/diagnosing-bugs/CREDITS.md": {
+          "type": "file",
+          "sha256": "9073d0c470ac0b79c9385ec2f7364bd477c0b1a4c3b9125b59602a77a817fa48",
+          "executable": false
+        },
         ".agents/skills/diagnosing-bugs/SKILL.md": {
           "type": "file",
-          "sha256": "9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40",
+          "sha256": "a621ef3ea8a515ac253d1784246a773dc437b164b9e6f4d8a17ae03d2ca35af2",
           "executable": false
         },
         ".agents/skills/diagnosing-bugs/agents/openai.yaml": {
@@ -4217,7 +4455,12 @@
         },
         ".agents/skills/domain-modeling/ADR-FORMAT.md": {
           "type": "file",
-          "sha256": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0",
+          "sha256": "2e88f5a78472481b3dddac68707686867eb4270bdbaca9a9458d70b039157b65",
+          "executable": false
+        },
+        ".agents/skills/domain-modeling/CREDITS.md": {
+          "type": "file",
+          "sha256": "bbcc5a0d207d4c715189f3110887a379ca5e10787f9fdcf60bfb944aff1480ec",
           "executable": false
         },
         ".agents/skills/domain-modeling/GLOSSARY-FORMAT.md": {
@@ -4227,7 +4470,7 @@
         },
         ".agents/skills/domain-modeling/SKILL.md": {
           "type": "file",
-          "sha256": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3",
+          "sha256": "f7515e306cdb182678b6968bcc52f83dfa4a21db661538f4df30b7ee2bbef904",
           "executable": false
         },
         ".agents/skills/domain-modeling/agents/openai.yaml": {
@@ -4235,9 +4478,14 @@
           "sha256": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b",
           "executable": false
         },
+        ".agents/skills/grill-with-docs/CREDITS.md": {
+          "type": "file",
+          "sha256": "6bf2b0e20439662835b7ec5e8dff26c99f4e87876bdc7c355265aafb7c427b0d",
+          "executable": false
+        },
         ".agents/skills/grill-with-docs/SKILL.md": {
           "type": "file",
-          "sha256": "7de372c13488f1ee96cc11cd8907b56b6809cc93eef776eeddd37de6b6cbe3fe",
+          "sha256": "8cf85fcfe4d23acb4d1c50f98f760adbd526c0985551a9e53f34c07315775d0c",
           "executable": false
         },
         ".agents/skills/grill-with-docs/agents/openai.yaml": {
@@ -4245,9 +4493,14 @@
           "sha256": "94cd0ab161fb468a836349f5ed482ba58ce8e709a05c57ce533d739dbd35cca9",
           "executable": false
         },
+        ".agents/skills/grilling/CREDITS.md": {
+          "type": "file",
+          "sha256": "50702f66166d7fb00e555c44374c7d4be4a6d4a60f1b09e11b409b2c0b0bbf0e",
+          "executable": false
+        },
         ".agents/skills/grilling/SKILL.md": {
           "type": "file",
-          "sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+          "sha256": "550963b196dafccfb7b438e0772a04859e7c8f09e45fd62d43fdcde6a6104441",
           "executable": false
         },
         ".agents/skills/grilling/agents/openai.yaml": {
@@ -4255,14 +4508,24 @@
           "sha256": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
           "executable": false
         },
+        ".agents/skills/implement/CREDITS.md": {
+          "type": "file",
+          "sha256": "55c3fdf5d679908d21398c292069abc547fe4430897c57a441f5e3afb015d18a",
+          "executable": false
+        },
         ".agents/skills/implement/SKILL.md": {
           "type": "file",
-          "sha256": "6d3fd9e83b8f36e5213854779db49b256a457a7ebb4a503e53fa7dcff696adc3",
+          "sha256": "c8ee4b891bd4a6ae5d1cb3f73d20f3bf980ce66a783706042339ebcc436ce436",
           "executable": false
         },
         ".agents/skills/implement/agents/openai.yaml": {
           "type": "file",
-          "sha256": "8970a8596ade0c28ab427f41a4ea242d6bdf6186c59ebf55e1238dbecaab79dc",
+          "sha256": "7d531e17370288bdf5eabb7a586d7c2de16c21db12afb91873685b6165c88db6",
+          "executable": false
+        },
+        ".agents/skills/improve-codebase-architecture/CREDITS.md": {
+          "type": "file",
+          "sha256": "2cb8c96b72929b6cac2780d291f047a8ecb350a678add177159316619e2e2122",
           "executable": false
         },
         ".agents/skills/improve-codebase-architecture/HTML-REPORT.md": {
@@ -4272,7 +4535,7 @@
         },
         ".agents/skills/improve-codebase-architecture/SKILL.md": {
           "type": "file",
-          "sha256": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
+          "sha256": "96942b6f0b302b2101cb78ea1a7743aa4972a149caba3364a11fad7770b6dc47",
           "executable": false
         },
         ".agents/skills/improve-codebase-architecture/agents/openai.yaml": {
@@ -4282,12 +4545,12 @@
         },
         ".agents/skills/orchestrate/CREDITS.md": {
           "type": "file",
-          "sha256": "2761d0a558ac5fb535af4933b813a4deb40bc3849937deb01441a0e56a994dfd",
+          "sha256": "aef2eeb3e1c130c9d5cd6e2805b5480d18a96e6bafd1c1c1cdf0c2dcb545a476",
           "executable": false
         },
         ".agents/skills/orchestrate/SKILL.md": {
           "type": "file",
-          "sha256": "6b1fd3940665674ce19352f256054641a1c663b412d88a45dafca3bcd51b1043",
+          "sha256": "83dabd0a7a3a534558d939edd04dab5a395262c1f627fc88377f0712d4b2cb89",
           "executable": false
         },
         ".agents/skills/orchestrate/agents/openai.yaml": {
@@ -4302,17 +4565,22 @@
         },
         ".agents/skills/pr/CREDITS.md": {
           "type": "file",
-          "sha256": "a7a087127665d7298a72280ef6e19c41ad8404523712a788c8dc3ab414bc2497",
+          "sha256": "2631c4c0899decfed35bc7c4c930e069e91769490ddcd128e523602469db4962",
           "executable": false
         },
         ".agents/skills/pr/SKILL.md": {
           "type": "file",
-          "sha256": "ab63f1cf78647389edcd386c9427c5dfca27ed2836930c24773ffee834c19bcd",
+          "sha256": "708ab786bb60e7b7c266375b00cebd3600b00e44b49c12d8e63b1d1868ce427e",
           "executable": false
         },
         ".agents/skills/pr/agents/openai.yaml": {
           "type": "file",
           "sha256": "2295b586624db4ef546f3fd4695492f039d941a46d8a1593a702ce3ca511b8ad",
+          "executable": false
+        },
+        ".agents/skills/prototype/CREDITS.md": {
+          "type": "file",
+          "sha256": "54273a012bf62110fe7cf392f6ac3e512a7d4a0ac1f7dbccac7dbcc3805e571f",
           "executable": false
         },
         ".agents/skills/prototype/LOGIC.md": {
@@ -4322,7 +4590,7 @@
         },
         ".agents/skills/prototype/SKILL.md": {
           "type": "file",
-          "sha256": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3",
+          "sha256": "4b33a0a2f568f9518f58bfc0c2d62781801d33235cd88ba3eba26d5123daa703",
           "executable": false
         },
         ".agents/skills/prototype/UI.md": {
@@ -4345,9 +4613,14 @@
           "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935",
           "executable": false
         },
+        ".agents/skills/research/CREDITS.md": {
+          "type": "file",
+          "sha256": "306f99289f0dcc2da9437d7b3b4d51b06446e2b4ca8395dffd2bdcd80afc51c9",
+          "executable": false
+        },
         ".agents/skills/research/SKILL.md": {
           "type": "file",
-          "sha256": "985569f15739c713d6784887c3d186d4ef9ac85bec5ad9c068d25bf0739928e4",
+          "sha256": "5d4f569e95e0041f8160837f7fba3e0609df1d8594307109299dff8ecd7b05b1",
           "executable": false
         },
         ".agents/skills/research/agents/openai.yaml": {
@@ -4355,9 +4628,14 @@
           "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
           "executable": false
         },
+        ".agents/skills/tdd/CREDITS.md": {
+          "type": "file",
+          "sha256": "a14fe58f53cd2351f8ad7fe609bb656a726606d001d64c13c8df4a7ea004e8b5",
+          "executable": false
+        },
         ".agents/skills/tdd/SKILL.md": {
           "type": "file",
-          "sha256": "93ea419b76e9caaf26153b828e984f7c3fb136f4caa67b14af95f32ea965a1cc",
+          "sha256": "afcc4328e87a9e77a2447c90e25b976af4086163b7affaa2fa4efa2d8baef2b9",
           "executable": false
         },
         ".agents/skills/tdd/agents/openai.yaml": {
@@ -4375,9 +4653,14 @@
           "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
           "executable": false
         },
+        ".agents/skills/to-spec/CREDITS.md": {
+          "type": "file",
+          "sha256": "d03f2632fa36e602bcf0e9c38cb7f7fb18b19c821cf1186c1270103b477f264e",
+          "executable": false
+        },
         ".agents/skills/to-spec/SKILL.md": {
           "type": "file",
-          "sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+          "sha256": "f747048852302b2d5a5327d76da2ef5c193c9e937fbef0a2e22f8447e44e29d5",
           "executable": false
         },
         ".agents/skills/to-spec/agents/openai.yaml": {
@@ -4385,9 +4668,14 @@
           "sha256": "1c5b4d1e3d8e52287ef19cc2742fdbbfae1914ac75d33af3e4c8174f08cc55bb",
           "executable": false
         },
+        ".agents/skills/to-tickets/CREDITS.md": {
+          "type": "file",
+          "sha256": "9db8d0779baae0285125baff989a039e6dcb9db11d21d3e667a6671e55441add",
+          "executable": false
+        },
         ".agents/skills/to-tickets/SKILL.md": {
           "type": "file",
-          "sha256": "5c9fba69845c2519b9b35b9af42ae5142c21f8ca15ac2123dc2722002c8058ae",
+          "sha256": "db4c14dc5d5e78db9e275634ef2284a225dd421106a97b8362d3ac4a84625c90",
           "executable": false
         },
         ".agents/skills/to-tickets/agents/openai.yaml": {
@@ -4402,7 +4690,7 @@
         },
         ".agents/skills/triage/CREDITS.md": {
           "type": "file",
-          "sha256": "b5c9d6514746fdfa842447874c09b9b49bf575b8e258f6d7b36280df76be1320",
+          "sha256": "837ca57f46f720fda1b1ae50ae7b1c0c7a5eceadc3df312974486d0953cc586a",
           "executable": false
         },
         ".agents/skills/triage/OUT-OF-SCOPE.md": {
@@ -4412,7 +4700,7 @@
         },
         ".agents/skills/triage/SKILL.md": {
           "type": "file",
-          "sha256": "2e12b157ddc6f2cdd2da182c2c7b7843e88d9942e0795fc010193c60f6bbc2a4",
+          "sha256": "bab14b50498f86a0629c6955fb5416f2c166cfe24239d33279dfdfb30187656b",
           "executable": false
         },
         ".agents/skills/triage/agents/openai.yaml": {
@@ -4422,17 +4710,27 @@
         },
         ".agents/skills/triage/ready.mjs": {
           "type": "file",
-          "sha256": "a471017ec0a7cf3e5c44753a04f5886e14d22b23667a8b739fc3544ee690dafb",
+          "sha256": "d35dbec41fd48778ef5e95a64e94b9482948b992456272827dd6f41a3ce02f54",
+          "executable": false
+        },
+        ".agents/skills/wayfinder/CREDITS.md": {
+          "type": "file",
+          "sha256": "e1eea56ad12a8fa780b3d746f2108f421bf1a322c1a5c52c82466a12ecd5c933",
           "executable": false
         },
         ".agents/skills/wayfinder/SKILL.md": {
           "type": "file",
-          "sha256": "fee6e1d0c50f0e736b4ef8a599060c959afae904c9a97d82c97f049fcc3aa0f1",
+          "sha256": "89d8e3f68a5ef0e65f15ff94321dc7feeb22c9f03f5f32b874a6068bee9cb182",
           "executable": false
         },
         ".agents/skills/wayfinder/agents/openai.yaml": {
           "type": "file",
           "sha256": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073",
+          "executable": false
+        },
+        ".agents/skills/writing-for-agents/CREDITS.md": {
+          "type": "file",
+          "sha256": "f55ac668257fa933322d694da377d6a49b8b934c883eabec7732bbe53677a9e5",
           "executable": false
         },
         ".agents/skills/writing-for-agents/SKILL-MECHANICS.md": {
@@ -4442,7 +4740,7 @@
         },
         ".agents/skills/writing-for-agents/SKILL.md": {
           "type": "file",
-          "sha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
+          "sha256": "1fc09f935cc73c873ee164d400517a182c5c51b187716758993aaf3b66fc09af",
           "executable": false
         },
         ".agents/skills/writing-for-agents/agents/openai.yaml": {
@@ -4537,7 +4835,7 @@
         },
         ".factory/config.json": {
           "type": "file",
-          "sha256": "46b2ccd9b9bb783111d2e64d07e43337061681673dfbbed832ca04c1af90fba9",
+          "sha256": "66e4037c28481f7a62af7d3873e99a19ad624230c5fb38fbb9b8dba71a87d36a",
           "executable": false
         },
         ".gitattributes": {
@@ -4578,6 +4876,11 @@
         ".github/pull-request-reviewer.json": {
           "type": "file",
           "sha256": "0ef25c9c8abf367924209d9ea032b1d3c7ff70351f94d74f65cd5560821a300c",
+          "executable": false
+        },
+        ".github/required-checks.json": {
+          "type": "file",
+          "sha256": "10120009018ca2ac2edf2cef16596621d88a609a9fa2580c19cfd7402bf4eede",
           "executable": false
         },
         ".github/scripts/validate-pr-metadata.mjs": {
@@ -4652,12 +4955,12 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "aba9cc5949f5e78855ddde0b8fa7c9a07cd2da0b05b5b5a674e24e64d28638ed",
+          "sha256": "7339c01ea325a5537d74bedf311b671930a24c6b1134618565167e20ea2b18de",
           "executable": false
         },
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "0c575ca4d85fb1f09a2f9b0ffc7ad1cfa83960446084122defadc91979214310",
+          "sha256": "d7dae2f6dc1673c5cd940f9f986a881a552fbef9783dca9109a914eb7b6d0b07",
           "executable": false
         },
         "LICENSE": {
@@ -4852,7 +5155,7 @@
         },
         "acceptance/public-update.ts": {
           "type": "file",
-          "sha256": "b198b1973f9de0a4e564d424029e07979ed89eea8147699dd175e315daa93007",
+          "sha256": "39f414b4844434e05ea6eb46ccece8bd8a6a6074e14026cb5e95b845e3dc8a11",
           "executable": false
         },
         "acceptance/sources/wayfinder/LICENSE": {
@@ -5077,12 +5380,12 @@
         },
         "docs/adr/0031-give-every-site-page-one-nav.md": {
           "type": "file",
-          "sha256": "20671cd7186ad5b732c325d3249845c8aa8371a6ccef2421a42fd31e212766e4",
+          "sha256": "b1e3a79f690bcabae3fcbea24e2fb71acf128631864f6ae0b163301ff2508369",
           "executable": false
         },
         "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
           "type": "file",
-          "sha256": "006eff0a983fd1c1a5812c5d26c34c036dbbd05f43dfdffdc47cb376768ad934",
+          "sha256": "906319de7e82ed305fc9508e2af9f487cde96eb4884e6adb9331151f29b8925f",
           "executable": false
         },
         "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
@@ -5090,14 +5393,19 @@
           "sha256": "e3ac2e95d12320525961ced10696419ebb70cfefd74ac13073d75bddc124e1b7",
           "executable": false
         },
+        "docs/adr/0034-select-check-location-beside-platform.md": {
+          "type": "file",
+          "sha256": "22a3656bfcd502b1996475f5bbf264dc982c3d8daa85da9ff8a624d387eca754",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "8cf18413f783a3b4c343e942201c7955f192d4b7996c59b0c418e36da5afc53f",
+          "sha256": "5b0846f949ab94d8f0e6ad7a10c1fb078f67a4ee97ba52ef03c108a2c7acd233",
           "executable": false
         },
         "docs/agents/README.md": {
           "type": "file",
-          "sha256": "6d85984e4f6ae21c5d08f58bc37e260e11661beb7da481696483e635d5c9b502",
+          "sha256": "ec642abe47a6e67e2d7a6d030a7daf762f97e1b39a655b415f5905514d37f8f9",
           "executable": false
         },
         "docs/agents/domain.md": {
@@ -5107,7 +5415,7 @@
         },
         "docs/agents/issue-tracker.md": {
           "type": "file",
-          "sha256": "afd6852a80185217bd28aa5cbe456bef1e85be25be7bd1fba382d5b8ee428325",
+          "sha256": "bcd5dd6c974b269c98f2b2a9ce81a979e33676f3442c8110bfa4f018fefde895",
           "executable": false
         },
         "docs/agents/project.md": {
@@ -5117,17 +5425,17 @@
         },
         "docs/agents/triage-labels.md": {
           "type": "file",
-          "sha256": "4f53c9b40ce2651e3611aa090eaedbd6dbc9b71ef8c5f7e65eac0d8263190d0d",
+          "sha256": "7103db589b82930dc1f0b7b6d291c5e1aa9bfc40c34354ae18279127573b23d7",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "926bff6105509ac42d463a7c75f108cbf49487b59494a7d3ad72844e3a943bd9",
+          "sha256": "672fc675a384698230360d6790be3866dff7e441e969f99ac5e2f7c4a9a19aa1",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "0fb102e8e252a2f10fd11c9072950e90774af08a3f6d2d6042df691bd6b120d4",
+          "sha256": "53181b8df0d60bb5c2d3e9efa16ea1b54b7d1bd9b71787b6189303b82ab02efb",
           "executable": false
         },
         "docs/development/release.md": {
@@ -5192,12 +5500,12 @@
         },
         "docs/usage/guides/install.md": {
           "type": "file",
-          "sha256": "1a12e4e1f652c56940df0504bebd8a42d55e4609cf5ae8680129adfcf83091d2",
+          "sha256": "14b788e0856e1ec8b1e58defc5b127e9da2d67a6cd37c77dc4257f33e6960e35",
           "executable": false
         },
         "docs/usage/guides/run-checks.md": {
           "type": "file",
-          "sha256": "25c5e7a318b64b21fee30d0a041bd654642f563c3e4f709da4f7d5a626e80612",
+          "sha256": "3dd2622278a315bf2cf9c3e93da8ed3d611e96f40c4e9a21741480318f7588a9",
           "executable": false
         },
         "docs/usage/guides/update.md": {
@@ -5212,7 +5520,7 @@
         },
         "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "af3d8d1ed87cc7b18a79200d4d5eb3853ab03448aebca1dd2b53000867a36fea",
+          "sha256": "72450d9e8d33f1e89b26012da095ef200f3f1b82ba9734ab080a9b6c554d56c7",
           "executable": false
         },
         "docs/usage/reference/assessment-protocol.md": {
@@ -5222,7 +5530,7 @@
         },
         "docs/usage/reference/author-format.md": {
           "type": "file",
-          "sha256": "6e382c8359c3e55dcab81bf94cfc8996cbf2c8a6259b5e2b40fffae621495eb8",
+          "sha256": "d8fe3848f81938fc7d186160728b33a8915551d6dc297057d43c1a3eff4a334b",
           "executable": false
         },
         "docs/usage/reference/available-updates.md": {
@@ -5232,7 +5540,7 @@
         },
         "docs/usage/reference/check.md": {
           "type": "file",
-          "sha256": "e2d7116b72b9bde160ca37ed7441ad79c58445a53815bbbfcb24370b758a43c6",
+          "sha256": "da03577bcdb80e68cbe2217b6f47b8facf4190da72f27502e80efbeacd6a2dab",
           "executable": false
         },
         "docs/usage/reference/github-requests.md": {
@@ -5242,7 +5550,7 @@
         },
         "docs/usage/reference/inspection.md": {
           "type": "file",
-          "sha256": "d4e2d19871563af64727f963ba1deb6904ab541991f4ab9f6a7697f45c16679e",
+          "sha256": "0b2cf1ae7a2d89dcedca6377be5c32e317b3417f50431254fbb5b8862e49de9b",
           "executable": false
         },
         "docs/usage/reference/rules.md": {
@@ -5252,7 +5560,7 @@
         },
         "docs/usage/reference/script-protocol.md": {
           "type": "file",
-          "sha256": "94f32833754646888f2dbcf1081d0b5f2a8d3e171423dc7ae2888450de9108ce",
+          "sha256": "20f368e1b4f9908eda6c4de1c9f2457090147b5916e5a58cd898d03b2bd49e6f",
           "executable": false
         },
         "examples/alice/defaults/checks/readme.py": {
@@ -5357,7 +5665,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "8fe7c4b90eb71356ecd1eb746b653a9911b88b985c4901460bafb1c5fc4c0163",
+          "sha256": "d43bb4a0b5647b32aa70ba4ac35f50cb19e5607e56382bfcf6600b2dd181d0c3",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -5397,7 +5705,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "7d831d293ace7d00e43a11a1cdaafebcd866ce7d4b3d0c85e781e8f0d8d940f3",
+          "sha256": "704e738a2baa5ddc826b1ef6bcbc852f49d3f6899c2ea5fd8df2f6f78b20b027",
           "executable": false
         },
         "scripts/validate.mjs": {
@@ -5662,12 +5970,12 @@
         },
         "site/src/components/docs/ThemeProvider.astro": {
           "type": "file",
-          "sha256": "7835b0737172e16c355215c70ddf82ce284d6f02b45997d65f9e3eecf2ff0406",
+          "sha256": "8de277b73b83165e959adae79fd9bf420172aaa5e308c779aeca31d51416e027",
           "executable": false
         },
         "site/src/components/docs/ThemeSelect.astro": {
           "type": "file",
-          "sha256": "fb7a7ab4e4a19c40baf24dd9eea1f5ed95c3be40cfaad42fbce372983f037627",
+          "sha256": "97c90d5539ed36074b84a10a8146b20c6489719ed989b1de205042435e1d9169",
           "executable": false
         },
         "site/src/components/home.tsx": {
@@ -5772,7 +6080,7 @@
         },
         "site/src/components/site-nav.tsx": {
           "type": "file",
-          "sha256": "c9fa9d931ab14dfc7b676a040bbf7dd722522413b102633f0119bd7a650eeb70",
+          "sha256": "8ec54376231ddb971eb4a17222706cd528ab9bebc0dc674b64dfeb5edf9473f4",
           "executable": false
         },
         "site/src/components/source-adoption.tsx": {
@@ -5787,7 +6095,7 @@
         },
         "site/src/components/theme-toggle.tsx": {
           "type": "file",
-          "sha256": "74f9becc3c5a4a8f97dcc36a44f4c5dbb9357833b87e82021c9e29cd4a6fdd31",
+          "sha256": "e251b59ddbd451641270e55e8e4fe6144cf27cfb33f6f3b779c6a406a2011db4",
           "executable": false
         },
         "site/src/components/ui/AGENTS.md": {
@@ -5897,7 +6205,7 @@
         },
         "site/src/i18n/messages/ca/common.json": {
           "type": "file",
-          "sha256": "879079c3adb5954c3a993064d003863f4fde1a53864e0e3d85543d0593007de2",
+          "sha256": "c78c17b465cd4eda9d2dd980a94925806b6c945aaeee4fd42da1e203aa4841e5",
           "executable": false
         },
         "site/src/i18n/messages/ca/home.json": {
@@ -5927,7 +6235,7 @@
         },
         "site/src/i18n/messages/en/common.json": {
           "type": "file",
-          "sha256": "f6c8c26729ecaefc403b63e00653884b45936b8e48bbceb52b52b642da954080",
+          "sha256": "6c303bdfcb5ef00359f776b98535fb3aae20936f54d3b3d9b8a150ba3fb983f7",
           "executable": false
         },
         "site/src/i18n/messages/en/home.json": {
@@ -5957,7 +6265,7 @@
         },
         "site/src/i18n/messages/es/common.json": {
           "type": "file",
-          "sha256": "7602fad5f044f46b7cff0e086ea2d97a20ec80dc945bfb094c656404221d9730",
+          "sha256": "3ac271c7745704f347bb1c9475e39ae4739b0b9329dbe958e9b19eea8f44b09f",
           "executable": false
         },
         "site/src/i18n/messages/es/home.json": {
@@ -6112,12 +6420,12 @@
         },
         "site/src/lib/theme-core.ts": {
           "type": "file",
-          "sha256": "9953f0001636ba8371a1e2538f52af1f548f036dc41b25f711217935ff029729",
+          "sha256": "bfaca7510de617e41c62fe24425841bf3e6c5c44f5160a7f61ad8f1d73e04bd4",
           "executable": false
         },
         "site/src/lib/theme.ts": {
           "type": "file",
-          "sha256": "6dee872380a47e7eb1d6620665e6dba9dc33a4f2fc65f4263922a17642a6eaaa",
+          "sha256": "46ac099403a7e4fc968b3a397fce7189aa569b1ba05b5e840bbeaa9cf1272711",
           "executable": false
         },
         "site/src/lib/utils.ts": {
@@ -6202,7 +6510,7 @@
         },
         "site/test/browser.ts": {
           "type": "file",
-          "sha256": "2d567925cbeee3fd0624752abb6499b85db024569c65d103c141a0bd1b72758d",
+          "sha256": "458dde626776177cf9073f8d82eb3332c7404c9f9c49a59ef9b8e48c2fd3878b",
           "executable": false
         },
         "site/test/crawlability.test.ts": {
@@ -6227,7 +6535,22 @@
         },
         "site/test/docs.test.ts": {
           "type": "file",
-          "sha256": "04d461bb75060545d2ef80421d74c0a3b4c654fea98c8c90d9873001674d435f",
+          "sha256": "dd8d585297b213ec367982d5f2cf1aa382bfa6b6e16bb8e82e1341f2ff3d595f",
+          "executable": false
+        },
+        "site/test/fixture-watchdog.ts": {
+          "type": "file",
+          "sha256": "f177a399beecea8e128851ece026f8a2b0244130182bd142210f1c5d56aa14d2",
+          "executable": false
+        },
+        "site/test/fixture.test.ts": {
+          "type": "file",
+          "sha256": "3918f051d1b6235560af64162197cde1f8af2da1971632d841dbf39fadc3c8e4",
+          "executable": false
+        },
+        "site/test/fixture.ts": {
+          "type": "file",
+          "sha256": "7410ae40b4399d27b361c23396dca80d0422a2da5324cfd3ae976a095b82d2bf",
           "executable": false
         },
         "site/test/fixtures/docs/guides/nested/deep.md": {
@@ -6238,6 +6561,11 @@
         "site/test/fixtures/layout-page.astro": {
           "type": "file",
           "sha256": "f15ba7a33b3857f533dca6610d8533ec5aa22ee556aac9908f1d6d9fbfb71ee1",
+          "executable": false
+        },
+        "site/test/fixtures/teardown.ts": {
+          "type": "file",
+          "sha256": "f2fddd31c25f15de16ba4e9fd71688e9a8dc459d4d6e048cee2bb28ffe321cbe",
           "executable": false
         },
         "site/test/format.test.ts": {
@@ -6267,12 +6595,12 @@
         },
         "site/test/pages.test.ts": {
           "type": "file",
-          "sha256": "a8cb130c32815ac8bbd123adc83ef6734da685d5a602a6838758e2f77d9169ec",
+          "sha256": "40816aaeb8bac7d3ffdf8037070558eb9fd02769f0fd456fee53622ba5a2b259",
           "executable": false
         },
         "site/test/phone-layout.test.ts": {
           "type": "file",
-          "sha256": "1991e868c53af416e7c4e138184a213c0f7a8cf117d4f4315d9f3512fff0d5e3",
+          "sha256": "be35afae973756d62dc1b5d07866deaf2565f736481311769736a022858134ca",
           "executable": false
         },
         "site/test/pseudo-locale.test.ts": {
@@ -6297,7 +6625,7 @@
         },
         "site/test/sign-clamps.test.ts": {
           "type": "file",
-          "sha256": "08b35da099c9ac029313f0a31e094fa83738086cd0c853a3204af5a5aec14043",
+          "sha256": "38d393449c7b93ac40e205c8a65b9a0e07f3072fa6daf967c1d7e7aa1a44cca9",
           "executable": false
         },
         "site/test/social.test.ts": {
@@ -6327,7 +6655,7 @@
         },
         "site/test/theme.test.ts": {
           "type": "file",
-          "sha256": "77aa676fb37fd9d0abdbe682af80b31e003a24ffab17deab4cc0e4d17957fc69",
+          "sha256": "b055c34884ff00266d73d4dfc666e51d5667d487ce805b6e6be81a3c140dfde4",
           "executable": false
         },
         "site/test/translations.test.ts": {
@@ -6362,7 +6690,7 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "6bf43c3e86ecf98c84a35cc5ea1c3ef226635b70bd396cd1ba20f8b9846a195a",
+          "sha256": "57aab1b6d9c1c07fc537e6b09315a087fb0b21863d29c5e8a2c599d35b2989b9",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
@@ -6397,12 +6725,12 @@
         },
         "src/adopt-terminal.ts": {
           "type": "file",
-          "sha256": "7bcf9315a490af1cbdd8e7605323102c93717b732efe8f577647e08ca0b7172f",
+          "sha256": "0e9a2bad4f752116d9c61b06b002d48a42901a9be18413246cb82c075240990f",
           "executable": false
         },
         "src/adopt.ts": {
           "type": "file",
-          "sha256": "42ad72e0cb6780ea64c27d1f45bcda545ef1447d0da2f944a31be2e76a057edb",
+          "sha256": "cad95e1cd601f6951277f8f807f0c899fc6a6ba313108b4230099c1869e0bc94",
           "executable": false
         },
         "src/adopter-action.ts": {
@@ -6422,7 +6750,7 @@
         },
         "src/adoption.ts": {
           "type": "file",
-          "sha256": "9a023693eda53dc6c89ac4639fa558caaffcac7ca99954bab5be032addb1a0eb",
+          "sha256": "fce1806f6d7ec6f7d9dd7b0e5a37f6dcc451fa9bc01c0ce59cc6daec049546af",
           "executable": false
         },
         "src/assessment.ts": {
@@ -6430,24 +6758,29 @@
           "sha256": "2a9d155bec1e4bb363b5216762bdf5cd17818faa62d4b0a38006dbe209b726c4",
           "executable": false
         },
+        "src/check-locations.ts": {
+          "type": "file",
+          "sha256": "aeebe84f2adb4a950013ab690cfafb9889de4736912f7785ec0c0109daabc105",
+          "executable": false
+        },
         "src/check.ts": {
           "type": "file",
-          "sha256": "7e48ea06639f88429afcd3e180ead97a507658de42f9e56d37a5f1b0076c2887",
+          "sha256": "5e2234a3959866ece74ed25d6fd137a130ef78f61a0b814c8c0dfeb70b4b8a14",
           "executable": false
         },
         "src/cli.ts": {
           "type": "file",
-          "sha256": "e72a8f7a4090a65d8655b2184f708bd82beca3578f8524de369a4e103bf1cea2",
+          "sha256": "a6bebe3b55f85b02392e98e575e069accfd8e04f834ff48065cf923a2393e215",
           "executable": false
         },
         "src/declarations.ts": {
           "type": "file",
-          "sha256": "c60f31bc15ec1c4252608a5db932cff9ecdbfa450a5619938a5e258b056709b1",
+          "sha256": "6a48304a649aaf6addbc7826628675834e333d74b90825f0313c5ebcda00804e",
           "executable": false
         },
         "src/discovery-script.ts": {
           "type": "file",
-          "sha256": "8e91c3170aef34a5b26764c61853ac27a545219b2d2e047217972f941d79d4f8",
+          "sha256": "a9e590660aeb13413a3998b1d5f803d9ef7b89b7386ad8eb39ca974fda4b31a6",
           "executable": false
         },
         "src/discovery.ts": {
@@ -6462,17 +6795,17 @@
         },
         "src/execution.ts": {
           "type": "file",
-          "sha256": "0b3fce676005dd5a56027ebdfe67573c1da3b71d729f10d01e5d1ee6d4921911",
+          "sha256": "9d8f1f76fa9c0b6fc8dedad7f64c6cf43b2ebe195d7f904279e1e68d798ecbd2",
           "executable": false
         },
         "src/formats.ts": {
           "type": "file",
-          "sha256": "d404eec41a31658cc8f41fbe1b9b13a4649f1c3117701e17029ea9a455b746db",
+          "sha256": "b5f339d131cacf8c5c9f5c12d9a44ff68159bca5547360497df327c5d3546830",
           "executable": false
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "bd264018838f5919f9821682e333e14651a4be4744aea59c5617045dae3818d8",
+          "sha256": "7bd1233ea8de2e1cc055c071318c8cf0302ac64d369ff7f01cf3babfad3bda62",
           "executable": false
         },
         "src/installation.ts": {
@@ -6482,12 +6815,12 @@
         },
         "src/model.ts": {
           "type": "file",
-          "sha256": "6d369d346d6e176eb409334649c0b6d81e97d576fa6230ca520d1f9607c38782",
+          "sha256": "00ce17ed65339e4e512524b4ad6b559ba1d576216664a5f8ccbd3632fd606cca",
           "executable": false
         },
         "src/observation.ts": {
           "type": "file",
-          "sha256": "41caac4ba596720101975a86884d4358d415892790fc69cad4144aa91d0e1bc1",
+          "sha256": "f4126883da500f95e57044130fa691dae8e4cebfbf0b430aea507ec7f17d01a5",
           "executable": false
         },
         "src/outdated.ts": {
@@ -6497,7 +6830,7 @@
         },
         "src/paths.ts": {
           "type": "file",
-          "sha256": "93528e8d9d9a7b167cd36a8f2c13d8b7b3e70444d59147f18b9f8e923d8cb314",
+          "sha256": "544b7d153c962a510944104b1d2d2e614291ebe2c21d2e69898b08efad435957",
           "executable": false
         },
         "src/platforms.ts": {
@@ -6507,7 +6840,7 @@
         },
         "src/preserved-run.ts": {
           "type": "file",
-          "sha256": "7e956dab1659a3b86f4a1479ccab7132deda946f8ac73865c1b691806570e89f",
+          "sha256": "bed9dd2ff396aeaddf780a84f96e7c16d1c1a51694b5180cff0dbb659cf6f4f8",
           "executable": false
         },
         "src/process-identity.ts": {
@@ -6522,7 +6855,7 @@
         },
         "src/recorded-state.ts": {
           "type": "file",
-          "sha256": "f370871041eda7c6ece3e7c3120a5fcf7e35cf8a08267d208208b94cb52b3fbe",
+          "sha256": "50d869f5d94668a09b4bde4152efd948212cd21f0eb92bbabf173f791a62f6f5",
           "executable": false
         },
         "src/records.ts": {
@@ -6532,12 +6865,12 @@
         },
         "src/remote-setup.ts": {
           "type": "file",
-          "sha256": "cebedfed27eccc4627d802316b6b24a075a6fcfdcf96b16508b84dc3326d42b2",
+          "sha256": "7434404ae0147d2bd86fe4f32f4e1a6deda0801684dd289567869067e67cb7bf",
           "executable": false
         },
         "src/resolver.ts": {
           "type": "file",
-          "sha256": "26631ee12fdc6b0750cf52251d1d224b0a5a90620b72880d1670f205348e6201",
+          "sha256": "a5359da93266939974cf00e96f38be4a920b052d3603fd87a4d846b97642ae53",
           "executable": false
         },
         "src/reused-answers.ts": {
@@ -6552,17 +6885,17 @@
         },
         "src/run-lock.ts": {
           "type": "file",
-          "sha256": "58e83c3bdb89a0f3639a4de3e12295e35018bdb6dad8d833f957e20b3ead2e83",
+          "sha256": "3143e8d423172d868ea25f4da659f1c47aeabbbd9bc5767f52cef2b33c26ed14",
           "executable": false
         },
         "src/scope-evidence.ts": {
           "type": "file",
-          "sha256": "eb5e2da8f89647214db89accf019036bf05eb4fc92fe788aef013ed1fde3faaf",
+          "sha256": "0ce5ec66d847ae4081787f2f56cf80897b14b98102fb9c9e2150d02afe9ceae7",
           "executable": false
         },
         "src/scope-observation.ts": {
           "type": "file",
-          "sha256": "f28fff38ca303f8bd31912e61c3da220f97a45d1f0fd877c9b84d2ffbd394047",
+          "sha256": "c06cafac21a793b2a234b6bdcc3cd92d4fcbd7ad704d9a309996d5c431587aff",
           "executable": false
         },
         "src/scope.ts": {
@@ -6577,7 +6910,7 @@
         },
         "src/summary.ts": {
           "type": "file",
-          "sha256": "b017014b29b876996d5ee987e3db0a91fdba833b9b01897e7433a82bc232ddef",
+          "sha256": "1a685a3d6be60715c8164eb411bd420bf3b34ec83a9286eef884668c3cfc76fc",
           "executable": false
         },
         "src/target-ownership.ts": {
@@ -6597,7 +6930,7 @@
         },
         "src/update-comparison.ts": {
           "type": "file",
-          "sha256": "14310ae9b7259b3c863e1a764e740f4690a6bfcdb8e011b0d1e6905b4c50e948",
+          "sha256": "75bf590f7cc031b835ba728e60d6eca80b39d4ab8cf43c4efed0a70180b4881f",
           "executable": false
         },
         "src/work-evidence.ts": {
@@ -6632,12 +6965,12 @@
         },
         "test/adopt-terminal.test.ts": {
           "type": "file",
-          "sha256": "73100943cf351dc9bee34346ee48b04dcc73c5b0cf70362d67621fd198fcdb73",
+          "sha256": "34974c7582723f24725522656d5e6fe983f2ad67fff65789d581de5b31fb9a2d",
           "executable": false
         },
         "test/adopt.test.ts": {
           "type": "file",
-          "sha256": "1454f8a092b5a43f46a2f4090ad72765de456758ce6c2291b220037fde7f0b08",
+          "sha256": "7e89cee1cb285d23555bbad511fa308cf10eb44aa31675646b8eacbbcd1d915a",
           "executable": false
         },
         "test/adopter-action.test.ts": {
@@ -6647,7 +6980,7 @@
         },
         "test/adoption-faults.ts": {
           "type": "file",
-          "sha256": "110818beb915bd5df840daaadd557206fadb81b71b84aa6f6c627da94dcdc5df",
+          "sha256": "acb69ba0d446f47665b269258c30223298e1b733c0c3ff5c5bdf1a0c7e977e3e",
           "executable": false
         },
         "test/adoption-fixture.ts": {
@@ -6670,14 +7003,19 @@
           "sha256": "c2a8e87782c6677a8783f9b600431d77b48327cc57ad69f2744e9415c5ef6639",
           "executable": false
         },
+        "test/check-location-selection.test.ts": {
+          "type": "file",
+          "sha256": "928654914e72f5385020b48bdf29e4e7f87dbff06c4c2bf6d6eb48d2baa479a7",
+          "executable": false
+        },
         "test/check.test.ts": {
           "type": "file",
-          "sha256": "2b7ce3f6427be943eb907fe1506f7bdd2fc49d2fa76631ddcee4523e34fb29a9",
+          "sha256": "280cb99c4e01cfcc4da47c91dc16700d53c2e71197d8268cc6ae5fb5d335f075",
           "executable": false
         },
         "test/cli-pin.test.ts": {
           "type": "file",
-          "sha256": "d54908617b6ec0ce14ff4951c3ddf791af485fc142f13cc6949a2ee08e011488",
+          "sha256": "33e8f2895e3b7d2014056fe62626317f678326556abd8043bce63c495957d344",
           "executable": false
         },
         "test/committed-evidence.test.ts": {
@@ -6687,7 +7025,12 @@
         },
         "test/committed-evidence.ts": {
           "type": "file",
-          "sha256": "a92a390f97f497ff471e21bba3c2cc1cdeb9eaafe826c86e31df99cc150273ef",
+          "sha256": "4805d414cb72d35284c7078634f0646be91e90ac84f9f137f3fc8c1482bda195",
+          "executable": false
+        },
+        "test/committed-scope-proposal.test.ts": {
+          "type": "file",
+          "sha256": "566a85ce25487cc3d9d3127bee6a0493cfcdf3708b0a1fee173bad24cc2b3ac2",
           "executable": false
         },
         "test/discovery-lifecycle.test.ts": {
@@ -6712,7 +7055,7 @@
         },
         "test/formats.test.ts": {
           "type": "file",
-          "sha256": "21ceec5ba8126deabf177abbc21cea78ac19cf1b7b73033ed2802119925fd5d4",
+          "sha256": "63c01d410ca5557eb69880ee53ca67678e0599b0277969e4f9c3057c6cbb57fb",
           "executable": false
         },
         "test/github-fixture.ts": {
@@ -6787,7 +7130,7 @@
         },
         "test/platform-selection.test.ts": {
           "type": "file",
-          "sha256": "dfc502da1df83c496dfc2bda9ffad3b1a9d19f0eef6c060e2b7c3ba44848e6ec",
+          "sha256": "b6f584e327536edf9ba0213c3728e5216f3198da52fc3a76269e451195846b0d",
           "executable": false
         },
         "test/pr-metadata.ts": {
@@ -6795,14 +7138,24 @@
           "sha256": "5a6709e58f1e0b90ef640c02b437c46068f909f2c20ac7560e907dffd9d1464c",
           "executable": false
         },
+        "test/process-groups.test.ts": {
+          "type": "file",
+          "sha256": "855e8af63319d7b599dabb5d41a9b7773f71a716a8f3fe74c51e4c8be0872d3b",
+          "executable": false
+        },
+        "test/process-path.ts": {
+          "type": "file",
+          "sha256": "24c7ac446f3c554689f5983d50f4f34a8f4dbdc57b9c889c567aaad00265f4e1",
+          "executable": false
+        },
         "test/public-update.test.ts": {
           "type": "file",
-          "sha256": "b818304bc2d201adac3956a2ae6c2b297d27f9c99e9aab3336a35c8da16bcff9",
+          "sha256": "ba154adf658bb2abe60fb2c12dcb0d7bb3c9bad81441d76e61c2170383dbfe37",
           "executable": false
         },
         "test/recovery.test.ts": {
           "type": "file",
-          "sha256": "52d8059c31fc44a4b54d0888dcfebd654633a07474c5864160bce981e33be814",
+          "sha256": "05b71163ed941664413d43710c09ec831dcfcbd3813f36f89436e88137a8fa00",
           "executable": false
         },
         "test/registry-fixture.ts": {
@@ -6837,12 +7190,12 @@
         },
         "test/retired-formats.test.ts": {
           "type": "file",
-          "sha256": "8b5cb83df6b26016b8f968072f605a7f829edd5f5d936ab560265e0647aa4b3e",
+          "sha256": "5b2ae4de485eb0f50a8de102a5b5f9bc999f0dcbd58f9c00030cbbf7986bd766",
           "executable": false
         },
         "test/reused-answers.test.ts": {
           "type": "file",
-          "sha256": "301c3336999799796e6e8515bbd53940b587abc171947442c1e75f185af78fe4",
+          "sha256": "dfa5e1d96c90a1d9cb3f5903adf406f33b0e896b37f723822b13e6419adefc61",
           "executable": false
         },
         "test/rules.test.ts": {
@@ -6872,7 +7225,7 @@
         },
         "test/source-validation.test.ts": {
           "type": "file",
-          "sha256": "5acb861c82957c33db249832ec2e76d342b9d000ee9e2b96ddf8b3e6bfbd8301",
+          "sha256": "58b6ab4d94baea60a5ad3771f51e82ddaded7857d1480eef59239dff94f3ff05",
           "executable": false
         },
         "test/status.test.ts": {
@@ -6880,9 +7233,14 @@
           "sha256": "6eee4d80b2ad04ef9a965f353a4d17a92982492d8ed892d4e96f97b7d1c43869",
           "executable": false
         },
+        "test/submodules.test.ts": {
+          "type": "file",
+          "sha256": "a75babe97d63e9f7dc8261e750997d5dfa1bc223c1c0eec23f32e9ed3d47d7ac",
+          "executable": false
+        },
         "test/summary.test.ts": {
           "type": "file",
-          "sha256": "c3bc5b2812cda30554adb4419f87dc831420411426c81018f9a5198e037df3a1",
+          "sha256": "76771d0be17d9af1e69845dd9f8ab8160adbbd917b89590772e006787e8a6f70",
           "executable": false
         },
         "test/terminal.ts": {
@@ -6897,7 +7255,7 @@
         },
         "test/update-action-cli.mjs": {
           "type": "file",
-          "sha256": "1d8c5a6cb3b923084c685c1aec82c199a6b329cb2339805e26df025b396c0326",
+          "sha256": "51e1a44cd5de8bf270280554b90e1516bc5e7c93ae31d014412922fe1beaed56",
           "executable": false
         },
         "test/update-action.test.ts": {
@@ -7039,17 +7397,21 @@
           ".agents/skills/writing-for-agents"
         ],
         ".agents/skills/babysit": [
+          ".agents/skills/babysit/CREDITS.md",
           ".agents/skills/babysit/SKILL.md",
+          ".agents/skills/babysit/body-links.mjs",
           ".agents/skills/babysit/merge.mjs",
           ".agents/skills/babysit/platform.mjs",
           ".agents/skills/babysit/pull-request-reviewer.mjs",
           ".agents/skills/babysit/request.mjs",
+          ".agents/skills/babysit/review-outcome.mjs",
           ".agents/skills/babysit/review-policy.mjs",
           ".agents/skills/babysit/reviewer.mjs",
           ".agents/skills/babysit/trusted-review-config.mjs",
           ".agents/skills/babysit/wait.mjs"
         ],
         ".agents/skills/code-review": [
+          ".agents/skills/code-review/CREDITS.md",
           ".agents/skills/code-review/SKILL.md",
           ".agents/skills/code-review/agents"
         ],
@@ -7057,6 +7419,7 @@
           ".agents/skills/code-review/agents/openai.yaml"
         ],
         ".agents/skills/codebase-design": [
+          ".agents/skills/codebase-design/CREDITS.md",
           ".agents/skills/codebase-design/DEEPENING.md",
           ".agents/skills/codebase-design/DESIGN-IT-TWICE.md",
           ".agents/skills/codebase-design/SKILL.md",
@@ -7066,6 +7429,7 @@
           ".agents/skills/codebase-design/agents/openai.yaml"
         ],
         ".agents/skills/diagnosing-bugs": [
+          ".agents/skills/diagnosing-bugs/CREDITS.md",
           ".agents/skills/diagnosing-bugs/SKILL.md",
           ".agents/skills/diagnosing-bugs/agents",
           ".agents/skills/diagnosing-bugs/scripts"
@@ -7078,6 +7442,7 @@
         ],
         ".agents/skills/domain-modeling": [
           ".agents/skills/domain-modeling/ADR-FORMAT.md",
+          ".agents/skills/domain-modeling/CREDITS.md",
           ".agents/skills/domain-modeling/GLOSSARY-FORMAT.md",
           ".agents/skills/domain-modeling/SKILL.md",
           ".agents/skills/domain-modeling/agents"
@@ -7086,6 +7451,7 @@
           ".agents/skills/domain-modeling/agents/openai.yaml"
         ],
         ".agents/skills/grill-with-docs": [
+          ".agents/skills/grill-with-docs/CREDITS.md",
           ".agents/skills/grill-with-docs/SKILL.md",
           ".agents/skills/grill-with-docs/agents"
         ],
@@ -7093,6 +7459,7 @@
           ".agents/skills/grill-with-docs/agents/openai.yaml"
         ],
         ".agents/skills/grilling": [
+          ".agents/skills/grilling/CREDITS.md",
           ".agents/skills/grilling/SKILL.md",
           ".agents/skills/grilling/agents"
         ],
@@ -7100,6 +7467,7 @@
           ".agents/skills/grilling/agents/openai.yaml"
         ],
         ".agents/skills/implement": [
+          ".agents/skills/implement/CREDITS.md",
           ".agents/skills/implement/SKILL.md",
           ".agents/skills/implement/agents"
         ],
@@ -7107,6 +7475,7 @@
           ".agents/skills/implement/agents/openai.yaml"
         ],
         ".agents/skills/improve-codebase-architecture": [
+          ".agents/skills/improve-codebase-architecture/CREDITS.md",
           ".agents/skills/improve-codebase-architecture/HTML-REPORT.md",
           ".agents/skills/improve-codebase-architecture/SKILL.md",
           ".agents/skills/improve-codebase-architecture/agents"
@@ -7132,6 +7501,7 @@
           ".agents/skills/pr/agents/openai.yaml"
         ],
         ".agents/skills/prototype": [
+          ".agents/skills/prototype/CREDITS.md",
           ".agents/skills/prototype/LOGIC.md",
           ".agents/skills/prototype/SKILL.md",
           ".agents/skills/prototype/UI.md",
@@ -7148,6 +7518,7 @@
           ".agents/skills/repository-standards/agents/openai.yaml"
         ],
         ".agents/skills/research": [
+          ".agents/skills/research/CREDITS.md",
           ".agents/skills/research/SKILL.md",
           ".agents/skills/research/agents"
         ],
@@ -7155,6 +7526,7 @@
           ".agents/skills/research/agents/openai.yaml"
         ],
         ".agents/skills/tdd": [
+          ".agents/skills/tdd/CREDITS.md",
           ".agents/skills/tdd/SKILL.md",
           ".agents/skills/tdd/agents",
           ".agents/skills/tdd/mocking.md",
@@ -7164,6 +7536,7 @@
           ".agents/skills/tdd/agents/openai.yaml"
         ],
         ".agents/skills/to-spec": [
+          ".agents/skills/to-spec/CREDITS.md",
           ".agents/skills/to-spec/SKILL.md",
           ".agents/skills/to-spec/agents"
         ],
@@ -7171,6 +7544,7 @@
           ".agents/skills/to-spec/agents/openai.yaml"
         ],
         ".agents/skills/to-tickets": [
+          ".agents/skills/to-tickets/CREDITS.md",
           ".agents/skills/to-tickets/SKILL.md",
           ".agents/skills/to-tickets/agents"
         ],
@@ -7189,6 +7563,7 @@
           ".agents/skills/triage/agents/openai.yaml"
         ],
         ".agents/skills/wayfinder": [
+          ".agents/skills/wayfinder/CREDITS.md",
           ".agents/skills/wayfinder/SKILL.md",
           ".agents/skills/wayfinder/agents"
         ],
@@ -7196,6 +7571,7 @@
           ".agents/skills/wayfinder/agents/openai.yaml"
         ],
         ".agents/skills/writing-for-agents": [
+          ".agents/skills/writing-for-agents/CREDITS.md",
           ".agents/skills/writing-for-agents/SKILL-MECHANICS.md",
           ".agents/skills/writing-for-agents/SKILL.md",
           ".agents/skills/writing-for-agents/agents"
@@ -7237,6 +7613,7 @@
           ".github/ISSUE_TEMPLATE",
           ".github/PULL_REQUEST_TEMPLATE.md",
           ".github/pull-request-reviewer.json",
+          ".github/required-checks.json",
           ".github/scripts",
           ".github/workflows"
         ],
@@ -7475,6 +7852,7 @@
           "docs/adr/0031-give-every-site-page-one-nav.md",
           "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
           "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
+          "docs/adr/0034-select-check-location-beside-platform.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -7883,6 +8261,9 @@
           "site/test/docs-palette.ts",
           "site/test/docs-theme.test.ts",
           "site/test/docs.test.ts",
+          "site/test/fixture-watchdog.ts",
+          "site/test/fixture.test.ts",
+          "site/test/fixture.ts",
           "site/test/fixtures",
           "site/test/format.test.ts",
           "site/test/layout-probe.ts",
@@ -7906,7 +8287,8 @@
         ],
         "site/test/fixtures": [
           "site/test/fixtures/docs",
-          "site/test/fixtures/layout-page.astro"
+          "site/test/fixtures/layout-page.astro",
+          "site/test/fixtures/teardown.ts"
         ],
         "site/test/fixtures/docs": [
           "site/test/fixtures/docs/guides"
@@ -7959,6 +8341,7 @@
           "src/adoption-run.ts",
           "src/adoption.ts",
           "src/assessment.ts",
+          "src/check-locations.ts",
           "src/check.ts",
           "src/cli.ts",
           "src/declarations.ts",
@@ -8009,10 +8392,12 @@
           "test/adoption.test.ts",
           "test/assessment.test.ts",
           "test/bootstrap.test.ts",
+          "test/check-location-selection.test.ts",
           "test/check.test.ts",
           "test/cli-pin.test.ts",
           "test/committed-evidence.test.ts",
           "test/committed-evidence.ts",
+          "test/committed-scope-proposal.test.ts",
           "test/discovery-lifecycle.test.ts",
           "test/discovery-script.test.ts",
           "test/examples.test.ts",
@@ -8034,6 +8419,8 @@
           "test/path-validation.test.ts",
           "test/platform-selection.test.ts",
           "test/pr-metadata.ts",
+          "test/process-groups.test.ts",
+          "test/process-path.ts",
           "test/public-update.test.ts",
           "test/recovery.test.ts",
           "test/registry-fixture.ts",
@@ -8051,6 +8438,7 @@
           "test/search.test.ts",
           "test/source-validation.test.ts",
           "test/status.test.ts",
+          "test/submodules.test.ts",
           "test/summary.test.ts",
           "test/terminal.ts",
           "test/test-command.test.ts",
@@ -8623,7 +9011,7 @@
         },
         "info": {
           "type": "file",
-          "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+          "sha256": "321dffcb77a68a6c079d35da12944866b895b4cc9fb3b1fae72fe9468c7eafeb",
           "executable": false
         },
         ".gitignore": {
@@ -9167,5 +9555,13 @@
       }
     }
   },
-  "scopeChanges": []
+  "scopeChanges": [
+    {
+      "id": "documentation",
+      "additions": [
+        "docs/adr/0034-select-check-location-beside-platform.md"
+      ],
+      "removals": []
+    }
+  ]
 }

@@ -15,7 +15,7 @@ example test runs the example's `python3` check and needs that Python. Run
 `pnpm install --frozen-lockfile`; npm registry access or cached dependencies
 are required. The root package remains the published CLI;
 `site/` is a private pnpm workspace. Installation from the root installs both
-projects. `.factory/Dockerfile` supplies Node.js, pnpm, npm and `python3`; the host-installed
+projects. `.scriptorium/Dockerfile` supplies Node.js, pnpm, npm and `python3`; the host-installed
 factory adds Git and agent tools in its own layer. The site's phone-layout
 check also drives an installed Chrome, Chromium or Edge, as
 [Site on a phone](#site-on-a-phone) describes; the site needs no other system
