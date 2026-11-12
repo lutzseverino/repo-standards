@@ -3,9 +3,9 @@ import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 import { test, type TestContext } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { directoryFixture } from "./installed-cli.ts";
 import { validateMetadata } from "./pr-metadata.ts";
 
@@ -48,6 +48,9 @@ interface Invocation {
   actionToken: boolean;
   report?: string;
   output?: string;
+  cwd: string;
+  project: string;
+  reportPath?: string;
 }
 
 function git(cwd: string, ...args: string[]) {
@@ -96,7 +99,7 @@ async function fixture(
   t: TestContext,
   from: Pins = { cli: "9.0.0", standards: "v1.0.0" },
 ) {
-  const directory = directoryFixture("repo-standards-action-");
+  const directory = directoryFixture("repo-standards-action with spaces-");
   t.after(() => directory.close());
   const root = directory.root;
   const origin = join(root, "origin.git");
@@ -138,9 +141,29 @@ async function fixture(
     state: item.state,
     ...(item.kind === "pull" ? { pull_request: {} } : {}),
   });
+  let published:
+    { version: string; manifest: object; tarball: Buffer } | undefined;
   const server = createServer((request, response) => {
     void (async () => {
       const url = new URL(request.url!, "http://localhost");
+      if (url.pathname.startsWith("/registry/") && published) {
+        if (url.pathname === "/registry/package.tgz")
+          return response.end(published.tarball);
+        response.setHeader("content-type", "application/json");
+        if (request.method === "POST") return response.end("{}");
+        return response.end(
+          JSON.stringify({
+            name: "@lutzseverino/repo-standards",
+            "dist-tags": { latest: published.version },
+            versions: {
+              [published.version]: {
+                ...published.manifest,
+                dist: { tarball: `${api}/registry/package.tgz` },
+              },
+            },
+          }),
+        );
+      }
       const method = request.method!;
       requests.push({
         method,
@@ -229,6 +252,49 @@ async function fixture(
     origin,
     items,
     requests,
+    // Use real npm resolution for the matching, unbuilt product checkout.
+    publishedCli(version: string) {
+      const packageRoot = join(root, "published package");
+      mkdirSync(packageRoot);
+      const manifest = {
+        name: "@lutzseverino/repo-standards",
+        version,
+        type: "module",
+        bin: { "repo-standards": "cli.mjs" },
+      };
+      writeFileSync(
+        join(packageRoot, "package.json"),
+        JSON.stringify(manifest),
+      );
+      writeFileSync(
+        join(packageRoot, "cli.mjs"),
+        `#!/usr/bin/env node\nprocess.argv.splice(2, 0, "published", ${JSON.stringify(version)});\nawait import(${JSON.stringify(pathToFileURL(fakeCli).href)});\n`,
+      );
+      execFileSync("npm", ["pack", "--ignore-scripts"], {
+        cwd: packageRoot,
+        stdio: "pipe",
+        timeout: 30_000,
+      });
+      published = {
+        version,
+        manifest,
+        tarball: readFileSync(
+          join(packageRoot, `lutzseverino-repo-standards-${version}.tgz`),
+        ),
+      };
+      const npx = execFileSync("which", ["npx"], { encoding: "utf8" }).trim();
+      writeFileSync(join(bin, "npx"), `#!/bin/sh\nexec "${npx}" "$@"\n`);
+      writeFileSync(
+        join(seed, "package.json"),
+        JSON.stringify({
+          ...manifest,
+          bin: { "repo-standards": "dist/cli.js" },
+        }),
+      );
+      git(seed, "add", "package.json");
+      git(seed, "commit", "--quiet", "-m", "unbuilt product package");
+      git(seed, "push", "--quiet", "origin", "HEAD:main");
+    },
     scenario(value: Scenario) {
       writeFileSync(scenarioPath, JSON.stringify(value));
     },
@@ -263,14 +329,25 @@ async function fixture(
       return result.status === 0 ? result.stdout.trim() : null;
     },
     // One action run on a fresh checkout of the default branch.
-    async run(agentCommand = "") {
-      const checkout = join(root, `checkout-${++runs}`);
+    async run(agentCommand = "", localExecutable = false) {
+      const checkout = join(root, `checkout ${++runs}`);
       git(root, "clone", "--quiet", origin, checkout);
-      const temporary = join(root, `runner-temp-${runs}`);
+      const localBin = join(checkout, "node_modules/.bin");
+      if (localExecutable) {
+        mkdirSync(localBin, { recursive: true });
+        const executable = join(localBin, "repo-standards");
+        writeFileSync(
+          executable,
+          "#!/bin/sh\necho 'local CLI ran' >&2\nexit 99\n",
+        );
+        chmodSync(executable, 0o755);
+        writeFileSync(join(checkout, ".git/info/exclude"), "/node_modules/\n");
+      }
+      const temporary = join(root, `runner temp ${runs}`);
       mkdirSync(temporary);
       const env: NodeJS.ProcessEnv = {
         ...process.env,
-        PATH: `${bin}:${process.env.PATH}`,
+        PATH: `${localExecutable ? `${localBin}:` : ""}${bin}:${process.env.PATH}`,
         GITHUB_WORKSPACE: checkout,
         GITHUB_REPOSITORY: "alice/project",
         GITHUB_API_URL: api,
@@ -281,6 +358,14 @@ async function fixture(
         FAKE_SOURCE: source,
         FAKE_LOG: logPath,
         FAKE_EXPECTED_TOKEN: token,
+        FAKE_PROJECT: checkout,
+        ...(published
+          ? {
+              npm_config_registry: `${api}/registry/`,
+              npm_config_cache: join(root, "npm cache"),
+              npm_config_userconfig: join(root, "empty npmrc"),
+            }
+          : {}),
         GIT_CONFIG_NOSYSTEM: "1",
       };
       delete env.GH_TOKEN;
@@ -428,6 +513,108 @@ test("a complete update gives one branch and one pull request whose body is the 
   assert.ok(invocations.every((entry) => entry.ghToken && !entry.actionToken));
   assert.ok(f.requests.every((request) => request.authorized));
 });
+
+test("a standards-only update uses the published CLI outside an unbuilt matching package", async (t) => {
+  const f = await fixture(t);
+  f.publishedCli("9.0.0");
+  f.scenario({
+    newest: { cli: "9.0.0", standards: "v1.1.0" },
+    headless: "complete",
+  });
+  const result = await f.run();
+  assert.equal(result.status, 0, result.output);
+  const pull = f.items[0]!;
+  assert.equal(pull.kind, "pull");
+  assert.equal(pull.title, "chore: adopt standards v1.1.0 with CLI 9.0.0");
+  assert.deepEqual(
+    git(f.origin, "diff", "--name-only", "main", branch).split("\n"),
+    [".repo-standards/selection.yaml", "CONTRIBUTING.md"],
+  );
+  const invocations = f
+    .invocations()
+    .filter((entry) => entry.kind === "newest");
+  assert.deepEqual(
+    invocations.map((entry) => entry.args.join(" ")),
+    ["adopt --headless --json", "status --json", "status --summary"],
+  );
+  for (const entry of invocations) {
+    assert.equal(entry.version, "9.0.0");
+    assert.equal(entry.project, result.checkout);
+    assert.ok(relative(result.checkout, entry.cwd).startsWith(".."));
+    assert.ok(entry.ghToken && !entry.actionToken);
+  }
+  assert.equal(pull.body, invocations.at(-1)!.output);
+  assert.match(pull.body, /^Ready to commit: yes\.$/m);
+
+  // Even a same-name executable in the checkout and on PATH cannot replace
+  // the selected published CLI. A newer target refreshes the rolling PR.
+  f.scenario({
+    newest: { cli: "9.0.0", standards: "v1.2.0" },
+    headless: "complete",
+  });
+  const withLocal = await f.run("", true);
+  assert.equal(withLocal.status, 0, withLocal.output);
+  assert.equal(f.items.length, 1);
+  assert.equal(pull.title, "chore: adopt standards v1.2.0 with CLI 9.0.0");
+  assert.deepEqual(
+    git(f.origin, "diff", "--name-only", "main", branch).split("\n"),
+    [".repo-standards/selection.yaml", "CONTRIBUTING.md"],
+  );
+});
+
+for (const agent of ["none", "give-up", "finish"] as const) {
+  test(`a stopped self-update with agent ${agent} uses the published CLI and intended checkout`, async (t) => {
+    const f = await fixture(t);
+    f.publishedCli("9.0.0");
+    f.scenario({
+      newest: { cli: "9.0.0", standards: "v1.1.0" },
+      headless: "stopped",
+    });
+    const result = await f.run(agent === "none" ? "" : f.agent(agent));
+    assert.equal(result.status, 0, result.output);
+    assert.deepEqual(
+      open(f).map((item) => item.kind),
+      [agent === "finish" ? "pull" : "issue"],
+    );
+    const invocations = f.invocations();
+    const newest = invocations.filter((entry) => entry.kind === "newest");
+    assert.deepEqual(
+      newest.map((entry) => entry.args.join(" ")),
+      [
+        "adopt --headless --json",
+        ...(agent !== "none" ? ["status --json"] : []),
+        ...(agent === "finish" ? ["status --summary"] : []),
+      ],
+    );
+    for (const entry of newest) {
+      assert.equal(entry.version, "9.0.0");
+      assert.equal(entry.project, result.checkout);
+      assert.ok(relative(result.checkout, entry.cwd).startsWith(".."));
+      assert.ok(entry.ghToken && !entry.actionToken);
+    }
+    if (agent !== "none") {
+      const command = invocations.find((entry) => entry.kind === "agent")!;
+      assert.equal(command.cwd, result.checkout);
+      assert.equal(command.report, "answers-required");
+      assert.ok(isAbsolute(command.reportPath!));
+      assert.ok(
+        relative(result.checkout, command.reportPath!).startsWith(".."),
+      );
+      assert.ok(!command.ghToken && !command.actionToken);
+    }
+    if (agent === "finish") {
+      assert.equal(f.items[0]!.body, newest.at(-1)!.output);
+      assert.match(f.items[0]!.body, /^Ready to commit: yes\.$/m);
+      assert.deepEqual(
+        git(f.origin, "diff", "--name-only", "main", branch).split("\n"),
+        [".repo-standards/selection.yaml", "CONTRIBUTING.md"],
+      );
+    } else {
+      assert.equal(f.branchHead(), null);
+      assert.match(f.items[0]!.body, /stopped with outcome `answers-required`/);
+    }
+  });
+}
 
 for (const [name, from, newest, moved] of [
   [

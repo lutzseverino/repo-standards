@@ -17,7 +17,9 @@ import { join } from "node:path";
 const [mode, ...args] = process.argv.slice(2);
 const scenario = JSON.parse(readFileSync(process.env.FAKE_SCENARIO, "utf8"));
 const source = process.env.FAKE_SOURCE;
-const root = process.cwd();
+const cwd = process.cwd();
+const projectIndex = args.indexOf("--project");
+const root = projectIndex === -1 ? cwd : args.splice(projectIndex, 2)[1];
 const selectionPath = join(root, ".repo-standards/selection.yaml");
 
 const pins = (yaml) => ({
@@ -30,6 +32,8 @@ const log = (entry) =>
     process.env.FAKE_LOG,
     JSON.stringify({
       ...entry,
+      cwd,
+      project: root,
       ghToken: process.env.GH_TOKEN === process.env.FAKE_EXPECTED_TOKEN,
       actionToken: "REPO_STANDARDS_TOKEN" in process.env,
     }) + "\n",
@@ -230,6 +234,10 @@ function summary() {
 }
 
 function cli(kind, version) {
+  if (kind === "newest" && root !== process.env.FAKE_PROJECT)
+    throw new Error(
+      `CLI addressed ${root}, expected ${process.env.FAKE_PROJECT}`,
+    );
   const command = args.join(" ");
   if (command === "outdated --json") {
     log({ kind, version, args });
@@ -278,6 +286,8 @@ if (mode === "npm") {
 } else if (mode === "npx") {
   const spec = args.splice(0, 2)[1];
   cli("newest", spec.slice(spec.lastIndexOf("@") + 1));
+} else if (mode === "published") {
+  cli("newest", args.shift());
 } else if (mode === "pinned") {
   cli("pinned", current().cli);
 } else if (mode === "agent") {
@@ -288,6 +298,7 @@ if (mode === "npm") {
     report: existsSync(report)
       ? JSON.parse(readFileSync(report, "utf8")).outcome
       : "missing",
+    reportPath: report,
   });
   if (args[0] === "finish") applyUpdate();
 }

@@ -99,9 +99,14 @@ credentials it needs, such as its own `GH_TOKEN`, in the step's `env`.
    its reason and opens or changes nothing. When both pins report `none`, it
    closes any rolling pull request or issue whose update has landed and stops.
 2. Otherwise it runs the newest published CLI's headless update,
-   `npx --yes @lutzseverino/repo-standards@<newest> adopt --headless --json`,
+   `npx --yes @lutzseverino/repo-standards@<newest> adopt --headless --json --project <checkout>`,
    so both pins move together, always to the newest CLI and the newest
-   standards release.
+   standards release. It runs this exact CLI from a temporary directory outside
+   the checkout, targeting the checkout with `--project`. This also works in
+   the CLI's own unbuilt checkout, where running `npx` locally can select the
+   local package instead of the published CLI. All subsequent `status` commands
+   use the same launch directory, exact CLI and explicit project. Git and the
+   agent command run in the checkout; the headless report stays outside it.
 3. A complete update is recorded with `status --summary`, which reports it ready
    to commit, committed on the rolling branch `repo-standards/update` and
    force-pushed, and proposed as the rolling pull request against the default

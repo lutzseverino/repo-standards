@@ -105,9 +105,10 @@ export async function update(options: UpdateOptions) {
     command: string,
     args: string[],
     env: NodeJS.ProcessEnv = cliEnv,
+    cwd: string = root,
   ) => {
     const result = spawnSync(command, args, {
-      cwd: root,
+      cwd,
       env,
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,
@@ -217,13 +218,19 @@ export async function update(options: UpdateOptions) {
   }
 
   // 2. Update with the newest CLI.
-  // The report stays outside the checkout, so the commit never includes it.
+  // Resolve npm packages outside the checkout, which may be this CLI's own
+  // unbuilt package. Keep the report there too, out of the adoption commit.
   const temporary = mkdtempSync(
     join(process.env.RUNNER_TEMP || tmpdir(), "repo-standards-"),
   );
   const reportPath = join(temporary, "headless-report.json");
   const newest = (args: string[]) =>
-    run("npx", ["--yes", `${packageName}@${target.cli}`, ...args]);
+    run(
+      "npx",
+      ["--yes", `${packageName}@${target.cli}`, ...args, "--project", root],
+      cliEnv,
+      temporary,
+    );
   const headless = newest(["adopt", "--headless", "--json"]);
   if (headless.status !== 0 && headless.status !== 1)
     throw diagnostic("adopt --headless", headless);
