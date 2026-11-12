@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "checks": [
+    "PR metadata",
+    "validate (linux, 1/3)",
+    "validate (linux, 2/3)",
+    "validate (linux, 3/3)"
+  ]
+}
