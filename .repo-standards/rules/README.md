@@ -1,9 +1,10 @@
 # Installed rules
 
-These rules come from https://github.com/lutzseverino/repo-canon v0.22.0, profile factory.
-Repository Standards installs and verifies them; adopt again to change them.
+These rules come from https://github.com/lutzseverino/repo-canon v0.27.0, profile factory.
+Repo Standards installs and verifies them; adopt again to change them.
 Run `repo-standards rules <path>` to print the rules that cover a path.
 
+- [`comments`](comments.md) covers the whole repository.
 - [`documentation`](documentation.md) covers:
   - `GLOSSARY.md`
   - `docs/README.md`
@@ -40,6 +41,7 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0031-give-every-site-page-one-nav.md`
   - `docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md`
   - `docs/adr/0033-keep-astro-for-content-and-static-sites.md`
+  - `docs/adr/0034-select-check-location-beside-platform.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`
@@ -69,7 +71,9 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/usage/reference/rules.md`
   - `docs/usage/reference/script-protocol.md`
 - [`factory-sandbox-image`](factory-sandbox-image.md) covers:
+  - `.scriptorium/Dockerfile`
   - `.factory/Dockerfile`
+  - `.factory/config.json`
 - [`factory-workflow`](factory-workflow.md) covers the whole repository.
 - [`git-attributes`](git-attributes.md) covers:
   - `.gitattributes`
