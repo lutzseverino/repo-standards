@@ -1582,7 +1582,8 @@ async function keyboardNav(tab: Tab, page: Page, view: View) {
     shift = false,
   ) => {
     await tab.press(key, shift);
-    if (key === "Escape" || key === "Enter" || key === " ") await still(tab);
+    if (!panel || key === "Escape" || key === "Enter" || key === " ")
+      await still(tab);
     const actual = await focusOf(tab);
     assert.deepEqual(
       actual,
