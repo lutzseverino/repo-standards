@@ -3,17 +3,12 @@
 // measures the lit elements and writes the custom properties they read.
 //
 // The page also runs `lightRig` as an inline script right after the markup,
-// before the first paint (`restScript`), so the page is drawn in its resting
-// state, sign at its pose and lights on, instead of flat and dark until the
+// before the first paint (`prepaint/rest.ts`), so the page is drawn in its
+// resting state, sign at its pose and lights on, instead of flat and dark until the
 // page hydrates. It fits the list's plate names first (fit-name.ts), since
 // they set the plates' sizes, sinks the posts behind the rail and dresses
 // them for the plates in front of them (posts.ts). Hydration then writes the
 // same values again.
-// The inline copy is the function's source, so `lightRig` must reference
-// nothing outside its own body.
-import { fitName } from "./fit-name";
-import { dressPosts, sinkPosts } from "./posts";
-import { HERO_RAIL_BASE, HERO_RAIL_WIDTH, heroBend } from "./rail";
 
 export type Beam = { x: number; y: number; r: number };
 export type Pose = { x: number; y: number };
@@ -493,30 +488,3 @@ export function lightRig() {
     rest,
   };
 }
-
-/** The inline script that draws the page at rest before its first paint. If
- * the fonts arrive before the page hydrates, the plates change size, so it
- * measures them again, unless the torch has taken over. */
-export const restScript = () => `(() => {
-  const fitName = ${fitName.toString()};
-  const sinkPosts = ${sinkPosts.toString()};
-  const dressPosts = ${dressPosts.toString()};
-  const heroBend = ${heroBend.toString()};
-  const settle = () => {
-    document.querySelectorAll(".signpost-name").forEach((el) => fitName(el));
-    const assembly = document.querySelector(".sign-assembly");
-    const rail = document.querySelector("svg.sign-hero-rail");
-    if (assembly && rail) {
-      sinkPosts(assembly, rail, (x) => heroBend(x, ${HERO_RAIL_WIDTH}), ${HERO_RAIL_BASE});
-      dressPosts(assembly);
-    }
-  };
-  const rig = (${lightRig.toString()})();
-  settle();
-  rig.rest();
-  void document.fonts.ready.then(() => {
-    if (document.documentElement.hasAttribute("data-torch")) return;
-    settle();
-    rig.rest();
-  });
-})();`;

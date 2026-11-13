@@ -1,7 +1,7 @@
 // The visitor's language: the one they picked in the language menu, saved in
 // `localStorage`, or else, on a first visit to an English page, the browser's
-// first supported language. The layout's inline script, generated from
-// `localeChoice`, sends the visit on before the first paint; the menu saves
+// first supported language. The layout's inline entry (prepaint/locale.ts)
+// sends the visit on before the first paint; the menu saves
 // the choice through the same function. A saved choice always wins, the
 // browser's language never leads away from `/es/` or `/ca/`, and `/docs/`
 // never moves, so a redirect always lands on a page that stays put.
@@ -10,11 +10,7 @@
 // which the script honours, saves and strips: where storage is blocked, the
 // chosen page still opens instead of following the browser's language. A
 // saved choice falls back to `sessionStorage` when `localStorage` fails.
-import { LOCALES } from "./locales.ts";
-
-/** Reads, saves and applies the choice over `locales`, the default first.
- * The head's inline copy is this function's source, so it must reference
- * nothing outside its own body. */
+/** Reads, saves and applies the choice over `locales`, the default first. */
 export function localeChoice(locales: readonly string[]) {
   const KEY = "locale";
   const fallback = locales[0];
@@ -100,24 +96,3 @@ export function localeChoice(locales: readonly string[]) {
   };
   return { KEY, page, redirect, query, choosing, saved, save };
 }
-
-/** The inline script that sends a visit to the visitor's language before
- * the first paint. */
-export const localeScript = () => `(() => {
-  const choice = (${localeChoice.toString()})(${JSON.stringify(LOCALES)});
-  const { chosen, search } = choice.query(location.search);
-  if (chosen !== null) {
-    choice.save(chosen);
-    history.replaceState(
-      history.state,
-      "",
-      location.pathname + search + location.hash,
-    );
-  }
-  const to = choice.redirect(
-    location.pathname,
-    chosen ?? choice.saved(),
-    navigator.languages || [navigator.language],
-  );
-  if (to !== null) location.replace(to + search + location.hash);
-})();`;

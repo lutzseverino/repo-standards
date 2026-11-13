@@ -443,6 +443,9 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // rig's geometry dispatch and first-tilt visibility cache. The independent
   // browser checks cover their rendering and orientation; other normalized
   // non-script markup is unchanged after removing those attributes.
+  // Since #470 the pre-paint entries are bundled IIFEs instead of function
+  // source copies; the rail curve is shared without loading React into the
+  // rest entry. The theme/rest bytes change, while the markup stays the same.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -499,7 +502,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338",
+    "b801f3f1ebbff3364040a6a8411a80235a564590a0a036921a7b771bfb068fc1",
   );
 });
 
