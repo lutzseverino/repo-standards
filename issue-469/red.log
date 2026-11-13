@@ -1,0 +1,84 @@
+✔ a browser observes sign beam writes in CI (3741.053802ms)
+✖ only drawn post values are written before paint and after hydration: light (837.420251ms)
+✖ only drawn post values are written before paint and after hydration: dark (471.753396ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19802.35216
+
+✖ failing tests:
+
+test at site/test/sign-beam.test.ts:124:3
+✖ only drawn post values are written before paint and after hydration: light (837.420251ms)
+  AssertionError [ERR_ASSERTION]: pre-paint: post0
+  + actual - expected
+  
+  + [
+  +   '--brx',
+  +   '--bry',
+  +   '--gain',
+  +   '--hrx',
+  +   '--hry',
+  +   '--hx',
+  +   '--hy',
+  +   '--lx',
+  +   '--ly'
+  + ]
+  - []
+  
+      at assertWrites (file:///home/agent/workspace/site/test/sign-beam.test.ts:114:12)
+      at TestContext.<anonymous> (file:///home/agent/workspace/site/test/sign-beam.test.ts:129:9)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [
+      '--brx',  '--bry',
+      '--gain', '--hrx',
+      '--hry',  '--hx',
+      '--hy',   '--lx',
+      '--ly'
+    ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at site/test/sign-beam.test.ts:124:3
+✖ only drawn post values are written before paint and after hydration: dark (471.753396ms)
+  AssertionError [ERR_ASSERTION]: pre-paint: post0
+  + actual - expected
+  
+    [
+      '--brx',
+      '--bry',
+      '--gain',
+  +   '--hrx',
+  +   '--hry',
+  +   '--hx',
+  +   '--hy',
+      '--lx',
+      '--ly'
+    ]
+  
+      at assertWrites (file:///home/agent/workspace/site/test/sign-beam.test.ts:114:12)
+      at TestContext.<anonymous> (file:///home/agent/workspace/site/test/sign-beam.test.ts:129:9)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [
+      '--brx',  '--bry',
+      '--gain', '--hrx',
+      '--hry',  '--hx',
+      '--hy',   '--lx',
+      '--ly'
+    ],
+    expected: [ '--brx', '--bry', '--gain', '--lx', '--ly' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

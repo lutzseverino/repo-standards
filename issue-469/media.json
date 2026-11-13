@@ -1,0 +1,68 @@
+[
+  {
+    "theme": "light",
+    "mode": "touch-first",
+    "names": [],
+    "touch": true,
+    "reduced": false,
+    "contrast": false
+  },
+  {
+    "theme": "light",
+    "mode": "reduced-motion",
+    "names": [],
+    "touch": false,
+    "reduced": true,
+    "contrast": false
+  },
+  {
+    "theme": "light",
+    "mode": "contrast",
+    "names": [],
+    "touch": false,
+    "reduced": false,
+    "contrast": true
+  },
+  {
+    "theme": "dark",
+    "mode": "touch-first",
+    "names": [
+      "--brx",
+      "--bry",
+      "--gain",
+      "--lx",
+      "--ly"
+    ],
+    "touch": true,
+    "reduced": false,
+    "contrast": false
+  },
+  {
+    "theme": "dark",
+    "mode": "reduced-motion",
+    "names": [
+      "--brx",
+      "--bry",
+      "--gain",
+      "--lx",
+      "--ly"
+    ],
+    "touch": false,
+    "reduced": true,
+    "contrast": false
+  },
+  {
+    "theme": "dark",
+    "mode": "contrast",
+    "names": [
+      "--brx",
+      "--bry",
+      "--gain",
+      "--lx",
+      "--ly"
+    ],
+    "touch": false,
+    "reduced": false,
+    "contrast": true
+  }
+]

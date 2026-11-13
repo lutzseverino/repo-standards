@@ -1,0 +1,32 @@
+[
+  {
+    "name": "1440-light-rest",
+    "pixels": 80392,
+    "total": 1296000
+  },
+  {
+    "name": "1440-light-pointer",
+    "pixels": 86949,
+    "total": 1296000
+  },
+  {
+    "name": "1440-dark-rest",
+    "pixels": 0,
+    "total": 1296000
+  },
+  {
+    "name": "1440-dark-pointer",
+    "pixels": 51132,
+    "total": 1296000
+  },
+  {
+    "name": "320-light-rest",
+    "pixels": 0,
+    "total": 288000
+  },
+  {
+    "name": "320-dark-rest",
+    "pixels": 0,
+    "total": 288000
+  }
+]
