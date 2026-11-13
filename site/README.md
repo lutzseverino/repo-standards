@@ -253,8 +253,8 @@ configures shadcn's `base-nova` style with the `@/` alias from
 The sign art has no shadcn equivalent and lives in `src/components/sign/`:
 the sheeted plates, the LED border, the guardrail, the torch that lights them
 and the signpost list. The hero assembly stands on galvanised posts 12 cm
-behind its plates, which shade them, held by cast-aluminium clamps drawn in
-3D; the eye, below the sign, sees the plates' folded edges, and road dust and
+behind its plates, which shade them, held by cast-aluminium clamps modelled in
+3D and drawn flat with 2D transforms; the eye, below the sign, sees the plates' folded edges, and road dust and
 rain runs mark the plates. `sign.css` styles it. The sign stylesheets, `sign.css`,
 `light.css`, `story.css` and `adoption-dialog.css`, sit in the `sign` cascade
 layer, which `global.css` orders after Tailwind's components and before its

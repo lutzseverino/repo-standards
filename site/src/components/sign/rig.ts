@@ -18,6 +18,18 @@ import { HERO_RAIL_BASE, HERO_RAIL_WIDTH, heroBend } from "./rail";
 export type Beam = { x: number; y: number; r: number };
 export type Pose = { x: number; y: number };
 
+/** A flange's paint order: the nut over its flank, both over the front.
+ * CSS owns each kind's dimensions and paint; the browser test deliberately
+ * keeps an independent description of the solid. */
+export const CLAMP_FACE_KINDS = [
+  "end",
+  "bottom",
+  "front",
+  "nut-side",
+  "nut",
+] as const;
+type ClampFaceKind = (typeof CLAMP_FACE_KINDS)[number];
+
 export function lightRig() {
   /** The beam's radius where it meets the screen head-on, in CSS pixels. */
   const RADIUS = 760;
@@ -67,7 +79,7 @@ export function lightRig() {
     u: number[];
     v: number[];
     at: number[];
-    shown: boolean;
+    facing: boolean | null;
   };
   type Clamp = {
     el: HTMLElement;
@@ -180,7 +192,8 @@ export function lightRig() {
     look();
     const { sx, sy } = view;
     // what is drawn: a layer a theme or a place hides reads nothing
-    const shown = (el: HTMLElement) => getComputedStyle(el).display !== "none";
+    const displayed = (el: HTMLElement) =>
+      getComputedStyle(el).display !== "none";
     // read everything first, then write, so layout is computed once
     const next = [...document.querySelectorAll<HTMLElement>("[data-lo]")].map(
       (el) => {
@@ -195,7 +208,9 @@ export function lightRig() {
           // a post has no lit copy: it takes the beam itself (sign.css)
           lit: copy ?? (el.classList.contains("sign-tube") ? el : null),
           inside: copy
-            ? [...copy.querySelectorAll<HTMLElement>(LIT_LAYERS)].filter(shown)
+            ? [...copy.querySelectorAll<HTMLElement>(LIT_LAYERS)].filter(
+                displayed,
+              )
             : [],
           off: false,
         };
@@ -334,25 +349,34 @@ export function lightRig() {
     );
     const across = [1, 0, 0];
     const down = [0, 1, 0];
+    // Seam (deferred): clamp geometry stays inside the self-contained rig
+    // until #470 bundles pre-paint scripts; consumers: 1 (tilt).
+    const flange = (
+      s: number,
+    ): Record<ClampFaceKind, Pick<Face, "u" | "v" | "at">> => {
+      const x = s * (R + L / 2);
+      return {
+        // the outer end, turned to face out
+        end: { u: [0, 0, -s], v: down, at: [s * (R + L), 1.5, 0] },
+        // the underside, turned to face down
+        bottom: { u: across, v: [0, 0, -1], at: [x, H / 2 + 1.5, 0] },
+        front: { u: across, v: down, at: [x, 1.5, D / 2] },
+        "nut-side": { u: across, v: down, at: [x, 3, D / 2 + 0.6] },
+        nut: { u: across, v: down, at: [x, 3, D / 2 + 2] },
+      };
+    };
+    const left = flange(-1);
+    const right = flange(1);
     const faces = [
       ...el.querySelectorAll<HTMLElement>(".sign-clamp-lugs > i"),
     ].map((face) => {
-      const s = face.classList.contains("sign-clamp-l") ? -1 : 1;
-      const x = s * (R + L / 2);
-      const kind = face.classList[0];
-      const [u, v, at] =
-        kind === "sign-clamp-end"
-          ? // the outer end, turned to face out
-            [[0, 0, -s], down, [s * (R + L), 1.5, 0]]
-          : kind === "sign-clamp-bottom"
-            ? // the underside, turned to face down
-              [across, [0, 0, -1], [x, H / 2 + 1.5, 0]]
-            : kind === "sign-clamp-front"
-              ? [across, down, [x, 1.5, D / 2]]
-              : kind === "sign-clamp-nut-side"
-                ? [across, down, [x, 3, D / 2 + 0.6]]
-                : [across, down, [x, 3, D / 2 + 2]];
-      return { el: face, u, v, at, shown: true };
+      const geometry = face.classList.contains("sign-clamp-l") ? left : right;
+      // Markup and geometry share the kind contract; neither depends on the
+      // order of a face's CSS classes or treats an unknown kind as a nut.
+      const kind = face.dataset.clampFace as ClampFaceKind;
+      // A preceding rig may have left either inline visibility. Reconcile
+      // it on this rig's first tilt before caching subsequent facing changes.
+      return { el: face, ...geometry[kind], facing: null };
     });
     return {
       el,
@@ -426,11 +450,11 @@ export function lightRig() {
         const [a, b] = seen(face.u);
         const [c, d] = seen(face.v);
         const [e, f] = seen(face.at);
-        const shown = a * d - b * c > 0;
+        const facing = a * d - b * c > 0;
         face.el.style.transform = `matrix(${[a, b, c, d].map((n) => n.toFixed(4)).join(", ")}, ${e.toFixed(3)}, ${f.toFixed(3)})`;
-        if (shown !== face.shown) {
-          face.shown = shown;
-          face.el.style.visibility = shown ? "" : "hidden";
+        if (facing !== face.facing) {
+          face.facing = facing;
+          face.el.style.visibility = facing ? "" : "hidden";
         }
       }
       const angle = `${vx.toFixed(2)}deg`;

@@ -22,7 +22,7 @@ import {
   heroBend,
   railPath,
 } from "./rail";
-import { lightRig } from "./rig";
+import { CLAMP_FACE_KINDS, lightRig } from "./rig";
 import { STORY_STRINGS, Story, type Beat } from "./story";
 
 export const SIGN_STRINGS = [
@@ -461,11 +461,7 @@ export function SignAssembly({
 /** The posts' centres across the assembly. */
 const POSTS = ["21%", "79%"];
 const SIDES = ["sign-clamp-l", "sign-clamp-r"];
-/** A flange's faces, in the order they are drawn: the nut over its flank,
- * both over the front. */
-const FACES = ["end", "bottom", "front", "nut-side", "nut"];
-
-/** A cast-aluminium clamp round a post under a plate, drawn in 3D
+/** A cast-aluminium clamp round a post under a plate, modelled in 3D and drawn flat
  * (sign.css): the bolted flanges either side as boxes, with nuts standing
  * proud of them, the band round the tube and the band's underside. The
  * flanges' faces, the band and the underside turn with the tilt before the
@@ -480,10 +476,11 @@ function Clamp({ plate, left }: { plate: number; left: string }) {
     >
       <i className="sign-clamp-lugs">
         {SIDES.flatMap((side) =>
-          FACES.map((face) => (
+          CLAMP_FACE_KINDS.map((face) => (
             <i
               key={`${side}-${face}`}
               className={`sign-clamp-${face} ${side}`}
+              data-clamp-face={face}
               suppressHydrationWarning
             />
           )),

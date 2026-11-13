@@ -439,6 +439,10 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // flat. sign-clamps.test.ts checks the faces against the browser's 3D.
   // #463 changes only the pre-paint theme script in this normalized HTML.
   // Substituting the previous script reproduces the preceding baseline hash.
+  // #468 names each clamp face with data-clamp-face and changes the inlined
+  // rig's geometry dispatch and first-tilt visibility cache. The independent
+  // browser checks cover their rendering and orientation; other normalized
+  // non-script markup is unchanged after removing those attributes.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -495,7 +499,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699",
+    "996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338",
   );
 });
 
