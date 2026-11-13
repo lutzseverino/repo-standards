@@ -57,8 +57,8 @@ pre-paint and hydrated writers, pointer motion, remeasurement, repeated theme
 changes, footprint/viewport culling and recovery. Its guarded apply calls throw
 on layout reads. No frame-cost or timing improvement is claimed.
 
-Final source PR head: `5b4058528f2b9565888380bfad5252804c188786`.
-Its only difference from the measured head is the HTML test baseline update.
+Final source PR head: `d3e03b18db8688237718925fb350f30377cc295a`.
+Its differences from the measured head are test-only: the HTML baseline and an explicit wait for the first hydrated torch draw.
 `html-baseline.json` proves that substituting the base rest script in the head
 reproduces the old normalized HTML hash exactly. `html-baseline.mjs` records
 that comparison. The English and pseudo-locale 320 px loaded screenshots were
