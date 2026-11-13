@@ -9,6 +9,7 @@ import type {
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import type { TestContext } from "node:test";
+import { spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -305,6 +306,12 @@ test("an unchanged v2 selection recomputes retained discovery and reports scope 
     runCheckout<Status>(["status", "--json"]).report,
     secondStatus,
   );
+  const restored = spawnSync(
+    "npm",
+    ["ci", "--ignore-scripts", "--prefix", ".repo-standards/runtime"],
+    { cwd: checkout, env: f.env, encoding: "utf8", timeout: 120_000 },
+  );
+  assert.equal(restored.status, 0, restored.stdout + restored.stderr);
   f.proposal("apps/new/README.md", "apps/old/README.md");
   const checkoutInspection = runCheckout<Inspection>([
     "inspect",
