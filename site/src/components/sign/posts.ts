@@ -100,8 +100,9 @@ export function dressPosts(assembly: HTMLElement) {
     tube.style.setProperty("--shade-night", nightShade);
   });
 
-  // Each clamp is drawn in 3D, seen from where it stands relative to the
-  // eye, which is in front of the assembly's foot (its transform origin) at
+  // Each clamp is modelled in 3D and drawn flat, seen from where it stands
+  // relative to the eye, which is in front of the assembly's foot (its
+  // transform origin) at
   // the tilt's perspective distance: from below by the angle up to it, and
   // from the side by the angle across to its post, in degrees. The tilt adds
   // to both, per frame (rig.ts).

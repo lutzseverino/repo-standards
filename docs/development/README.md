@@ -339,6 +339,8 @@ release-source decision alongside the platform choice inside each profile.
 
 - [Website project](../../site/README.md): local site commands, source layout,
   Pages deployment and custom-domain setup.
+- [Profile the hero sign](sign-profiling.md): browser acquisition, compatible
+  measurement script and harness, rerun commands and interpretation.
 - [Architecture contracts](architecture.md): the product's purpose and release
   boundary, module responsibilities, formats, commands, adoption and update
   behavior, acceptance criteria, exclusions, and the mechanisms removed in

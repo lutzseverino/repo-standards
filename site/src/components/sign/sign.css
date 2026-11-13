@@ -176,7 +176,7 @@
   /* ================= clamps =================
    A cast-aluminium clamp (Klemmschelle) round each post where a plate's
    bottom rail grips it, 60 mm (15 px) tall, its top 4 px behind the plate
-   (posts.ts). It is drawn in 3D, so it turns as the eye moves: seen from
+   (posts.ts). Modelled in 3D and drawn flat, it turns as the eye moves: seen from
    below and from the side, each by the clamp's own angle from the eye
    (written once per layout) plus the sign's tilt, so the left and right
    posts' clamps mirror each other. The band round the tube is a cylinder,
