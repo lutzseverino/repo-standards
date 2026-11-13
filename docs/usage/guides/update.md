@@ -37,6 +37,19 @@ CLI pin while updating standards, use the project runtime instead:
 .repo-standards/runtime/node_modules/.bin/repo-standards adopt
 ```
 
+In a fresh clone, restore the ignored runtime dependencies before starting an
+update that keeps the CLI pin:
+
+```sh
+npm ci --ignore-scripts --prefix .repo-standards/runtime
+```
+
+A matching external CLI also requires this restoration. Otherwise adoption
+reports `RUNTIME_MISSING` and starts no run. Restore the runtime, then rerun
+the project-pinned `adopt` command with the same requested selection and answers;
+there is no new run to abandon. A valid existing runtime is reused without
+installing dependencies again.
+
 Each update reviews changes, obtains confirmation when required, and completes
 one run. With every recorded answer [reused](#answers-an-update-reuses), nothing else
 open and no confirmation required, `adopt --json` is the whole update: it
