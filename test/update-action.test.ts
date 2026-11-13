@@ -131,6 +131,15 @@ async function fixture(
   writeFileSync(logPath, "");
 
   const items: Item[] = [];
+  let lostPullResponse:
+    | "before-create"
+    | "after-create"
+    | "wrong-base"
+    | "response-body"
+    | "invalid-json"
+    | "permission"
+    | undefined;
+  let failReconciliation = false;
   const requests: { method: string; path: string; authorized: boolean }[] = [];
   const prefix = "/repos/alice/project";
   const view = (item: Item) => ({
@@ -139,7 +148,13 @@ async function fixture(
     title: item.title,
     body: item.body,
     state: item.state,
-    ...(item.kind === "pull" ? { pull_request: {} } : {}),
+    ...(item.kind === "pull"
+      ? {
+          pull_request: {},
+          head: { ref: item.head, repo: { full_name: "alice/project" } },
+          base: { ref: item.base },
+        }
+      : {}),
   });
   let published:
     { version: string; manifest: object; tarball: Buffer } | undefined;
@@ -178,7 +193,14 @@ async function fixture(
       const numbered = /^\/(pulls|issues)\/(\d+)(\/comments)?$/.exec(path);
       if (method === "GET" && path === "")
         return send(200, { default_branch: "main" });
-      if (method === "GET" && path === "/pulls")
+      if (method === "GET" && path === "/pulls") {
+        if (
+          failReconciliation &&
+          requests.some(
+            (entry) => entry.method === "POST" && entry.path.endsWith("/pulls"),
+          )
+        )
+          return send(503, { message: `Authorization: Bearer ${token}` });
         return send(
           200,
           items
@@ -190,6 +212,7 @@ async function fixture(
             )
             .map(view),
         );
+      }
       if (method === "GET" && path === "/issues")
         return send(
           200,
@@ -211,6 +234,12 @@ async function fixture(
       }
       if (method === "POST" && (path === "/pulls" || path === "/issues")) {
         const input = await body(request);
+        if (path === "/pulls" && lostPullResponse === "before-create")
+          return response.destroy();
+        if (path === "/pulls" && lostPullResponse === "permission")
+          return send(403, {
+            message: `Authorization: Bearer ${token}\r\nsecret payload`,
+          });
         const item: Item = {
           number: items.length + 1,
           kind: path === "/pulls" ? "pull" : "issue",
@@ -223,6 +252,27 @@ async function fixture(
             : {}),
         };
         items.push(item);
+        if (path === "/pulls") {
+          if (lostPullResponse === "wrong-base") item.base = "other";
+          if (
+            lostPullResponse === "after-create" ||
+            lostPullResponse === "wrong-base"
+          )
+            return response.destroy();
+          if (lostPullResponse === "response-body") {
+            response.writeHead(201, {
+              "content-type": "application/json",
+              "content-length": "10000",
+            });
+            response.write('{"number":');
+            setTimeout(() => response.destroy(), 20);
+            return;
+          }
+          if (lostPullResponse === "invalid-json") {
+            response.writeHead(201, { "content-type": "application/json" });
+            return response.end(`invalid JSON containing ${token}`);
+          }
+        }
         return send(201, view(item));
       }
       if (numbered) {
@@ -252,6 +302,12 @@ async function fixture(
     origin,
     items,
     requests,
+    losePullResponse(when: typeof lostPullResponse) {
+      lostPullResponse = when;
+    },
+    failReconciliation() {
+      failReconciliation = true;
+    },
     // Use real npm resolution for the matching, unbuilt product checkout.
     publishedCli(version: string) {
       const packageRoot = join(root, "published package");
@@ -329,7 +385,11 @@ async function fixture(
       return result.status === 0 ? result.stdout.trim() : null;
     },
     // One action run on a fresh checkout of the default branch.
-    async run(agentCommand = "", localExecutable = false) {
+    async run(
+      agentCommand = "",
+      localExecutable = false,
+      repository = "alice/project",
+    ) {
       const checkout = join(root, `checkout ${++runs}`);
       git(root, "clone", "--quiet", origin, checkout);
       const localBin = join(checkout, "node_modules/.bin");
@@ -349,7 +409,7 @@ async function fixture(
         ...process.env,
         PATH: `${localExecutable ? `${localBin}:` : ""}${bin}:${process.env.PATH}`,
         GITHUB_WORKSPACE: checkout,
-        GITHUB_REPOSITORY: "alice/project",
+        GITHUB_REPOSITORY: repository,
         GITHUB_API_URL: api,
         RUNNER_TEMP: temporary,
         REPO_STANDARDS_TOKEN: token,
@@ -512,6 +572,190 @@ test("a complete update gives one branch and one pull request whose body is the 
   );
   assert.ok(invocations.every((entry) => entry.ghToken && !entry.actionToken));
   assert.ok(f.requests.every((request) => request.authorized));
+});
+
+test("a lost PR create before creation reports the request and pushed branch without retrying", async (t) => {
+  const f = await fixture(t);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "complete",
+  });
+  f.losePullResponse("before-create");
+  const result = await f.run();
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /POST \/repos\/alice\/project\/pulls/);
+  assert.match(result.output, /transport.*UND_ERR_SOCKET/);
+  assert.match(
+    result.output,
+    /Reconciliation found no matching open pull request/,
+  );
+  assert.match(
+    result.output,
+    /Inspect.*repo-standards\/update.*before.*create/,
+  );
+  assert.ok(f.branchHead());
+  assert.equal(f.items.length, 0);
+  assert.equal(mutations(f).length, 1);
+  assert.equal(f.requests.at(-1)?.method, "GET");
+});
+
+test("a lost PR response reuses the matching PR and supersedes the rolling issue", async (t) => {
+  const f = await fixture(t);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "stopped",
+  });
+  assert.equal((await f.run()).status, 0);
+  const issue = f.items[0]!;
+  f.scenario({
+    newest: { cli: "9.2.0", standards: "v1.2.0" },
+    headless: "complete",
+  });
+  f.losePullResponse("after-create");
+  const result = await f.run();
+  assert.equal(result.status, 0, result.output);
+  assert.match(
+    result.output,
+    /Opened https:\/\/github.com\/alice\/project\/pull\/2/,
+  );
+  assert.equal(issue.state, "closed");
+  assert.match(
+    issue.comments[0]!,
+    /https:\/\/github.com\/alice\/project\/pull\/2/,
+  );
+  assert.deepEqual(
+    open(f).map((item) => item.kind),
+    ["pull"],
+  );
+  assert.equal(
+    mutations(f).filter((entry) => entry.path.endsWith("/pulls")).length,
+    1,
+  );
+  assert.ok(f.requests.every((entry) => entry.authorized));
+});
+
+test("an unresolved PR create retains the original failure and never creates a fallback", async (t) => {
+  for (const scenario of [
+    "lookup-fails",
+    "wrong-base",
+    "body-lookup-fails",
+  ] as const) {
+    await t.test(scenario, async (t) => {
+      const f = await fixture(t);
+      f.scenario({
+        newest: { cli: "9.1.0", standards: "v1.1.0" },
+        headless: "complete",
+      });
+      f.losePullResponse(
+        scenario === "wrong-base"
+          ? "wrong-base"
+          : scenario === "body-lookup-fails"
+            ? "response-body"
+            : "before-create",
+      );
+      if (scenario !== "wrong-base") f.failReconciliation();
+      const result = await f.run();
+      assert.equal(result.status, 1, result.output);
+      assert.match(
+        result.output,
+        scenario === "body-lookup-fails"
+          ? /POST \/repos\/alice\/project\/pulls.*response body consumption \(HTTP 201\).*UND_ERR_SOCKET/
+          : /POST \/repos\/alice\/project\/pulls.*transport.*UND_ERR_SOCKET/,
+      );
+      assert.match(
+        result.output,
+        scenario === "wrong-base"
+          ? /Reconciliation found no matching open pull request/
+          : /Reconciliation could not establish the outcome:.*GET \/repos\/alice\/project\/pulls.*HTTP 503/,
+      );
+      assert.match(
+        result.output,
+        /Inspect.*repo-standards\/update.*before.*create/,
+      );
+      assert.ok(f.branchHead());
+      assert.equal(mutations(f).length, 1);
+      assert.ok(f.items.every((item) => item.kind === "pull"));
+      assert.doesNotMatch(
+        result.output.replace(`::add-mask::${token}`, ""),
+        /test-token|Authorization|secret payload/,
+      );
+    });
+  }
+});
+
+test("a PR response body failure is reconciled without another POST", async (t) => {
+  for (const failure of ["response-body", "invalid-json"] as const) {
+    await t.test(failure, async (t) => {
+      const f = await fixture(t);
+      f.scenario({
+        newest: { cli: "9.1.0", standards: "v1.1.0" },
+        headless: "complete",
+      });
+      f.losePullResponse(failure);
+      const result = await f.run();
+      assert.equal(result.status, 0, result.output);
+      assert.match(
+        result.output,
+        /Opened https:\/\/github.com\/alice\/project\/pull\/1/,
+      );
+      assert.equal(f.items.length, 1);
+      assert.equal(mutations(f).length, 1);
+      assert.doesNotMatch(
+        result.output.replace(`::add-mask::${token}`, ""),
+        /test-token/,
+      );
+    });
+  }
+});
+
+test("an HTTP permission refusal keeps status and safe request context without reconciliation or retry", async (t) => {
+  const f = await fixture(t);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "complete",
+  });
+  f.losePullResponse("permission");
+  const result = await f.run();
+  assert.equal(result.status, 1, result.output);
+  assert.match(
+    result.output,
+    /POST \/repos\/alice\/project\/pulls with HTTP 403 \(HTTP response\)/,
+  );
+  assert.doesNotMatch(result.output, /transport|Reconciliation/);
+  assert.doesNotMatch(
+    result.output.replace(`::add-mask::${token}`, ""),
+    /test-token|Authorization|secret payload/,
+  );
+  assert.ok(f.branchHead());
+  assert.equal(f.items.length, 0);
+  assert.equal(mutations(f).length, 1);
+  assert.equal(f.requests.at(-1)?.method, "POST");
+  assert.ok(f.requests.every((entry) => entry.authorized));
+  const annotation = result.output
+    .split("\n")
+    .filter((line) => line.startsWith("::error "));
+  assert.equal(annotation.length, 1);
+  assert.doesNotMatch(annotation[0]!, /[\r\n]/);
+});
+
+test("terminal request annotations redact credentials in paths and escape percent signs", async (t) => {
+  const f = await fixture(t);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "complete",
+  });
+  const result = await f.run("", false, `alice/${token}%0A%0D`);
+  assert.equal(result.status, 1, result.output);
+  const diagnostic = result.output.replace(`::add-mask::${token}\n`, "");
+  assert.doesNotMatch(diagnostic, /test-token|[\r]/);
+  assert.match(
+    diagnostic,
+    /GET \/repos\/alice\/<REDACTED>%250A%250D with HTTP 404/,
+  );
+  assert.equal(
+    diagnostic.split("\n").filter((line) => line.startsWith("::error ")).length,
+    1,
+  );
 });
 
 test("a standards-only update uses the published CLI outside an unbuilt matching package", async (t) => {
