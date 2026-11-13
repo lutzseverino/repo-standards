@@ -1,0 +1,3834 @@
+[
+  {
+    "width": 320,
+    "theme": "light",
+    "stage": "prepaint",
+    "changedChannels": 0,
+    "totalChannels": 3072000,
+    "snapshots": {
+      "base": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 40.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: -37.9px; --ly: 157.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -191.7px; --ly: 168.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -129.6px; --ly: 202.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 10.3px; --ly: 174.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 11.6px; --ly: -57.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -11.4px; --ly: -295.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 40.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: -37.9px; --ly: 157.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -191.7px; --ly: 168.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -129.6px; --ly: 202.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 10.3px; --ly: 174.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 11.6px; --ly: -57.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -11.4px; --ly: -295.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 320,
+    "theme": "light",
+    "stage": "hydrated",
+    "changedChannels": 0,
+    "totalChannels": 3072000,
+    "snapshots": {
+      "base": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 40.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: -37.9px; --ly: 157.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -191.7px; --ly: 168.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -129.6px; --ly: 202.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 10.3px; --ly: 174.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 11.6px; --ly: -57.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -11.4px; --ly: -295.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 40.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 40.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: -37.9px; --ly: 157.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -191.7px; --ly: 168.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -129.6px; --ly: 202.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -129.6px; --ly: 202.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 10.3px; --ly: 174.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 10.3px; --ly: 174.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 11.6px; --ly: -57.0px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 11.6px; --ly: -57.0px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -11.4px; --ly: -295.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -11.4px; --ly: -295.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 320,
+    "theme": "dark",
+    "stage": "prepaint",
+    "changedChannels": 0,
+    "totalChannels": 3072000,
+    "snapshots": {
+      "base": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 160.0px; --py: 304.0px; --edge-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 2076px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: 82.1px; --ly: 151.3px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -71.7px; --ly: 162.2px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -9.6px; --ly: 196.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 130.3px; --ly: 168.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 131.6px; --ly: -63.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 108.6px; --ly: -301.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 160.0px; --py: 304.0px; --edge-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 2076px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: 82.1px; --ly: 151.3px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -71.7px; --ly: 162.2px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -9.6px; --ly: 196.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 130.3px; --ly: 168.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 131.6px; --ly: -63.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 108.6px; --ly: -301.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 320,
+    "theme": "dark",
+    "stage": "hydrated",
+    "changedChannels": 0,
+    "totalChannels": 3072000,
+    "snapshots": {
+      "base": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 160.0px; --py: 304.0px; --edge-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 2076px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: 82.1px; --ly: 151.3px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -71.7px; --ly: 162.2px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -9.6px; --ly: 196.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 130.3px; --ly: 168.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 131.6px; --ly: -63.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 108.6px; --ly: -301.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 160.0px; --py: 304.0px; --edge-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 2076px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 160.0px; --disc-y: 304.0px; --disc-r: 1384px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14.8px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 77.9px; --oy: 152.7px; --lx: 82.1px; --ly: 151.3px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -16.1px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.553) 222px, rgb(0 0 0 / 0.507) 224px, rgb(0 0 0 / 0.46) 226px, rgb(0 0 0 / 0.46) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.577) 462px, rgb(0 0 0 / 0.53) 464px, rgb(0 0 0 / 0.483) 466px, rgb(0 0 0 / 0.46) 468px, rgb(0 0 0 / 0.46) 474px, rgb(0 0 0 / 0.403) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.577) 554px, rgb(0 0 0 / 0.53) 556px, rgb(0 0 0 / 0.483) 558px, rgb(0 0 0 / 0.46) 560px, rgb(0 0 0 / 0.46) 566px, rgb(0 0 0 / 0.403) 568px, rgb(0 0 0 / 0.288) 570px, rgb(0 0 0 / 0.173) 572px, rgb(0 0 0 / 0.058) 574px, rgb(0 0 0 / 0) 576px, rgb(0 0 0 / 0) 748px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 220px, rgb(0 0 0 / 0.417) 222px, rgb(0 0 0 / 0.267) 224px, rgb(0 0 0 / 0.15) 226px, rgb(0 0 0 / 0.067) 228px, rgb(0 0 0 / 0.08) 230px, rgb(0 0 0 / 0.16) 232px, rgb(0 0 0 / 0.24) 234px, rgb(0 0 0 / 0.5) 236px, rgb(0 0 0 / 0.5) 460px, rgb(0 0 0 / 0.504) 462px, rgb(0 0 0 / 0.337) 464px, rgb(0 0 0 / 0.204) 466px, rgb(0 0 0 / 0.104) 468px, rgb(0 0 0 / 0.04) 470px, rgb(0 0 0 / 0.12) 472px, rgb(0 0 0 / 0.2) 474px, rgb(0 0 0 / 0.28) 476px, rgb(0 0 0 / 0.5) 478px, rgb(0 0 0 / 0.5) 552px, rgb(0 0 0 / 0.504) 554px, rgb(0 0 0 / 0.337) 556px, rgb(0 0 0 / 0.204) 558px, rgb(0 0 0 / 0.104) 560px, rgb(0 0 0 / 0.038) 562px, rgb(0 0 0 / 0.004) 564px, rgb(0 0 0 / 0) 566px, rgb(0 0 0 / 0) 748px); --post-hl: 29.3%; --ox: 231.7px; --oy: 141.8px; --lx: -71.7px; --ly: 162.2px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 216px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 457px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 549px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 549px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -9.6px; --ly: 196.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -9.6px; --ly: 196.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 130.3px; --ly: 168.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 130.3px; --ly: 168.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 131.6px; --ly: -63.0px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 131.6px; --ly: -63.0px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 108.6px; --ly: -301.7px; --brx: 1384px; --bry: 1389px; --hrx: 830px; --hry: 764px; --hx: 0.0px; --hy: -36.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 108.6px; --ly: -301.7px; --br: 1379px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: normal; font-size: 18px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 18px; white-space: normal;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 1280,
+    "theme": "light",
+    "stage": "prepaint",
+    "changedChannels": 0,
+    "totalChannels": 12288000,
+    "snapshots": {
+      "base": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 520.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 97.8px; --ly: 150.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -333.0px; --ly: 174.4px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -346.8px; --ly: 214.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 237.1px; --ly: 185.9px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 239.7px; --ly: 12.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 177.7px; --ly: -165.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 156.3px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 156.3px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 34.7px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 34.7px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 520.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 97.8px; --ly: 150.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -333.0px; --ly: 174.4px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -346.8px; --ly: 214.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 237.1px; --ly: 185.9px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 239.7px; --ly: 12.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 177.7px; --ly: -165.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 156.3px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 156.3px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 34.7px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 34.7px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 1280,
+    "theme": "light",
+    "stage": "hydrated",
+    "changedChannels": 0,
+    "totalChannels": 12288000,
+    "snapshots": {
+      "base": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 520.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 97.8px; --ly: 150.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -333.0px; --ly: 174.4px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -346.8px; --ly: 214.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 237.1px; --ly: 185.9px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 239.7px; --ly: 12.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 177.7px; --ly: -165.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 156.3px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 156.3px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 34.7px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 34.7px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "light",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "",
+            "style": "--px: 520.0px; --py: 310.0px; --edge-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 696px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 520.0px; --disc-y: 310.0px; --disc-r: 464px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 97.8px; --ly: 150.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -333.0px; --ly: 174.4px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -346.8px; --ly: 214.3px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -346.8px; --ly: 214.3px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 237.1px; --ly: 185.9px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 237.1px; --ly: 185.9px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 239.7px; --ly: 12.7px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 239.7px; --ly: 12.7px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 177.7px; --ly: -165.2px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 177.7px; --ly: -165.2px; --br: 460px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 156.3px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 156.3px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 34.7px; --ly: -447.1px; --brx: 467px; --bry: 466px; --hrx: 265px; --hry: 271px; --hx: -14.9px; --hy: -11.2px; --gain: 0.982;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": "--lx: 34.7px; --ly: -447.1px; --br: 460px;"
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": null
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "stage": "prepaint",
+    "changedChannels": 0,
+    "totalChannels": 12288000,
+    "snapshots": {
+      "base": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 640.0px; --py: 304.0px; --edge-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 3636px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 217.8px; --ly: 144.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -213.0px; --ly: 168.4px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -226.8px; --ly: 208.3px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 357.1px; --ly: 179.9px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 359.7px; --ly: 6.7px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 297.7px; --ly: -171.2px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 536.0px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 276.3px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 552.0px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 154.7px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -100.9px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 170.7px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 1,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 640.0px; --py: 304.0px; --edge-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 3636px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 217.8px; --ly: 144.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -213.0px; --ly: 168.4px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -226.8px; --ly: 208.3px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 357.1px; --ly: 179.9px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 359.7px; --ly: 6.7px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 297.7px; --ly: -171.2px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 536.0px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 276.3px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 552.0px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 154.7px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -100.9px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 170.7px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "stage": "hydrated",
+    "changedChannels": 577815,
+    "totalChannels": 12288000,
+    "snapshots": {
+      "base": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 640.0px; --py: 304.0px; --edge-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 3636px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 217.8px; --ly: 144.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -213.0px; --ly: 168.4px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -226.8px; --ly: 208.3px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 357.1px; --ly: 179.9px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 359.7px; --ly: 6.7px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 297.7px; --ly: -171.2px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 536.0px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 276.3px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 552.0px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 154.7px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -100.9px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 170.7px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      },
+      "head": {
+        "theme": "dark",
+        "errors": [],
+        "unhydrated": 0,
+        "styles": [
+          {
+            "class": "dark",
+            "style": "--px: 640.0px; --py: 304.0px; --edge-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-torch-pool",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 3636px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-sheen",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-light-layer sign-lit-prism",
+            "style": "--disc-x: 640.0px; --disc-y: 304.0px; --disc-r: 2424px;"
+          },
+          {
+            "class": "sign-assembly w-full max-w-[760px]",
+            "style": "--tilt-x: 4.00deg; --tilt-y: -9.00deg;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 21%; bottom: -14px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 422.2px; --oy: 159.9px; --lx: 217.8px; --ly: 144.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-tube",
+            "style": "left: 79%; bottom: -10.2px; --shade-day: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.553) 156px, rgb(0 0 0 / 0.507) 158px, rgb(0 0 0 / 0.46) 160px, rgb(0 0 0 / 0.46) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.577) 328px, rgb(0 0 0 / 0.53) 330px, rgb(0 0 0 / 0.483) 332px, rgb(0 0 0 / 0.46) 334px, rgb(0 0 0 / 0.46) 340px, rgb(0 0 0 / 0.403) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.577) 400px, rgb(0 0 0 / 0.53) 402px, rgb(0 0 0 / 0.483) 404px, rgb(0 0 0 / 0.46) 406px, rgb(0 0 0 / 0.46) 412px, rgb(0 0 0 / 0.403) 414px, rgb(0 0 0 / 0.288) 416px, rgb(0 0 0 / 0.173) 418px, rgb(0 0 0 / 0.058) 420px, rgb(0 0 0 / 0) 422px, rgb(0 0 0 / 0) 594px); --shade-night: linear-gradient(to bottom, rgb(0 0 0 / 0.5) 0px, rgb(0 0 0 / 0.5) 154px, rgb(0 0 0 / 0.417) 156px, rgb(0 0 0 / 0.267) 158px, rgb(0 0 0 / 0.15) 160px, rgb(0 0 0 / 0.067) 162px, rgb(0 0 0 / 0.08) 164px, rgb(0 0 0 / 0.16) 166px, rgb(0 0 0 / 0.24) 168px, rgb(0 0 0 / 0.5) 170px, rgb(0 0 0 / 0.5) 326px, rgb(0 0 0 / 0.504) 328px, rgb(0 0 0 / 0.337) 330px, rgb(0 0 0 / 0.204) 332px, rgb(0 0 0 / 0.104) 334px, rgb(0 0 0 / 0.038) 336px, rgb(0 0 0 / 0.08) 338px, rgb(0 0 0 / 0.16) 340px, rgb(0 0 0 / 0.24) 342px, rgb(0 0 0 / 0.5) 344px, rgb(0 0 0 / 0.5) 398px, rgb(0 0 0 / 0.504) 400px, rgb(0 0 0 / 0.337) 402px, rgb(0 0 0 / 0.204) 404px, rgb(0 0 0 / 0.104) 406px, rgb(0 0 0 / 0.038) 408px, rgb(0 0 0 / 0.004) 410px, rgb(0 0 0 / 0) 412px, rgb(0 0 0 / 0) 594px); --post-hl: 29.3%; --ox: 853.0px; --oy: 135.6px; --lx: -213.0px; --ly: 168.4px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 150px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 323px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 21%; top: 395px;"
+          },
+          {
+            "class": "sign-clamp",
+            "style": "left: 79%; top: 395px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -226.8px; --ly: 208.3px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: -226.8px; --ly: 208.3px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 357.1px; --ly: 179.9px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 357.1px; --ly: 179.9px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 359.7px; --ly: 6.7px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 359.7px; --ly: 6.7px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 297.7px; --ly: -171.2px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": "--lx: 297.7px; --ly: -171.2px; --br: 2415px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 536.0px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 276.3px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 23.5px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 552.0px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 23.5px; white-space: nowrap;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 154.7px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: -100.9px; --ly: -453.1px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "white-space: nowrap; font-size: 25px;"
+          },
+          {
+            "class": "sign-lit-copy",
+            "style": "--lx: 170.7px; --ly: -478.8px; --brx: 2424px; --bry: 2433px; --hrx: 1455px; --hry: 1338px; --hx: 0.0px; --hy: -63.0px; --gain: 0.992;"
+          },
+          {
+            "class": "sign-lit-streak",
+            "style": null
+          },
+          {
+            "class": "rainbow",
+            "style": null
+          },
+          {
+            "class": "sign-lit-glint",
+            "style": null
+          },
+          {
+            "class": "signpost-name",
+            "style": "font-size: 25px; white-space: nowrap;"
+          }
+        ]
+      }
+    }
+  }
+]

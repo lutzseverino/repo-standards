@@ -1,0 +1,9 @@
+{
+  "run": "e84c7c05-ae90-4a09-a030-bbafbf3427e5",
+  "base": "d835696e90f75b4594b87c41b6e00369cf7cf64b",
+  "head": "f07c7856b6349aa4604bd3b330def2a8aa396486",
+  "previousHead": "9ccde20319b1196fae438e3b58556d595121cfdb",
+  "browser": "Chrome for Testing 157.0.8103.78",
+  "node": "24.11.1",
+  "visualHead": "73fcd2a1424d5d717af01bcf440c91c121aceafa"
+}
