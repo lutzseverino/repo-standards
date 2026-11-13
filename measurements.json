@@ -1,0 +1,121 @@
+{
+  "revision": "80dc57be966b769318dec3390bc66f0dc7e8f754",
+  "browser": "Google Chrome for Testing 156.0.8078.80 (linux64)",
+  "command": "SITE_BROWSER=<user-local Chrome> SITE_LAYOUT_REPORT=<report directory> pnpm --dir site validate",
+  "widths": [
+    320,
+    360,
+    390
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "routes": [
+    "/",
+    "/ca/",
+    "/ca/how-it-works/",
+    "/ca/sources/lutzseverino/repo-canon/",
+    "/ca/sources/lutzseverino/repo-standards-example/",
+    "/docs/",
+    "/docs/reference/author-format/",
+    "/en-xa/",
+    "/en-xa/how-it-works/",
+    "/en-xa/sources/lutzseverino/repo-canon/",
+    "/en-xa/sources/lutzseverino/repo-standards-example/",
+    "/es/",
+    "/es/how-it-works/",
+    "/es/sources/lutzseverino/repo-canon/",
+    "/es/sources/lutzseverino/repo-standards-example/",
+    "/how-it-works/",
+    "/sources/lutzseverino/repo-canon/",
+    "/sources/lutzseverino/repo-standards-example/"
+  ],
+  "layoutMeasurements": 744,
+  "violations": 0,
+  "pageScrollWidthsEqualViewport": true,
+  "keyboardSweeps": 96,
+  "motion": [
+    {
+      "state": "nav: opening",
+      "theme": "light",
+      "timings": [
+        {
+          "property": "height",
+          "duration": 200,
+          "easing": "ease-out"
+        },
+        {
+          "property": "opacity",
+          "duration": 200,
+          "easing": "ease-out"
+        }
+      ],
+      "height": 144.453125,
+      "fullHeight": 211,
+      "opacity": 0.684643,
+      "screenshot": "nav-motion-light-opening.png"
+    },
+    {
+      "state": "nav: closing",
+      "theme": "light",
+      "timings": [
+        {
+          "property": "height",
+          "duration": 200,
+          "easing": "ease-out"
+        },
+        {
+          "property": "opacity",
+          "duration": 200,
+          "easing": "ease-out"
+        }
+      ],
+      "height": 66.53125,
+      "fullHeight": 211,
+      "opacity": 0.315357,
+      "screenshot": "nav-motion-light-closing.png"
+    },
+    {
+      "state": "nav: opening",
+      "theme": "dark",
+      "timings": [
+        {
+          "property": "height",
+          "duration": 200,
+          "easing": "ease-out"
+        },
+        {
+          "property": "opacity",
+          "duration": 200,
+          "easing": "ease-out"
+        }
+      ],
+      "height": 144.453125,
+      "fullHeight": 211,
+      "opacity": 0.684643,
+      "screenshot": "nav-motion-dark-opening.png"
+    },
+    {
+      "state": "nav: closing",
+      "theme": "dark",
+      "timings": [
+        {
+          "property": "height",
+          "duration": 200,
+          "easing": "ease-out"
+        },
+        {
+          "property": "opacity",
+          "duration": 200,
+          "easing": "ease-out"
+        }
+      ],
+      "height": 66.53125,
+      "fullHeight": 211,
+      "opacity": 0.315357,
+      "screenshot": "nav-motion-dark-closing.png"
+    }
+  ],
+  "manualInspection": "Representative 320 px homepage, source and How it works screenshots, en/es/ca/en-xa, both themes, nested menus and opening/closing midpoints. No physical-device or deployed-site check."
+}
