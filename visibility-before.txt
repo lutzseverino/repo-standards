@@ -1,0 +1,28 @@
+✖ a new rig reconciles faces left by another pose, then follows later turns (1261.669228ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7065.301393
+
+✖ failing tests:
+
+test at site/test/sign-clamps.test.ts:185:1
+✖ a new rig reconciles faces left by another pose, then follows later turns (1261.669228ms)
+  AssertionError [ERR_ASSERTION]: new rig at -3,-21: clamp 2, end right
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///home/agent/workspace/site/test/sign-clamps.test.ts:231:18)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

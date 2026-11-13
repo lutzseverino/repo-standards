@@ -1,0 +1,31 @@
+✖ the homepage keeps its fixture HTML with acquired counts and ranking (6.844554ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5756.756081
+
+✖ failing tests:
+
+test at site/test/docs.test.ts:392:1
+✖ the homepage keeps its fixture HTML with acquired counts and ranking (6.844554ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338'
+  - '401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699'
+  
+      at TestContext.<anonymous> (file:///home/agent/workspace/site/test/docs.test.ts:496:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338',
+    expected: '401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,98 @@
+[
+  {
+    theme: 'light',
+    mode: 'reduced',
+    passed: true,
+    before: {
+      x: '0.00deg',
+      y: '0.00deg',
+      lx: 600,
+      ly: 310,
+      radius: 696,
+      k: 3,
+      touch: false,
+      w: 1440,
+      h: 800
+    }
+  },
+  {
+    theme: 'light',
+    mode: 'contrast',
+    passed: true,
+    before: {
+      x: '4.00deg',
+      y: '-9.00deg',
+      lx: 600,
+      ly: 310,
+      radius: 3990,
+      k: 3,
+      touch: false,
+      w: 1440,
+      h: 800
+    }
+  },
+  {
+    theme: 'light',
+    mode: 'touch',
+    passed: true,
+    before: {
+      x: '4.00deg',
+      y: '-9.00deg',
+      lx: 75,
+      ly: 310,
+      radius: 696,
+      k: 3,
+      touch: true,
+      w: 390,
+      h: 800
+    }
+  },
+  {
+    theme: 'dark',
+    mode: 'reduced',
+    passed: true,
+    before: {
+      x: '0.00deg',
+      y: '0.00deg',
+      lx: 720,
+      ly: 304,
+      radius: 3969,
+      k: 3,
+      touch: false,
+      w: 1440,
+      h: 800
+    }
+  },
+  {
+    theme: 'dark',
+    mode: 'contrast',
+    passed: true,
+    before: {
+      x: '4.00deg',
+      y: '-9.00deg',
+      lx: 720,
+      ly: 304,
+      radius: 3969,
+      k: 3,
+      touch: false,
+      w: 1440,
+      h: 800
+    }
+  },
+  {
+    theme: 'dark',
+    mode: 'touch',
+    passed: true,
+    before: {
+      x: '4.00deg',
+      y: '-9.00deg',
+      lx: 195,
+      ly: 351,
+      radius: 703,
+      k: 3,
+      touch: true,
+      w: 390,
+      h: 800
+    }
+  }
+]

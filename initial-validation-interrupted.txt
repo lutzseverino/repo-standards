@@ -1,0 +1,297 @@
+$ pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture
+$ node scripts/registry.mjs check
+$ astro check
+01:56:50 [content] Syncing content
+01:56:51 [content] Synced content
+01:56:51 [types] Generated 778ms
+01:56:51 [check] Getting diagnostics for Astro files in /home/agent/workspace/site...
+Result (128 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+$ node --test --test-concurrency=1 test/*.test.ts
+✔ each Pages build consumes its own count output; failed counting skips build, upload and deployment (486.52193ms)
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+✔ only deduplicated current default-branch selections count, with every approved exclusion (7.062875ms)
+✔ zero observed adopters is acquired data; incidental mentions and invalid YAML are not adoption (1.707359ms)
+✔ count JSON rejects another run, another attempt, and malformed counts (0.496637ms)
+✔ GitHub acquisition paginates candidates and reads the explicit current default branch (18.785665ms)
+✔ 429 Retry-After and secondary 403 reset headers get bounded backoff with the same token (1.204742ms)
+✔ persistent limits and server cooldowns beyond the window fail without a fallback (1.334255ms)
+✔ one search serves all sources and repository reads are deduplicated across them (2.215176ms)
+✔ an observed 733-second cooldown is honored and fits the total wait cap (0.407468ms)
+✔ the fifteen-minute wait cap is shared by search and metadata reads (0.582358ms)
+✔ incomplete, truncated, refused or malformed search fails acquisition (0.898023ms)
+✔ a vanished current selection is excluded; other content-read failures stop counting (0.829804ms)
+✔ the fixture build exposes the homepage and catalogue to crawlers (4906.232981ms)
+✔ descriptions preserve visible prose without Markdown or HTML syntax (12.638356ms)
+✔ descriptions skip code, lists and standalone ADR notices (3.442259ms)
+✔ descriptions keep short prose and truncate long prose at a word boundary (1.440135ms)
+✔ documents without prose receive a readable title-based fallback (1.304078ms)
+✔ an ADR relationship sentence does not discard the prose that follows it (0.654124ms)
+✔ descriptions skip tables and remove GFM formatting (1.643499ms)
+✔ descriptions preserve HTML prose without tags or hidden content (6.467724ms)
+✔ quoted prose is suitable but nested list text is not (0.940372ms)
+✔ docs text, links and code meet WCAG 2.2 AA in both themes (2.884658ms)
+✔ the header's plate keeps its white legend legible on Verkehrsblau (0.271712ms)
+✔ the docs stylesheet only sets Starlight's custom properties (0.439499ms)
+✔ every published docs page has one useful, page-specific description (328.020737ms)
+✔ llms.txt identifies Repo Standards and links agents to built Markdown (0.383253ms)
+✔ every HTML page advertises built Markdown and llms.txt (321.324453ms)
+✔ sources.json and stable prompts describe exactly the accepted catalogue (30.253134ms)
+✔ page Markdown keeps readable content without the sign's decorative copies (0.37161ms)
+✔ docs Markdown retains source headings and code with absolute links (323.945444ms)
+✔ agent surfaces use the scoped npm package in every install instruction (14.085104ms)
+✔ every usage document and design decision is served with its source title (195.145466ms)
+✔ docs links reach built pages and fragments or the original files on GitHub (361.583081ms)
+✔ one sitemap lists the homepage, How it works and every source page in each locale, and every docs page (207.463288ms)
+✖ the homepage keeps its fixture HTML with acquired counts and ranking (6.354891ms)
+✔ the homepage exposes real acquired counts in descending order with a lower-bound explanation (4.733504ms)
+✔ ranking and count tabs preserve agent surfaces against a build without them (7774.200827ms)
+✔ every page's header has one Support control, which opens a menu (419.758496ms)
+✔ the docs stay English: no language menu, no language script and no EN badge (236.773204ms)
+✔ every page's footer links both pages (373.880635ms)
+✔ the homepage invites support once, with both links (4.332067ms)
+✔ the agent surfaces leave the support links out (4.807052ms)
+✔ docs retain stock search and pagination and load the shared beacon once (189.149101ms)
+✔ docs headers carry the plain title plate linking home (192.574218ms)
+✔ docs code colours meet WCAG 2.2 AA on the code background in both themes (215.647908ms)
+✔ docs and the homepage declare each font face once, from the same files (11.297579ms)
+✔ theme choices survive navigation between the homepage and docs in both directions (16.96871ms)
+✔ nested documents keep their route, title, sidebar and original-file link resolution (7275.590748ms)
+✔ browser fixture regressions require a browser in CI (0.610031ms)
+▶ successful teardown and isolated cleanup failures
+  ✔ success (547.713942ms)
+  ✔ delayed-exit (834.90183ms)
+  ✔ closed-stderr (833.206494ms)
+  ✔ profile (666.380085ms)
+  ✔ server (523.702164ms)
+  ✔ partial (232.964464ms)
+✔ successful teardown and isolated cleanup failures (3641.307936ms)
+▶ process enforcement shares one budget and leaves unrelated processes alone
+  ✔ never (60673.536257ms)
+  ✔ stubborn (60735.367192ms)
+  ✔ server-leak (60697.996039ms)
+  ✔ blocked (60631.986836ms)
+✔ process enforcement shares one budget and leaves unrelated processes alone (60744.722129ms)
+✔ lists use the locale's conjunction and punctuation (12.185593ms)
+✔ counts preserve ungrouped English output and use other locales' number separators (3.011868ms)
+✔ plural selection reaches CLDR categories including Spanish and Catalan many (0.576467ms)
+✔ dates keep English day-month-year order and use Spanish and Catalan month forms (4.350983ms)
+✔ no rule moves a plate's lit copy apart from the plate (1.71353ms)
+✔ a plate's lit copy takes the plate's fitted name, never its own (0.317188ms)
+✔ a page's locale is its first path segment, and its path the English one (1.230389ms)
+✔ a saved choice opens the same page in that language, from any locale (1.048937ms)
+✔ a saved choice wins over the browser's language (0.103294ms)
+✔ a page already in the saved language stays (0.137609ms)
+✔ a saved value that is not a site locale is ignored (0.165673ms)
+✔ with nothing saved, a browser preferring Catalan or Spanish lands on its version of an English page (0.126769ms)
+✔ with nothing saved, a browser preferring English or only unsupported languages stays (0.121228ms)
+✔ with nothing saved, the browser's language never leads away from /es/ or /ca/ (0.160492ms)
+✔ the docs never redirect (0.129284ms)
+✔ a redirect lands on a page that stays: it can't loop (0.521724ms)
+✔ the head's script replaces the location, keeping the query and fragment (3.02314ms)
+✔ the head's script treats unavailable storage as nothing saved, and falls back to the browser's one language (1.73451ms)
+✔ a choice named in the address wins, is saved, and leaves the address (1.58577ms)
+✔ with storage blocked, choosing English from the menu opens English and stays (1.032516ms)
+✔ a choice falls back to the session's storage when the lasting one fails (1.49587ms)
+✔ a choice the lasting storage can't take wins over the older one it holds (2.458775ms)
+✔ where the lasting storage can remove but not write, its stale choice goes (1.02393ms)
+✔ once the lasting storage keeps a choice, no session choice overrides it (1.489388ms)
+✔ the language menu saves one key, and storage that throws loses only the choice (1.205944ms)
+✔ format() reads the English catalogs (2.017143ms)
+✔ format() selects plural variants on the raw count and shows the formatted number (13.629515ms)
+✔ format() throws for a locale the site does not serve (0.311557ms)
+✔ format() throws for an unknown message ID (0.116309ms)
+✔ format() throws for a missing variable instead of showing a fallback (0.35535ms)
+✔ format() throws for a message that doesn't parse (0.251454ms)
+✔ format() throws for a malformed entry (0.142158ms)
+✔ the pseudo-locale wraps and pads each message and keeps its placeholders (45.311863ms)
+✔ strings() finishes messages for an island (0.672848ms)
+✔ rich() leaves a slot for each element, where the message places it (0.435711ms)
+✔ prose() returns a file's body without its front matter (0.151155ms)
+✔ the client's formatter inserts values as they are, without bidi marks (0.142799ms)
+✔ the formatter selects Spanish and Catalan `many` plurals that English lacks (1.117637ms)
+✔ every site page links its English, Spanish and Catalan versions reciprocally (4853.866979ms)
+✔ every site page declares its language in Open Graph and JSON-LD (8.271624ms)
+✔ the sitemap groups site translations and leaves English docs without alternates (10.691506ms)
+✔ every locale's pages use its own social card and translated alt text (2.78493ms)
+✔ the English agent surfaces mention the site languages without linking localized pages (4.728945ms)
+✔ a page built through the layout is canonical at its own URL (0.176222ms)
+✔ the built site has each page in English, Spanish and Catalan, with its locale, and no pseudo-locale (12.806734ms)
+✔ the homepage is canonical at the site root and loads the beacon once (0.60431ms)
+✔ the sign's heading reads the name and the subtitle apart (0.515442ms)
+✔ the How it works page is canonical at its own URL, with its own title and description (0.28105ms)
+✔ the How it works page tells the story, who does what, what fits better and the limits (0.369677ms)
+✔ each comparison on the How it works page links its tool's documentation (0.204635ms)
+✔ the homepage links to the How it works page in its markup, beside the tab (0.334761ms)
+✔ each accepted source has a page, and a rejected candidate none (0.251054ms)
+✔ sources/lutzseverino/repo-canon/ has its own canonical, title, description and JSON-LD (0.395626ms)
+✔ sources/lutzseverino/repo-standards-example/ has its own canonical, title, description and JSON-LD (0.194697ms)
+✔ each source page offers the source's own prompt and command (11.18195ms)
+✔ each source page's release links exactly its version, with the comma touching it (2.344369ms)
+✔ each source page names its whole repository, which a phone can break after each slash (0.468964ms)
+✔ Repo Canon's page names what it provides in searchers' words (0.339109ms)
+✔ every homepage row links to its source's page, and every source page is in the sitemap (0.516584ms)
+✔ the homepage unfurls as itself, with the default social image (0.6579ms)
+✔ a page that passes its own social image unfurls with it (0.154992ms)
+✔ the head applies the stored or system theme as the class and the attribute (2.568242ms)
+✔ the rest script draws the day page at rest (7.442391ms)
+✔ the rest script draws the night page at rest (7.103241ms)
+✔ once the torch has taken over, the fonts change nothing (1.97299ms)
+✔ every site page opens the visitor's language first in its head, and loads the layout's stylesheet first (1.926001ms)
+✔ a built page's language script opens the same page in the saved language (2.39758ms)
+✔ every site page's nav has a language menu naming the page's language, which leads to the same page in each (3.012159ms)
+✔ every site page renders the one shared nav, above the page's column, in its order (61.611773ms)
+✔ in Spanish and Catalan the nav's Docs link carries an EN badge, and in English none (2.090922ms)
+✔ Spanish and Catalan pages show none of the English catalogs' or prose's text (8.156587ms)
+✔ each How it works page's links within itself reach one of its headings (0.47206ms)
+✔ each How it works page gives its sections the English IDs, so a link or redirect to a section opens it in every locale (1.154036ms)
+✔ a browser measures the pages in CI (7866.512335ms)
+✔ / fits a phone at 320, 360 and 390 px, light and dark (19746.539819ms)
+✔ /how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (12714.825694ms)
+✔ /sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (16364.72825ms)
+✔ /sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (17575.106071ms)
+✔ /es/ fits a phone at 320, 360 and 390 px, light and dark (19724.123487ms)
+✔ /es/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (12898.565414ms)
+✔ /es/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (16384.045292ms)
+✔ /es/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (17557.893366ms)
+✔ /ca/ fits a phone at 320, 360 and 390 px, light and dark (19744.41364ms)
+✔ /ca/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (12845.114008ms)
+✔ /ca/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (16297.553802ms)
+✔ /ca/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (17542.675183ms)
+✔ /docs/ fits a phone at 320, 360 and 390 px, light and dark (6654.285981ms)
+✔ /docs/reference/author-format/ fits a phone at 320, 360 and 390 px, light and dark (8037.307717ms)
+✖ /en-xa/ fits a phone at 320, 360 and 390 px, light and dark (383.686861ms)
+✔ /en-xa/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (15614.60916ms)
+✔ /en-xa/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (20147.330303ms)
+✔ /en-xa/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (20757.922983ms)
+✔ at 1280 px the nav spans the window like the docs' header, its controls in their order (803.036625ms)
+✔ on a phone the nav holds the plate, Support's heart and one menu in one row (1732.090525ms)
+✔ on a phone the menu button opens a panel of links, then one language selector and the theme icon (1028.776931ms)
+✔ the panel's language selector opens the language list, which leads to the same page and section (671.769365ms)
+✔ language list placement waits for a prolonged entrance animation (1282.709145ms)
+✔ language list placement rejects a persistent overlap after settling (1266.739396ms)
+✔ the panel's theme menu remembers the chosen appearance, and the panel stays open (282.71249ms)
+✔ the open panel dims the page below it, which doesn't scroll until the panel closes (2192.959413ms)
+✔ the panel follows the disclosure navigation keyboard model, and the arrow keys never open the language list (6855.361809ms)
+✔ / keyboard navigation and rings across the phone matrix (49566.727553ms)
+✔ /how-it-works/ keyboard navigation and rings across the phone matrix (48613.059205ms)
+✖ test/phone-layout.test.ts (421618.817254ms)
+✖ test/pseudo-locale.test.ts
+✖ test/pseudo.test.ts
+✖ test/search-report.test.ts
+✖ test/section-ids.test.ts
+✖ test/sign-clamps.test.ts
+✖ test/social.test.ts
+✖ test/source-page.test.ts
+✖ test/structured-data.test.ts
+✖ test/stylesheets.test.ts
+✖ test/support.test.ts
+✖ test/theme.test.ts
+✖ test/translations.test.ts
+ℹ tests 177
+ℹ suites 0
+ℹ pass 162
+ℹ fail 2
+ℹ cancelled 13
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 522713.653893
+
+✖ failing tests:
+
+test at test/docs.test.ts:392:1
+✖ the homepage keeps its fixture HTML with acquired counts and ranking (6.354891ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338'
+  - '401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699'
+  
+      at TestContext.<anonymous> (file:///home/agent/workspace/site/test/docs.test.ts:496:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338',
+    expected: '401f0c697a39346970e2248dfc4c1ac6a762bbc0f8681c6fbf51b11f41b7d699',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/phone-layout.test.ts:334:3
+✖ /en-xa/ fits a phone at 320, 360 and 390 px, light and dark (383.686861ms)
+  Error: Inspected target navigated or closed
+      at WebSocket.<anonymous> (file:///home/agent/workspace/site/test/browser.ts:104:43)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+      at WebSocket.dispatchEvent (node:internal/event_target:778:26)
+      at fireEvent (node:internal/deps/undici/undici:12652:14)
+      at #onMessage (node:internal/deps/undici/undici:13883:9)
+      at Object.onMessage (node:internal/deps/undici/undici:13596:76)
+      at websocketMessageReceived (node:internal/deps/undici/undici:12656:15)
+      at node:internal/deps/undici/undici:13315:19
+      at node:internal/deps/undici/undici:13135:11
+      at afterWrite (node:internal/streams/writable:708:5)
+
+test at test/phone-layout.test.ts:1:1
+✖ test/phone-layout.test.ts (421618.817254ms)
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/pseudo-locale.test.ts:1:1
+✖ test/pseudo-locale.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/pseudo.test.ts:1:1
+✖ test/pseudo.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/search-report.test.ts:1:1
+✖ test/search-report.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/section-ids.test.ts:1:1
+✖ test/section-ids.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/sign-clamps.test.ts:1:1
+✖ test/sign-clamps.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/social.test.ts:1:1
+✖ test/social.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/source-page.test.ts:1:1
+✖ test/source-page.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/structured-data.test.ts:1:1
+✖ test/structured-data.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/stylesheets.test.ts:1:1
+✖ test/stylesheets.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/support.test.ts:1:1
+✖ test/support.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/theme.test.ts:1:1
+✖ test/theme.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/translations.test.ts:1:1
+✖ test/translations.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+[ELIFECYCLE] Test failed. See above for more details.
+[ELIFECYCLE] Command failed with exit code 1.

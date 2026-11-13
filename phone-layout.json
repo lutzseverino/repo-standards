@@ -1,0 +1,2324 @@
+[
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Support",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menu",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copy",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copy 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-light-open-copy-2.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Support",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menu",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copy",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copy 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-light-open-copy-2.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Support",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menu",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copy",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copy 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-light-open-copy-2.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Support",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menu",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copy",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copy 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "home-320-dark-open-copy-2.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-loaded.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Support",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menu",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copy",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copy 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "home-360-dark-open-copy-2.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Support",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-support.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Support": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menu": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menu",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-menu.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menu, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-menu-then-the-language-list.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menu, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-menu-then-the-theme-choices.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copy",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-copy.png"
+  },
+  {
+    "url": "/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copy 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "home-390-dark-open-copy-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Apoyar",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copiar",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copiar 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-light-open-copiar-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Apoyar",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copiar",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copiar 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-light-open-copiar-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Apoyar",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copiar",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copiar 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-light-open-copiar-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Apoyar",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copiar",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copiar 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "es-320-dark-open-copiar-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-loaded.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Apoyar",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copiar",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copiar 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "es-360-dark-open-copiar-2.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Apoyar",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-apoyar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Apoyar": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-men-.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copiar",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-copiar.png"
+  },
+  {
+    "url": "/es/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copiar 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "es-390-dark-open-copiar-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Dona suport",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copia",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "light",
+    "state": "open: Copia 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-light-open-copia-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Dona suport",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copia",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "light",
+    "state": "open: Copia 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-light-open-copia-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Dona suport",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.220242 -0.00275636 -0.00689968 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.905815 -0.00188766 0.00160645)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.905815 -0.00188766 0.00160645)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copia",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "light",
+    "state": "open: Copia 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-light-open-copia-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "narrowed from 390 px",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-narrowed-from-390-px.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Dona suport",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copia",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 320,
+    "theme": "dark",
+    "state": "open: Copia 2",
+    "scrollWidth": 320,
+    "violations": [],
+    "screenshot": "ca-320-dark-open-copia-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "loaded",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-loaded.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Dona suport",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copia",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 360,
+    "theme": "dark",
+    "state": "open: Copia 2",
+    "scrollWidth": 360,
+    "violations": [],
+    "screenshot": "ca-360-dark-open-copia-2.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Dona suport",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-dona-suport.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "keyboard: Support",
+    "rings": [
+      {
+        "focused": {
+          "name": "GitHub Sponsors",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "Ko-fi": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      },
+      {
+        "focused": {
+          "name": "Ko-fi",
+          "visible": true,
+          "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.838892 -0.00429517 0.0029918 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "outline": "none",
+          "background": "oklab(0.236146 -0.00208739 -0.00419925)"
+        },
+        "others": {
+          "Dona suport": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "oklab(0.397344 -0.00234249 -0.00248953 / 0.3)"
+          },
+          "Menú": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          "GitHub Sponsors": {
+            "shadow": "none",
+            "outline": "none",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-men-.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú, then the language list",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-men-then-the-language-list.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Menú, then the theme choices",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-men-then-the-theme-choices.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copia",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-copia.png"
+  },
+  {
+    "url": "/ca/",
+    "width": 390,
+    "theme": "dark",
+    "state": "open: Copia 2",
+    "scrollWidth": 390,
+    "violations": [],
+    "screenshot": "ca-390-dark-open-copia-2.png"
+  }
+]

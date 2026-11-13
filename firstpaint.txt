@@ -1,0 +1,1 @@
+Both themes: pre-paint script draws 60 faces; hydration preserves every transform, visibility and pose

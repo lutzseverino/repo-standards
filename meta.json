@@ -1,0 +1,12 @@
+{
+  "product": "Chrome/156.0.8078.80",
+  "RUNS": 1,
+  "MOVES": 32,
+  "targets": [
+    [
+      "head",
+      "/home/agent/workspace/site/dist"
+    ]
+  ],
+  "started": "2026-11-13T01:55:53.870Z"
+}

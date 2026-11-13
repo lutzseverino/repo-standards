@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {minifySync} from '/home/agent/workspace/site/node_modules/vite/dist/node/index.js';
+const source=readFileSync('/home/agent/workspace/site/test/docs.test.ts','utf8');
+const a=source.indexOf('  const html = read("index.html")');const b=source.indexOf('  assert.equal(',a);
+const normalize=new Function('read','minifySync','ASTRO_RUNTIME',source.slice(a,b).replace("code: string", "code")+'return html;');
+const htmls=['/tmp/468-baseline-dist','/home/agent/workspace/site/dist'].map(dir=>normalize(file=>readFileSync(dir+'/'+file,'utf8'),minifySync,/astro:load|["`]astro-island["`]/));
+for(const [i,html] of htmls.entries())writeFileSync('/tmp/468-normalized-'+i+'.html',html);
+const strip=html=>html.replace(/ data-clamp-face="[^"]+"/g,'').replace(/<script>[\s\S]*?<\/script>/g,'');
+if(strip(htmls[0])!==strip(htmls[1]))throw new Error('unexpected normalized non-script markup change');
+console.log('Normalized non-script markup identical after removing only data-clamp-face.');console.log(htmls.map(html=>createHash('sha256').update(html).digest('hex')));

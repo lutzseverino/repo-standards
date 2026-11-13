@@ -1,0 +1,26 @@
+[
+  {
+    "theme": "dark",
+    "label": "head",
+    "frameMs": [
+      18.4
+    ],
+    "renderMsPerFrame": [
+      7.32
+    ],
+    "medianFrameMs": 18.4,
+    "medianRenderMsPerFrame": 7.32
+  },
+  {
+    "theme": "light",
+    "label": "head",
+    "frameMs": [
+      16.69
+    ],
+    "renderMsPerFrame": [
+      6.85
+    ],
+    "medianFrameMs": 16.69,
+    "medianRenderMsPerFrame": 6.85
+  }
+]

@@ -1,0 +1,17 @@
+✔ a browser measures the clamps in CI (822.658508ms)
+✔ each clamp sits on its post under its plate at 1440 px, loaded and after a resize (708.723343ms)
+✔ each clamp sits on its post under its plate at 320 px, loaded and after a resize (732.871328ms)
+✔ each clamp sits on its post under its plate at 360 px, loaded and after a resize (717.591723ms)
+✔ each clamp sits on its post under its plate at 390 px, loaded and after a resize (732.155948ms)
+✔ a new rig reconciles faces left by another pose, then follows later turns (607.314173ms)
+✔ each clamp's faces are drawn where the clamp turned in 3D shows them at 1440 px (410.824533ms)
+✔ each clamp's faces are drawn where the clamp turned in 3D shows them at 320 px (434.507801ms)
+✔ corner checks detect a mirrored local axis with unchanged bounds (398.065148ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11375.630061

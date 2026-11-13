@@ -1,0 +1,128 @@
+[
+  {
+    "file": "before-en-1440-dark-pointer-1050-400.png",
+    "pixels": 305103,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 5,
+    "totalChannelDelta": 409144
+  },
+  {
+    "file": "before-en-1440-dark-pointer-400-300.png",
+    "pixels": 0,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-1440-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-1440-light-pointer-1050-400.png",
+    "pixels": 1151,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 6,
+    "totalChannelDelta": 1505
+  },
+  {
+    "file": "before-en-1440-light-pointer-400-300.png",
+    "pixels": 0,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-1440-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 5184000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-320-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1152000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-320-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1152000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-360-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1296000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-360-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1296000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-390-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1404000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-en-390-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1404000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-320-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1152000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-320-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1152000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-360-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1296000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-360-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1296000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-390-dark-rest.png",
+    "pixels": 0,
+    "totalPixels": 1404000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  },
+  {
+    "file": "before-pseudo-390-light-rest.png",
+    "pixels": 0,
+    "totalPixels": 1404000,
+    "maxChannelDelta": 0,
+    "totalChannelDelta": 0
+  }
+]
