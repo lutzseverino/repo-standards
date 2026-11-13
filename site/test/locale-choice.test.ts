@@ -3,8 +3,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import vm from "node:vm";
-import { localeChoice, localeScript } from "../src/i18n/choice.ts";
+import { bundledScript } from "./prepaint-scripts.ts";
+
+import { localeChoice } from "../src/i18n/choice.ts";
 import { LOCALES } from "../src/i18n/locales.ts";
+
+const localeScript = await bundledScript("locale");
 
 const { redirect, page } = localeChoice(LOCALES);
 const PAGES = [
@@ -194,7 +198,7 @@ function runScript(
     URLSearchParams,
   };
   window.window = window;
-  vm.runInNewContext(localeScript(), window);
+  vm.runInNewContext(localeScript, window);
   return {
     replaced,
     addressed,

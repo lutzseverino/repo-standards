@@ -1,22 +1,21 @@
 // The posts end behind the guardrail: each foot ends under the rail's bar
 // where the post crosses it, so it disappears behind and below the rail at
-// any width and tilt. It runs before the first paint (rig.ts `restScript`)
-// and whenever the page changes size. The inline copy is the function's
-// source, so it must reference nothing outside its own body: the rail's
-// curve comes in as `railAt`, in the rail SVG's coordinates, with the base
-// line it is drawn on.
-export function sinkPosts(
-  assembly: HTMLElement,
-  rail: SVGSVGElement,
-  railAt: (x: number) => number,
-  base: number,
-) {
+// any width and tilt. It runs before the first paint (prepaint/rest.ts)
+// and whenever the page changes size.
+import { HERO_RAIL_BASE, HERO_RAIL_WIDTH, heroBend } from "./rail-curve";
+
+export function sinkPosts(assembly: HTMLElement) {
+  const rail = document.querySelector<SVGSVGElement>("svg.sign-hero-rail");
+  if (!rail) return;
   const s = rail.getBoundingClientRect();
   const a = assembly.getBoundingClientRect();
   for (const tube of assembly.querySelectorAll<HTMLElement>(".sign-tube")) {
     tube.style.bottom = "0px";
     const r = tube.getBoundingClientRect();
-    const railY = s.top + base + railAt(r.left + r.width / 2 - s.left);
+    const railY =
+      s.top +
+      HERO_RAIL_BASE +
+      heroBend(r.left + r.width / 2 - s.left, HERO_RAIL_WIDTH);
     // into the ground under the bar, so the tilt never shows the end
     tube.style.bottom = `${(a.bottom - railY - 6).toFixed(1)}px`;
   }
@@ -27,8 +26,7 @@ export function sinkPosts(
 // gradient for each theme; the clamps under each plate, and the angles the
 // eye sees them from; and how much of each plate's folded edge the eye,
 // below the sign, sees under it (sign.css). It runs with `sinkPosts`, and
-// like it, the rest script inlines its source, so it must reference nothing
-// outside its own body.
+// both pre-paint initialization and hydrated layout use the same helpers.
 export function dressPosts(assembly: HTMLElement) {
   const posts = assembly.querySelector<HTMLElement>(".sign-posts");
   if (!posts) return;
