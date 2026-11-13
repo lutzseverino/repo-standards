@@ -8,6 +8,11 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { MenuIcon, XIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/components/app/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/app/collapsible";
 import type { Strings } from "@/i18n/ids";
 import { localePath, type Locale, type SiteLocale } from "@/i18n/locales";
 import { cn } from "@/lib/utils";
@@ -193,8 +198,10 @@ function NavMenu({
   };
 
   return (
-    <div
-      className="min-[50rem]:hidden"
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="phone-nav min-[50rem]:hidden"
       onBlur={(event) => {
         // focus left for the page, not for the panel, its button or the
         // language list it opened
@@ -207,26 +214,23 @@ function NavMenu({
           dismiss();
       }}
     >
-      <Button
+      <CollapsibleTrigger
         ref={button}
-        variant="ghost"
-        size="icon"
+        render={<Button variant="ghost" size="icon" />}
         aria-label={strings["common.nav.menu"]}
-        aria-expanded={open}
         aria-controls={PANEL}
-        onClick={() => setOpen(!open)}
         onKeyDown={onButtonKeyDown}
       >
         {open ? <XIcon aria-hidden="true" /> : <MenuIcon aria-hidden="true" />}
-      </Button>
-      {open && (
-        <div className="absolute inset-x-0 top-full z-40">
-          <div
-            id={PANEL}
-            ref={panel}
-            className="border-y bg-background"
-            onKeyDownCapture={onPanelKeyDown}
-          >
+      </CollapsibleTrigger>
+      <div className="absolute inset-x-0 top-full z-40">
+        <CollapsibleContent
+          id={PANEL}
+          ref={panel}
+          inert={!open}
+          onKeyDownCapture={onPanelKeyDown}
+        >
+          <div className="border-y bg-background">
             <ul className="p-2">
               <li>
                 <DocsLink
@@ -286,14 +290,16 @@ function NavMenu({
               />
             </div>
           </div>
-          {/* the page below, dimmed; a tap on it closes the panel */}
-          <div
-            aria-hidden="true"
-            className="h-dvh bg-black/40 dark:bg-black/60"
-            onClick={dismiss}
-          />
-        </div>
-      )}
-    </div>
+        </CollapsibleContent>
+        {/* Its visibility follows the panel's mounted lifecycle in CSS, so
+            the exit finishes before the dimmed page disappears too. */}
+        <div
+          data-nav-scrim=""
+          aria-hidden="true"
+          className="h-dvh bg-black/40 dark:bg-black/60"
+          onClick={dismiss}
+        />
+      </div>
+    </Collapsible>
   );
 }

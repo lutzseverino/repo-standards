@@ -43,4 +43,46 @@
   ):focus-visible {
     @apply ring-3 ring-ring/50;
   }
+
+  /* Seam (deferred): phone-nav motion; consumers: 1; extract at 3.
+     The repository owns these values (ADR 0032); Base UI owns the mounted
+     lifecycle and measured height. Keep the scrim outside the clipping
+     panel, directly after it, so its top follows the revealing edge. */
+  .phone-nav [data-slot="collapsible-content"] {
+    height: var(--collapsible-panel-height);
+    overflow: hidden;
+    transition: height 200ms ease-out;
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      height: 0;
+    }
+  }
+
+  .phone-nav [data-nav-scrim] {
+    display: none;
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+  }
+
+  .phone-nav [data-slot="collapsible-content"] + [data-nav-scrim] {
+    display: block;
+    opacity: 1;
+  }
+
+  .phone-nav
+    [data-slot="collapsible-content"]:is(
+      [data-starting-style],
+      [data-ending-style]
+    )
+    + [data-nav-scrim] {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .phone-nav [data-slot="collapsible-content"],
+    .phone-nav [data-nav-scrim] {
+      transition: none;
+    }
+  }
 }

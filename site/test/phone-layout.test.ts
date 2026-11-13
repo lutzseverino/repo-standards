@@ -177,6 +177,9 @@ test("a browser measures the pages in CI", () => {
  * end, and for two more frames. */
 const still = (tab: Tab) =>
   tab.evaluate(async () => {
+    // A disclosure can schedule its exit transition over the next frames.
+    // Let that transition register before collecting animations to await.
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
     await Promise.all(
       document
         .getAnimations()
@@ -656,8 +659,8 @@ const panelOf = (tab: Tab) =>
     };
   });
 
-/** Taps the nav's menu button on a phone, then waits a frame. */
-const tapMenu = (tab: Tab) =>
+/** Toggles the disclosure without waiting for its motion to finish. */
+const toggleMenu = (tab: Tab) =>
   tab.evaluate(async () => {
     (
       document.querySelector(
@@ -666,6 +669,258 @@ const tapMenu = (tab: Tab) =>
     ).click();
     for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
   });
+
+/** Taps the nav's menu button and waits for the completed transition. */
+async function tapMenu(tab: Tab) {
+  await toggleMenu(tab);
+  await still(tab);
+}
+
+for (const theme of THEMES)
+  test(
+    `the phone sheet reveals its height and fades the scrim for 200 ms in both directions (${theme})`,
+    { skip },
+    async () => {
+      const tab = await openTab(`${base.production}/how-it-works/`, {
+        width: 320,
+        theme,
+      });
+      try {
+        for (const direction of ["opening", "closing"] as const) {
+          await toggleMenu(tab);
+          const motion = await tab.evaluate(async () => {
+            const panel = document.getElementById("nav-menu");
+            const scrim = panel?.nextElementSibling;
+            const animations = [panel, scrim].flatMap(
+              (element) => element?.getAnimations() ?? [],
+            );
+            const timings = animations.map((animation) => ({
+              property: (animation as CSSTransition).transitionProperty,
+              duration: animation.effect!.getTiming().duration,
+              easing: animation.effect!.getTiming().easing,
+            }));
+            // Freeze at the middle of the actual browser transitions, so the
+            // measurement and screenshot capture the same intermediate paint.
+            for (const animation of animations) {
+              animation.pause();
+              animation.currentTime = 100;
+            }
+            await new Promise(requestAnimationFrame);
+            return {
+              timings,
+              height: panel?.getBoundingClientRect().height ?? 0,
+              fullHeight: panel?.scrollHeight ?? 0,
+              opacity: scrim ? Number(getComputedStyle(scrim).opacity) : 0,
+            };
+          });
+          assert.deepEqual(
+            motion.timings,
+            ["height", "opacity"].map((property) => ({
+              property,
+              duration: 200,
+              easing: "ease-out",
+            })),
+            direction,
+          );
+          assert.ok(motion.height > 0, `${direction}: visible sheet`);
+          assert.ok(
+            motion.height < motion.fullHeight,
+            `${direction}: intermediate height`,
+          );
+          assert.ok(
+            motion.opacity > 0 && motion.opacity < 1,
+            `${direction}: intermediate scrim`,
+          );
+          if (reportTo) {
+            const screenshot = `nav-motion-${theme}-${direction}.png`;
+            await tab.screenshot(path.join(reportTo, screenshot));
+            measurements.push({
+              state: `nav: ${direction}`,
+              theme,
+              ...motion,
+              screenshot,
+            });
+          }
+          await tab.evaluate(() => {
+            const panel = document.getElementById("nav-menu");
+            for (const element of [panel, panel?.nextElementSibling])
+              element?.getAnimations().forEach((animation) => animation.play());
+          });
+          await still(tab);
+          const settled = await panelOf(tab);
+          assert.equal(settled.expanded, String(direction === "opening"));
+          if (direction === "closing") assert.deepEqual(settled.controls, []);
+        }
+      } finally {
+        await tab.close();
+      }
+    },
+  );
+
+test(
+  "the server's closed phone disclosure exposes only its trigger",
+  { skip },
+  async () => {
+    const html = await (await fetch(`${base.production}/how-it-works/`)).text();
+    const tab = await openTab(`${base.production}/how-it-works/`, {
+      width: 320,
+      theme: "light",
+    });
+    try {
+      assert.deepEqual(
+        await tab.evaluate((html: string) => {
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          const trigger = doc.querySelector(
+            "nav button[aria-controls=nav-menu]",
+          )!;
+          return [
+            trigger.getAttribute("aria-expanded"),
+            doc.getElementById("nav-menu"),
+            trigger.parentElement!.querySelectorAll("a, button").length,
+          ];
+        }, html),
+        ["false", null, 1],
+      );
+    } finally {
+      await tab.close();
+    }
+  },
+);
+
+for (const reduced of [false, true])
+  test(
+    `rapid phone sheet reversals settle into the latest state${reduced ? " with reduced motion" : ""}`,
+    { skip },
+    async () => {
+      const tab = await openTab(`${base.production}/how-it-works/`, {
+        width: 320,
+        theme: "dark",
+      });
+      try {
+        await tab.send("Emulation.setEmulatedMedia", {
+          features: [
+            { name: "prefers-color-scheme", value: "dark" },
+            {
+              name: "prefers-reduced-motion",
+              value: reduced ? "reduce" : "no-preference",
+            },
+          ],
+        });
+        // Open-close-open, then close-open-close, during the transitions.
+        for (const latest of [true, false]) {
+          for (let i = 0; i < 3; i++) {
+            await toggleMenu(tab);
+            const state = await tab.evaluate(async () => {
+              for (let j = 0; j < 2; j++)
+                await new Promise(requestAnimationFrame);
+              const trigger = document.querySelector(
+                "nav button[aria-controls=nav-menu]",
+              )!;
+              const panel = document.getElementById("nav-menu");
+              return {
+                open: trigger.getAttribute("aria-expanded") === "true",
+                reachable: !!panel && !panel.inert,
+              };
+            });
+            assert.equal(
+              state.reachable,
+              state.open,
+              "closing controls immediately leave the focus order",
+            );
+          }
+          await still(tab);
+          const state = await tab.evaluate(() => {
+            const panel = document.getElementById("nav-menu");
+            const scrim = document.querySelector("[data-nav-scrim]")!;
+            return {
+              expanded: document
+                .querySelector("nav button[aria-controls=nav-menu]")!
+                .getAttribute("aria-expanded"),
+              mounted: panel !== null,
+              height: panel?.getBoundingClientRect().height,
+              fullHeight: panel?.scrollHeight,
+              scrim: scrim.checkVisibility(),
+              opacity: Number(getComputedStyle(scrim).opacity),
+              overflow: getComputedStyle(document.documentElement).overflow,
+            };
+          });
+          assert.equal(state.expanded, String(latest));
+          assert.equal(state.mounted, latest);
+          assert.equal(state.scrim, latest);
+          assert.equal(state.opacity, Number(latest));
+          assert.equal(state.overflow, latest ? "hidden" : "visible");
+          if (latest) assert.equal(state.height, state.fullHeight);
+        }
+      } finally {
+        await tab.close();
+      }
+    },
+  );
+
+test(
+  "reduced motion opens and closes the phone sheet instantly and preserves nested Escape",
+  { skip },
+  async () => {
+    for (const theme of THEMES) {
+      const tab = await openTab(`${base.production}/how-it-works/`, {
+        width: 320,
+        theme,
+      });
+      try {
+        await tab.send("Emulation.setEmulatedMedia", {
+          features: [
+            { name: "prefers-color-scheme", value: theme },
+            { name: "prefers-reduced-motion", value: "reduce" },
+          ],
+        });
+        for (const key of ["Enter", " "] as const) {
+          await focusMenu(tab);
+          for (const open of [true, false]) {
+            await tab.press(key);
+            const state = await tab.evaluate(async () => {
+              // No animation-completion wait: the next paint is settled.
+              await new Promise(requestAnimationFrame);
+              const panel = document.getElementById("nav-menu");
+              const scrim = document.querySelector("[data-nav-scrim]")!;
+              return {
+                mounted: !!panel,
+                height: panel?.getBoundingClientRect().height,
+                fullHeight: panel?.scrollHeight,
+                opacity: Number(getComputedStyle(scrim).opacity),
+                scrim: scrim.checkVisibility(),
+                animations: [panel, scrim].flatMap(
+                  (element) => element?.getAnimations() ?? [],
+                ).length,
+                overflow: getComputedStyle(document.documentElement).overflow,
+              };
+            });
+            assert.equal(state.mounted, open, `${theme}: ${key}`);
+            assert.equal(state.scrim, open);
+            assert.equal(state.opacity, Number(open));
+            assert.equal(state.animations, 0);
+            assert.equal(state.overflow, open ? "hidden" : "visible");
+            if (open) assert.equal(state.height, state.fullHeight);
+          }
+        }
+        await tab.press("Enter");
+        await tab.press("ArrowDown");
+        await tab.press("End");
+        await tab.press("Enter");
+        await still(tab);
+        await tab.press("Escape");
+        await still(tab);
+        assert.equal((await focusOf(tab)).panel, "true");
+        assert.equal((await focusOf(tab)).focus, "Theme");
+        await tab.press("Escape");
+        await still(tab);
+        assert.equal((await focusOf(tab)).panel, "false");
+        assert.equal((await focusOf(tab)).focus, "Menu");
+      } finally {
+        await tab.close();
+      }
+    }
+  },
+);
 
 /** Clicks the control in the open panel or list that `name` names, by its
  * label or text, then waits a frame. */
@@ -984,6 +1239,7 @@ test(
         (document.elementFromPoint(195, 780) as HTMLElement).click();
         for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
       });
+      await still(tab);
       const closed = await panelOf(tab);
       assert.equal(closed.expanded, "false", theme);
       assert.equal((await covered()).scrim, false, theme);
