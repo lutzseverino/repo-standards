@@ -21,7 +21,8 @@ its end. The selector shows the page's language by its own name, with a
 chevron, and opens the language list below it. The theme toggle shows its
 icon alone and keeps its description as its accessible name. The page below
 the sheet is dimmed, 40% black by day and 60% by night, doesn't scroll, and
-closes the sheet when tapped. Nothing animates.
+closes the sheet when tapped. The motion follows the November 12 amendment
+below.
 
 The sheet is a disclosure of plain links and buttons inside the nav, not a
 menu, following the APG disclosure navigation pattern. Up and Down Arrow, Home
@@ -50,3 +51,15 @@ preferences take three taps on a phone. Escape dismisses either preference
 menu before the sheet and restores its trigger. This replaces the two-way
 theme toggle and its description; the remaining disclosure conventions stay
 as above.
+
+Amended for [#465](https://github.com/lutzseverino/repo-standards/issues/465)
+by the owner's [2026-11-12 decision](https://github.com/lutzseverino/repo-standards/issues/465#issuecomment-6832262010):
+"Let's follow your recommendations." The registry's Collapsible supplies the
+disclosure lifecycle through ADR 0028's app layer. Opening expands the panel
+downward from the header to its content height; closing collapses it back.
+The scrim fades concurrently. Both use **200 ms ease-out**, opening and
+closing, with the exit visible until it finishes. Under
+`prefers-reduced-motion: reduce`, both directions are instant, with no panel
+motion or scrim fade. This replaces the original no-animation decision only;
+the final layout, non-modal disclosure and nested preference menus remain as
+above, with no new public motion setting.
