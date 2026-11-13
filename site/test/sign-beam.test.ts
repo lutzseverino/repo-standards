@@ -113,6 +113,16 @@ async function open(theme: "light" | "dark") {
   });
 
   await tab.goto(`${base}/`);
+  await tab.evaluate(async () => {
+    const deadline = performance.now() + 15_000;
+    while (
+      !window.beamWrites.some((w) => w.hydrated && w.target.startsWith("plate"))
+    ) {
+      if (performance.now() >= deadline)
+        throw new Error("the hydrated torch never wrote a reachable plate");
+      await new Promise(requestAnimationFrame);
+    }
+  });
   return tab;
 }
 
