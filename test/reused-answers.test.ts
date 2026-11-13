@@ -1,12 +1,24 @@
-import type { AdoptReport, ScopeProposal, Status } from "./json-reports.ts";
+import type {
+  AdoptReport,
+  ErrorReport,
+  Inspection,
+  ScopeProposal,
+  Status,
+} from "./json-reports.ts";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { validateMetadata } from "./pr-metadata.ts";
 import { directoryFixture, installCli } from "./installed-cli.ts";
-import { commit, git, operation } from "./remote-fixture.ts";
+import { commit, git, manifest, operation } from "./remote-fixture.ts";
 import {
   committedState,
   rewriteCommittedState,
@@ -315,6 +327,248 @@ test("changed discovery guidance, rules, draft or a deleted path proposes the re
     ).coverage,
     coverage,
   );
+});
+
+test("an update proposes recorded empty evidence for review after adoption creates the files", async (t) => {
+  const discovery = {
+    kind: "repository",
+    guidance: "guidance.md",
+    discovery: "discovery.md",
+    "discovery-script": (({ id: _id, ...script }) => script)(
+      operation("draft", { script: "draft.mjs" }),
+    ),
+  };
+  const declarations = { "created-docs": discovery, "stable-docs": discovery };
+  const files = {
+    "guidance.md": "Document the project.\n",
+    "discovery.md": "Include the documentation and the package manifest.\n",
+    "draft.mjs": `import { existsSync, readFileSync } from 'node:fs';
+const input = JSON.parse(readFileSync(0, 'utf8'));
+const paths = input.declaration === 'created-docs'
+  ? ['docs/README.md', 'guide.txt'] : ['package.json'];
+console.log(JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+  id: input.declaration,
+  coverage: 'The project documentation and manifest.',
+  candidates: paths.map(path => ({ path, decision: 'include',
+    reason: 'The project needs this file.', evidence: existsSync(path) ? [path] : [] })),
+  unresolved: [],
+}] }));
+`,
+  };
+  const f = await fixture(t, cli, declarations, {
+    project: { "package.json": "{}\n" },
+    files,
+  });
+  const initial = f.adopt([source]);
+  assert.equal(initial.result.status, 0, initial.result.stdout);
+  const historical = question(initial.report, "scope:created-docs")
+    .answer as Omit<ScopeProposal["declarations"][number], "id">;
+  assert.deepEqual(
+    historical.candidates.map(({ evidence }) => evidence),
+    [[], []],
+  );
+  const started = untilStarted(f, [source], {}, false);
+  assert.equal(started.outcome, "contextual");
+  mkdirSync(join(f.root, "docs"));
+  writeFileSync(join(f.root, "docs/README.md"), "# Documentation\n");
+  writeFileSync(join(f.root, "guide.txt"), "Project guide\n");
+  const review = {
+    status: "valid",
+    explanation: "The documentation and manifest cover this project.",
+    evidence: ["Reviewed the documentation and package.json."],
+    additionalPaths: [],
+  };
+  const judgment = {
+    status: "satisfied",
+    explanation: "The project is documented.",
+    evidence: ["Reviewed docs/README.md, guide.txt and package.json."],
+    scopeValidity: { afterFixes: review, current: review },
+  };
+  complete(f, started, {
+    "assessment:created-docs": judgment,
+    "assessment:stable-docs": judgment,
+  });
+  assert.equal(git(f.root, "status", "--porcelain"), "");
+  const before = pinned(f, ["status", "--json"]);
+  const inspected = JSON.parse(pinned(f, ["inspect", "--json"])) as Inspection;
+  const { id: _id, ...fresh } = inspected.discovery!.draft!.declarations.find(
+    ({ id }) => id === "created-docs",
+  )!;
+  assert.deepEqual(
+    fresh.candidates.map(({ evidence }) => evidence),
+    [["docs/README.md"], ["guide.txt"]],
+  );
+  const proposed = (args: string[]) => {
+    const { result, report } = f.adopt(args, true);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(report.outcome, "answers-required");
+    assert.deepEqual(report.missing, ["scope:created-docs"]);
+    assert.equal(report.run, undefined);
+    const scope = question(report, "scope:created-docs");
+    assert.deepEqual(scope.answer, historical);
+    assert.match(scope.context, /proposed here for review/);
+    assert.match(scope.context, /draft changed/);
+    assert.deepEqual((scope.details as { draft: unknown }).draft, fresh);
+    assert.ok(!ids(report).includes("scope:created-docs"));
+    assert.ok(ids(report).includes("scope:stable-docs"));
+    assert.equal(pinned(f, ["status", "--json"]), before);
+    assert.equal(git(f.root, "status", "--porcelain"), "");
+    return report;
+  };
+  const template = proposed([]);
+  proposed([]);
+  proposed([source, "--standards-version", "v1.0.0"]);
+  const plain = pinned(f, ["adopt"]);
+  assert.match(plain, /scope:created-docs/);
+  assert.match(plain, /proposed here for review/);
+  assert.equal(pinned(f, ["status", "--json"]), before);
+  assert.equal(git(f.root, "status", "--porcelain"), "");
+
+  // Explicitly carrying back stale evidence is still invalid, whether the
+  // existing candidate is included or excluded.
+  for (const decision of ["include", "exclude"] as const) {
+    const invalid = f.adopt(
+      f.answer(template.answers, {
+        "scope:created-docs": {
+          ...historical,
+          candidates: historical.candidates.map((candidate) => ({
+            ...candidate,
+            decision,
+          })),
+        },
+      }),
+      true,
+    );
+    assert.equal(invalid.result.status, 1);
+    const error = JSON.parse(invalid.result.stdout) as ErrorReport;
+    assert.equal(error.errors[0]!.code, "INVALID_SCOPE");
+    assert.match(error.errors[0]!.message, /requires at least one evidence/);
+    assert.equal(pinned(f, ["status", "--json"]), before);
+  }
+  // Historical evidence must not mask a failure in fresh discovery either.
+  f.remote.addVersion("v1.1.0", manifest(declarations), {
+    ...files,
+    "draft.mjs": "process.exit(1);\n",
+  });
+  const failed = f.adopt([source, "--standards-version", "v1.1.0"], true);
+  assert.equal(failed.result.status, 1);
+  const error = JSON.parse(failed.result.stdout) as ErrorReport;
+  assert.equal(error.errors[0]!.code, "DISCOVERY_SCRIPT_FAILED");
+  assert.equal(pinned(f, ["status", "--json"]), before);
+  assert.equal(git(f.root, "status", "--porcelain"), "");
+
+  const corrected = f.adopt(
+    f.answer(template.answers, { "scope:created-docs": fresh }),
+    true,
+  );
+  assert.equal(corrected.result.status, 0, corrected.result.stdout);
+  assert.equal(corrected.report.outcome, "complete");
+  assert.ok(!ids(corrected.report).includes("scope:created-docs"));
+  assert.ok(ids(corrected.report).includes("scope:stable-docs"));
+  const final = JSON.parse(pinned(f, ["status", "--json"])) as Status;
+  assert.deepEqual(
+    final.scopeProposal!.declarations.find(({ id }) => id === "created-docs"),
+    { id: "created-docs", ...fresh },
+  );
+});
+
+test("an update proposes a recorded candidate the agent added without evidence once it exists, even with an unchanged draft", async (t) => {
+  const discovery = {
+    kind: "repository",
+    guidance: "guidance.md",
+    discovery: "discovery.md",
+    "discovery-script": (({ id: _id, ...script }) => script)(
+      operation("draft", { script: "draft.mjs" }),
+    ),
+  };
+  const declarations = { "added-docs": discovery };
+  const f = await fixture(t, cli, declarations, {
+    project: { "package.json": "{}\n" },
+    files: {
+      "guidance.md": "Document the project.\n",
+      "discovery.md": "Include the package manifest and the project notes.\n",
+      "draft.mjs": `import { readFileSync } from 'node:fs';
+const input = JSON.parse(readFileSync(0, 'utf8'));
+console.log(JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+  id: input.declaration,
+  coverage: 'The package manifest.',
+  candidates: [{ path: 'package.json', decision: 'include',
+    reason: 'The project manifest.', evidence: ['package.json'] }],
+  unresolved: [],
+}] }));
+`,
+    },
+  });
+  // The agent adds a file to create, which the script never drafts.
+  const notes = {
+    path: "notes.md",
+    decision: "include",
+    reason: "The project needs notes.",
+  };
+  const historical = {
+    coverage: "The package manifest and the project notes.",
+    candidates: [
+      { ...notes, evidence: [] },
+      {
+        path: "package.json",
+        decision: "include",
+        reason: "The project manifest.",
+        evidence: ["package.json"],
+      },
+    ],
+    unresolved: [],
+  };
+  const started = untilStarted(
+    f,
+    [source],
+    { "scope:added-docs": historical },
+    false,
+  );
+  assert.equal(started.outcome, "contextual");
+  writeFileSync(join(f.root, "notes.md"), "# Notes\n");
+  const review = {
+    status: "valid",
+    explanation: "The manifest and notes cover this project.",
+    evidence: ["Reviewed notes.md and package.json."],
+    additionalPaths: [],
+  };
+  const judgment = {
+    status: "satisfied",
+    explanation: "The project is documented.",
+    evidence: ["Reviewed notes.md and package.json."],
+    scopeValidity: { afterFixes: review, current: review },
+  };
+  complete(f, started, { "assessment:added-docs": judgment });
+  const before = pinned(f, ["status", "--json"]);
+
+  const { result, report } = f.adopt([], true);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(report.outcome, "answers-required");
+  assert.deepEqual(report.missing, ["scope:added-docs"]);
+  assert.equal(report.run, undefined);
+  assert.ok(!ids(report).includes("scope:added-docs"));
+  const scope = question(report, "scope:added-docs");
+  assert.deepEqual(scope.answer, historical);
+  assert.match(scope.context, /proposed here for review/);
+  assert.match(scope.context, /now exist without evidence: notes\.md/);
+  assert.equal(pinned(f, ["status", "--json"]), before);
+  assert.equal(git(f.root, "status", "--porcelain"), "");
+
+  const corrected = f.adopt(
+    f.answer(report.answers, {
+      "scope:added-docs": {
+        ...historical,
+        candidates: [
+          { ...notes, evidence: ["notes.md"] },
+          historical.candidates[1],
+        ],
+      },
+    }),
+    true,
+  );
+  assert.equal(corrected.result.status, 0, corrected.result.stdout);
+  assert.ok(!ids(corrected.report).includes("scope:added-docs"));
+  assert.deepEqual(corrected.report.missing, []);
 });
 
 test("assessments are reused only while their rules and scoped files are unchanged, including by the run's fixes", async (t) => {

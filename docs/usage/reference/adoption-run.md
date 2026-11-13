@@ -142,7 +142,8 @@ provably unchanged:
 - A `scope:<declaration>` answer, when the declaration's discovery guidance and
   rules are hash-identical to the recorded ones, its discovery script's fresh
   draft equals the draft the recorded entry was decided from, and every
-  candidate and evidence path the entry names still exists. A declaration
+  candidate and evidence path the entry names still exists, with evidence for
+  every candidate. A declaration
   without a discovery script has no draft. Both readable scope-evidence formats
   retain the drafts. The inspection binds a reused entry as it binds any scope
   answer.

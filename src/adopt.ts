@@ -858,8 +858,10 @@ async function prepare(
   // Once the answers file supplies every scope entry, inspection reads them as
   // one proposal, written outside the project, and validates each; an entry
   // is complete once it has no open question. A recorded entry whose named
-  // paths all exist stands in for an unanswered one, so that inspection
-  // compares the fresh draft with it.
+  // paths all exist and whose candidates have evidence stands in for an
+  // unanswered one. Empty evidence may have been valid for a missing file;
+  // once it exists, inspect without that historical proposal so its fresh
+  // draft can be compared before asking the agent to correct the answer.
   const scopeAnswer = (id: string) => {
     const answer = answeredScope(id);
     if (answer) return answer;
@@ -867,6 +869,7 @@ async function prepare(
     const entry = recordedScope.get(id);
     return entry &&
       entryPathsExist(root, entry) &&
+      entry.candidates.every((candidate) => candidate.evidence.length > 0) &&
       (!entry.noScope || optional.has(id))
       ? record(entry)
       : undefined;

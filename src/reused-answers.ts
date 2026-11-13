@@ -128,7 +128,8 @@ function rulesOf(declarations: readonly unknown[] | undefined, id: string) {
 // Classifies the scope answer the last complete adoption recorded for a
 // discovery declaration. It is reused when the discovery guidance and rules
 // are hash-identical to the recorded ones, the fresh draft matches the
-// recorded scope evidence, and every path the entry names still exists.
+// recorded scope evidence, every path the entry names still exists, and
+// every candidate that exists has evidence.
 export function classifyScope(
   root: string,
   recorded: RecordedAdoption | undefined,
@@ -186,6 +187,14 @@ export function classifyScope(
   const missing = paths.filter((path) => absent(root, path));
   if (missing.length)
     changed.push(`Recorded paths no longer exist: ${missing.join(", ")}.`);
+  // Empty evidence holds only for a candidate that does not exist yet.
+  const unevidenced = answer.candidates
+    .filter(({ path, evidence }) => !evidence.length && !absent(root, path))
+    .map(({ path }) => path);
+  if (unevidenced.length)
+    changed.push(
+      `Recorded candidates now exist without evidence: ${unevidenced.join(", ")}.`,
+    );
   return changed.length
     ? { answer, changed }
     : {
