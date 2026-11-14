@@ -205,8 +205,9 @@ export function lightRig() {
           y: r.top + sy,
           // the layout size, for how far the beam reaches
           ...layoutSize(el),
-          // a post has no lit copy: it takes the beam itself (sign.css)
-          lit: copy ?? (el.classList.contains("sign-tube") ? el : null),
+          // Only at night does a post draw the beam itself (sign.css).
+          lit:
+            copy ?? (!day() && el.classList.contains("sign-tube") ? el : null),
           inside: copy
             ? [...copy.querySelectorAll<HTMLElement>(LIT_LAYERS)].filter(
                 displayed,
@@ -230,7 +231,8 @@ export function lightRig() {
       const s = o.el.style;
       s.setProperty("--ox", `${o.x.toFixed(1)}px`);
       s.setProperty("--oy", `${o.y.toFixed(1)}px`);
-      if (o.lit) o.el.classList.remove("sign-lit-off");
+      if (o.lit || o.el.classList.contains("sign-tube"))
+        o.el.classList.remove("sign-lit-off");
     }
     origins = next;
     rails = nextRails;
@@ -265,11 +267,15 @@ export function lightRig() {
     const props: [string, string][] = [
       ["--brx", `${ex}px`],
       ["--bry", `${ey}px`],
+      ["--gain", Math.max(0.6, cos * cos).toFixed(3)],
+    ];
+    // Only the plate's mask draws the brighter inner ellipse. Posts read
+    // the outer footprint and gain, never these four values.
+    const plateProps: [string, string][] = [
       ["--hrx", `${hx.toFixed(0)}px`],
       ["--hry", `${hy.toFixed(0)}px`],
       ["--hx", `${(near * cosA).toFixed(1)}px`],
       ["--hy", `${(near * sinA).toFixed(1)}px`],
-      ["--gain", Math.max(0.6, cos * cos).toFixed(3)],
     ];
 
     // the edges' gradient is fixed to the viewport, so they take the aim
@@ -329,6 +335,8 @@ export function lightRig() {
       s.setProperty("--lx", lx);
       s.setProperty("--ly", ly);
       for (const [name, value] of props) s.setProperty(name, value);
+      if (o.lit !== o.el)
+        for (const [name, value] of plateProps) s.setProperty(name, value);
       // the layers inside read only the aim point and the radius
       for (const layer of o.inside) {
         layer.style.setProperty("--lx", lx);

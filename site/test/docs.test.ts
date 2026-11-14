@@ -443,6 +443,8 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // rig's geometry dispatch and first-tilt visibility cache. The independent
   // browser checks cover their rendering and orientation; other normalized
   // non-script markup is unchanged after removing those attributes.
+  // #469 changes only the inlined rig's beam recipients and property lists.
+  // Substituting the base rest script restores the preceding baseline hash.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -499,7 +501,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "996723f1023796161ec4d844e2525f71ea8a2d3f1e6877c2d537495812484338",
+    "3a1fd40edfeb3bc335e4a67210172e298441b0a53f2ae1ebe1992c15d71a3ead",
   );
 });
 
