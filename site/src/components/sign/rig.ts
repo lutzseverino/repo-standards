@@ -344,8 +344,8 @@ export function lightRig() {
     );
     const across = [1, 0, 0];
     const down = [0, 1, 0];
-    // Seam (deferred): clamp geometry stays inside the self-contained rig
-    // until #470 bundles pre-paint scripts; consumers: 1 (tilt).
+    // Seam (deferred): clamp geometry stays inside the rig until #468 moves
+    // it out; consumers: 1 (tilt).
     const flange = (
       s: number,
     ): Record<ClampFaceKind, Pick<Face, "u" | "v" | "at">> => {
