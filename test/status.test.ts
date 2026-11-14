@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { unlinkSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
-import { adoptionFixture } from "./adoption-fixture.ts";
+import { adoptionFixture, type AdoptionFixture } from "./adoption-fixture.ts";
 import { installCli } from "./installed-cli.ts";
 import type { Status } from "./json-reports.ts";
 import { commit, git, manifest, versionArgs } from "./remote-fixture.ts";
@@ -12,6 +19,222 @@ after(() => cli.close());
 
 const standards = manifest({
   instructions: { kind: "file", target: "AGENTS.md", exact: "agents.md" },
+});
+
+function completeLayout(f: AdoptionFixture) {
+  const refreshed = f.json(["resume", "--json"]);
+  assert.equal(refreshed.report.phase, "contextual", refreshed.result.stdout);
+  const assessment = join(f.remote.support.root, "assessment.json");
+  writeFileSync(
+    assessment,
+    JSON.stringify({
+      format: "repo-standards/assessment/v3",
+      declarations: [
+        {
+          id: "layout",
+          status: "satisfied",
+          explanation: "Directory contents match the requested layout.",
+          evidence: ["Reviewed the directory target and its file changes."],
+        },
+      ],
+    }),
+  );
+  const completed = f.json(["resume", "--assessment", assessment, "--json"]);
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.outcome, "complete", completed.result.stdout);
+}
+
+test("status counts a removed directory target through its uncommitted file deletions", async (t) => {
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      layout: {
+        kind: "repository",
+        guidance: "layout.md",
+        targets: { paths: [], directories: [".factory"] },
+      },
+    }),
+    {
+      files: { "layout.md": "Remove the legacy directory.\n" },
+      project: {
+        ".factory/Dockerfile": "FROM node:24\n",
+        ".factory/notes.txt": "Legacy image notes\n",
+      },
+    },
+  );
+  const started = f.start();
+  assert.equal(started.report.phase, "contextual", started.result.stdout);
+  rmSync(join(f.root, ".factory"), { recursive: true });
+  completeLayout(f);
+
+  for (const staged of [false, true]) {
+    if (staged) git(f.root, "add", ".factory");
+    const { result, report } = f.json<Status>(["status", "--json"]);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    for (const path of [
+      ".factory",
+      ".factory/Dockerfile",
+      ".factory/notes.txt",
+    ])
+      assert.ok(
+        report.changeSet!.some((entry) => entry.path === path),
+        path,
+      );
+    assert.equal(report.readyToCommit, true);
+    assert.deepEqual(report.readinessReasons, []);
+  }
+
+  git(f.root, "restore", "--source=HEAD", "--staged", "--worktree", ".factory");
+  const restored = f.json<Status>(["status", "--json"]).report;
+  assert.equal(restored.readyToCommit, false);
+  assert.deepEqual(restored.readinessReasons, [
+    "Changed path is not among the uncommitted changes: .factory.",
+    "Changed path is not among the uncommitted changes: .factory/Dockerfile.",
+    "Changed path is not among the uncommitted changes: .factory/notes.txt.",
+  ]);
+
+  rmSync(join(f.root, ".factory"), { recursive: true });
+  commit(f.root);
+  const committed = f.json<Status>(["status", "--json"]).report;
+  assert.equal(committed.readyToCommit, false);
+  assert.ok(
+    committed.readinessReasons.includes(
+      "Changed path is not among the uncommitted changes: .factory.",
+    ),
+  );
+});
+
+test("status is ready after an update migrates a file out of a removed directory target", async (t) => {
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      layout: {
+        kind: "file",
+        target: ".factory/Dockerfile",
+        exact: "Dockerfile",
+      },
+    }),
+    {
+      files: { Dockerfile: "FROM node:24\n" },
+      project: { ".factory/notes.txt": "Legacy image notes\n" },
+    },
+  );
+  f.adopt();
+  f.remote.addVersion(
+    "v1.1.0",
+    manifest({
+      layout: {
+        kind: "repository",
+        guidance: "layout.md",
+        targets: {
+          paths: [".scriptorium/Dockerfile"],
+          directories: [".factory"],
+        },
+      },
+    }),
+    { "layout.md": "Move the Dockerfile and remove the legacy directory.\n" },
+  );
+  const started = f.start(versionArgs("v1.1.0"));
+  assert.equal(started.report.phase, "contextual", started.result.stdout);
+  mkdirSync(join(f.root, ".scriptorium"));
+  renameSync(
+    join(f.root, ".factory/Dockerfile"),
+    join(f.root, ".scriptorium/Dockerfile"),
+  );
+  rmSync(join(f.root, ".factory"), { recursive: true });
+  completeLayout(f);
+
+  assert.equal(
+    readFileSync(join(f.root, ".scriptorium/Dockerfile"), "utf8"),
+    "FROM node:24\n",
+  );
+  for (const staged of [false, true]) {
+    if (staged) git(f.root, "add", ".factory", ".scriptorium");
+    const { result, report } = f.json<Status>(["status", "--json"]);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    for (const path of [
+      ".factory",
+      ".factory/Dockerfile",
+      ".factory/notes.txt",
+      ".scriptorium/Dockerfile",
+    ])
+      assert.ok(
+        report.changeSet!.some((entry) => entry.path === path),
+        path,
+      );
+    assert.equal(report.readyToCommit, true);
+    assert.deepEqual(report.readinessReasons, []);
+  }
+});
+
+test("status counts a created directory target through non-ignored untracked files beneath it", async (t) => {
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      layout: {
+        kind: "repository",
+        guidance: "layout.md",
+        targets: { paths: [], directories: [".factory"] },
+      },
+    }),
+    { files: { "layout.md": "Create the image directory and its files.\n" } },
+  );
+  const started = f.start();
+  assert.equal(started.report.phase, "contextual", started.result.stdout);
+  mkdirSync(join(f.root, ".factory/nested"), { recursive: true });
+  writeFileSync(join(f.root, ".factory/nested/Dockerfile"), "FROM node:24\n");
+  completeLayout(f);
+
+  const { result, report } = f.json<Status>(["status", "--json"]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  for (const path of [".factory", ".factory/nested/Dockerfile"])
+    assert.ok(
+      report.changeSet!.some((entry) => entry.path === path),
+      path,
+    );
+  assert.equal(report.readyToCommit, true);
+  assert.deepEqual(report.readinessReasons, []);
+});
+
+test("status does not count an empty directory target through an ignored file or a sibling prefix", async (t) => {
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      layout: {
+        kind: "repository",
+        guidance: "layout.md",
+        targets: { paths: [], directories: [".factory"] },
+      },
+    }),
+    {
+      files: { "layout.md": "Create the image directory.\n" },
+      project: { ".gitignore": ".factory/ignored.txt\n" },
+    },
+  );
+  const started = f.start();
+  assert.equal(started.report.phase, "contextual", started.result.stdout);
+  mkdirSync(join(f.root, ".factory"));
+  completeLayout(f);
+
+  for (const other of ["empty", "ignored", "sibling"]) {
+    if (other === "ignored")
+      writeFileSync(join(f.root, ".factory/ignored.txt"), "Ignored\n");
+    if (other === "sibling") {
+      mkdirSync(join(f.root, ".factory-old"));
+      writeFileSync(join(f.root, ".factory-old/Dockerfile"), "FROM node:24\n");
+    }
+    const { result, report } = f.json<Status>(["status", "--json"]);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.ok(report.changeSet!.some((entry) => entry.path === ".factory"));
+    assert.equal(report.readyToCommit, false, other);
+    assert.deepEqual(report.readinessReasons, [
+      "Changed path is not among the uncommitted changes: .factory.",
+    ]);
+  }
 });
 
 test("status names a missing complete run and an active adoption as not ready to commit", async (t) => {

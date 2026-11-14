@@ -728,9 +728,13 @@ export function status(project: string, cliVersion: string) {
       `Recorded adoption state has an error: ${report.stateError.code}: ${report.stateError.message}`,
     );
   if (!report.active && report.lastComplete && !report.stateError) {
-    const paths = uncommittedPaths(projectRoot(project));
+    const paths = [...uncommittedPaths(projectRoot(project))];
     for (const { path } of report.changeSet ?? [])
-      if (!paths.has(path))
+      if (
+        !paths.some(
+          (changed) => changed === path || changed.startsWith(`${path}/`),
+        )
+      )
         readinessReasons.push(
           `Changed path is not among the uncommitted changes: ${path}.`,
         );

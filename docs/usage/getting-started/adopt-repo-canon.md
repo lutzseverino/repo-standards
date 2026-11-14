@@ -82,7 +82,8 @@ the edits to your own files, running Repo Canon's checks after each one.
 
    It should say **Ready to commit**. Its output is the adoption record, which
    can serve as the pull request body. If any recorded change-set path is absent
-   from Git's uncommitted changes, `status` reports not ready. An empty change set
+   from Git's uncommitted changes, `status` reports not ready. A changed directory
+   counts through at least one uncommitted path beneath it. An empty change set
    satisfies the path condition, so a complete adoption without state errors can
    remain ready after committing.
 

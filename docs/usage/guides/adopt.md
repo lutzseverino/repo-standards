@@ -140,7 +140,8 @@ and the run completes without that fix.
 On completion, the agent reviews every output and leaves it uncommitted and
 unstaged for your normal workflow. The `status` ready-to-commit verdict describes
 the uncommitted changes: record it before committing. If any recorded change-set
-path is absent from Git's uncommitted changes, `status` reports not ready. An
+path is absent from Git's uncommitted changes, `status` reports not ready. A
+changed directory counts through at least one uncommitted path beneath it. An
 empty change set satisfies the path condition, so a complete adoption without
 state errors can remain ready after committing.
 
@@ -280,7 +281,8 @@ Check the pinned CLI's verdict before committing:
 
 Its **Ready to commit** verdict describes the uncommitted changes: record it
 before committing. If any recorded change-set path is absent from Git's
-uncommitted changes, `status` reports not ready. An empty change set satisfies
+uncommitted changes, `status` reports not ready. A changed directory counts
+through at least one uncommitted path beneath it. An empty change set satisfies
 the path condition, so a complete adoption without state errors can remain ready
 after committing. The same output is the adoption record, which can serve as the
 pull request body.

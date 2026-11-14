@@ -851,6 +851,12 @@ messages (empty when ready). The verdict is true only when:
 - there is no `stateError`;
 - every path in that run's `changeSet` is among Git's uncommitted changes.
 
+A changed directory counts when at least one uncommitted path lies beneath it:
+the directory path followed by `/`. For example, `.factory/Dockerfile` represents
+`.factory`, but `.factory-old/Dockerfile` does not. A directory change with no
+uncommitted file beneath it, such as creating an empty directory or changing
+only its mode, does not count.
+
 Staged, unstaged, and non-ignored untracked paths count as uncommitted, including
 deleted paths and both ends of a rename. A path already committed or reverted
 makes the verdict false, even when unrelated changes remain. A complete run

@@ -88,7 +88,8 @@ requires complete-output review, leaves changes uncommitted and unstaged, and
 hands them to the maintainer for review without committing. Its status verdict
 describes uncommitted changes and must be recorded before committing. If any
 recorded change-set path is absent from Git's uncommitted changes, status reports
-not ready. An empty change set satisfies the path condition, so a complete
+not ready. A changed directory counts through at least one uncommitted path
+beneath it. An empty change set satisfies the path condition, so a complete
 adoption without state errors can remain ready after committing. The terminal's
 completion message addresses a human who can review and commit normally.
 Neither entry point carries adoption rules of its own. Like `author-standards`,
@@ -1013,7 +1014,10 @@ reported as complete.
 run is ready to commit. Every JSON status report includes `readyToCommit` and
 `readinessReasons`: the verdict is true exactly when no run is active, a last
 complete run exists, there is no state error, and every path in its change set
-is among Git's uncommitted changes. Reasons name each failing condition,
+is among Git's uncommitted changes, either as an exact path or through an
+uncommitted path beneath it (the changed path followed by `/`). A sibling that
+only shares the path's name prefix does not count, nor does an empty directory
+with no uncommitted file beneath it. Reasons name each failing condition,
 including each changed path absent from the uncommitted changes. Staged,
 unstaged, and non-ignored untracked changes count, including deletions and both
 ends of renames. The verdict reads local Git state without running checks or
