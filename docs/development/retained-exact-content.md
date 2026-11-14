@@ -24,6 +24,7 @@ at `b9a0534` (CLI 9.0.0) and were not exercised.
   installed target is edited, and it is what keeps `inspect` and `start` working
   without the source. Dropping it weakens those guarantees.
 - Recommendation: keep everything (Option A) and record the decision.
+  [ADR 0036](../adr/0036-keep-one-copy-of-installed-exact-content.md) took Option B with Option C's fallback instead.
 
 ## Measurements (observed)
 
@@ -344,6 +345,9 @@ installed target.**
 
 ## Recommendation
 
+[ADR 0036](../adr/0036-keep-one-copy-of-installed-exact-content.md) took Option B with Option C's fallback instead of
+this recommendation.
+
 Choose **Option A: keep everything**, and record why.
 
 - The saving is small beside the headline. Droppable exact copies are 12.9% of
@@ -363,18 +367,7 @@ droppable share grows well past a third of the retained bytes, or if a
 source-independent way to recover the installed baseline bytes appears. Neither
 holds at the measured commits.
 
-Follow-up ticket, not filed:
-
-- **Record why retained inputs keep installed exact content.** Add an ADR (the
-  next number after 0022) that states the decision with its reasons: the copy is
-  the candidate for retained inspection, for replacing an edit and for a stopped
-  run, and shared files are check resources. Add one sentence to Durable state
-  and ownership in the architecture contracts, linking it. Cite #333 for the
-  measurements, and delete this document in the same change, as the
-  documentation rules ask for superseded material.
-
-Should the owner choose B instead, the work splits into two tickets, neither
-recommended here:
+Option B's work splits into two parts:
 
 - **Read installed exact targets as retained exact content.** The recorded
   adoption reader, retained inspection, committed-state layout and planning of

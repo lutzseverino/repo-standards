@@ -133,3 +133,7 @@ alternatives.
 - [Select check location beside platform](0034-select-check-location-beside-platform.md):
   profiles offer one independent check-location choice and declarations filter
   on it before scope, preserving legacy GitHub behavior.
+- [Keep one copy of installed exact content](0036-keep-one-copy-of-installed-exact-content.md):
+  retained inputs record installed exact files' and skills' hashes, fall back
+  to the verified source snapshot for an edited target, and keep copies only
+  for files that checks, fixes, probes or discovery scripts run or read.
