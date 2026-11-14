@@ -194,8 +194,8 @@ its own language; the sheet's language selector opens the same list. Picking one
 section in that language, with `?locale=<tag>` in the address, which the head
 script honours, saves and removes, so a browser that can store nothing still
 gets the language it picked. The layout's first head
-script, `src/components/LocaleScript.astro`, generated from
-`src/i18n/choice.ts` like the theme's, runs before the first paint: a saved
+script, `src/components/LocaleScript.astro`, bundled from
+`src/prepaint/locale.ts` like the theme's, runs before the first paint: a saved
 locale opens its version of the page, and with none saved, an English page
 opens the version in the browser's first supported language, if that is
 Spanish or Catalan. The browser's language never leads away from `/es/` or
@@ -277,8 +277,8 @@ it, and the sign holds its pose; a mouse or trackpad there still aims it. The th
 until the visitor picks one with the nav's toggle, remembered in
 `localStorage` under `theme`. `src/lib/theme-core.ts` reads, applies and
 stores it, as shadcn's `.dark` class and a `data-theme` attribute, the one
-Starlight reads, on `<html>`; the layout's inline script, generated from the
-same module, applies it before the first paint.
+Starlight reads, on `<html>`; the layout's inline script, bundled from
+`src/prepaint/theme.ts` with that module, applies it before the first paint.
 `rig.ts` measures the lit elements and writes the beam and the sign's tilt to
 them. The page also runs it as an inline script after the markup and holds the
 first paint until it has run, so the first frame already shows the sign at
