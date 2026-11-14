@@ -2501,12 +2501,14 @@ test("updates validate excluded directory roots and reject changed boundaries be
               assert.equal(result.status, 0, result.stdout + result.stderr);
               const inspection = JSON.parse(result.stdout) as Inspection;
               assert.equal(inspection.start.eligible, false);
-              assert.ok(
-                inspection.start.blockers.some(
-                  (blocker: { code: string }) =>
+              assert.equal(
+                inspection.start.blockers.filter(
+                  (blocker: { code: string; path?: string }) =>
                     blocker.code ===
-                    (type === "file" ? "TARGET_TYPE" : "UNSAFE_TARGET"),
-                ),
+                      (type === "file" ? "TARGET_TYPE" : "UNSAFE_TARGET") &&
+                    blocker.path === path,
+                ).length,
+                1,
               );
               assert.notEqual(inspection.identity, before.identity);
               const stale = f.run(startArgs(before.identity, args));

@@ -569,13 +569,14 @@ export async function inspectForStart(
       : undefined;
     if (comparison) blockers.push(...comparison.blockers);
     // A same-CLI update keeps its installed runtime. A fresh clone must
-    // restore it before a run can record an installation baseline.
+    // restore it before a run can record an installation baseline. Product
+    // state observation already reported this boundary's safety blockers.
     if (!preserved && previous?.selection.cli.version === cliVersion) {
       const path = ".repo-standards/runtime/node_modules";
       const runtime = targetBoundaryObservation(
         root,
         path,
-        blockers,
+        [],
         new Set([join(root, path)]),
       );
       if (runtime.type === "missing")
