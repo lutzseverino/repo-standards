@@ -14,7 +14,8 @@
 // and refreshed only when layout changes. Each frame writes the beam's custom
 // properties only to the elements that read them: the lit copy of each plate
 // the beam reaches and the lit layers drawn in it, in that plate's own
-// coordinates, the posts, and the lit edges of shadcn components. Writing them
+// coordinates, at night the posts the beam reaches, and the lit edges of
+// shadcn components. Writing them
 // to the root would restyle the whole page every frame, and so would an
 // element's children that inherit them. Plates the beam's footprint misses,
 // and plates off screen, switch their lit copy off and get no writes. Nothing

@@ -1,5 +1,8 @@
 // Observe writes, not retained inline values: a culled recipient can keep
 // yesterday's beam without doing any work today.
+//
+// The browser is the one `browser.ts` finds; without one this file skips,
+// except in CI.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -28,7 +31,7 @@ const site = fileURLToPath(new URL("../", import.meta.url));
 const executable = findBrowser();
 const skip = executable
   ? false
-  : "set SITE_BROWSER to Chrome, Chromium or Edge";
+  : "no Chrome, Chromium or Edge found; set SITE_BROWSER to one";
 const fixture = new BrowserFixture();
 let browser: Browser;
 let base = "";
@@ -325,7 +328,7 @@ test(
           for (const post of ["post0", "post1"])
             assert.equal(
               postWrites.filter((w) => w.target === post).length,
-              theme === "dark" ? 5 : 0,
+              theme === "dark" ? POST.length : 0,
               record.phase,
             );
         }
