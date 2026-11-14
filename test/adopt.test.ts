@@ -1,6 +1,7 @@
 import type {
   AdoptReport,
   ErrorReport,
+  Inspection,
   Lock,
   PackageManifest,
   Status,
@@ -19,7 +20,13 @@ import {
 import { join } from "node:path";
 import { parse } from "yaml";
 import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
-import { commit, git, operation } from "./remote-fixture.ts";
+import {
+  commit,
+  git,
+  manifest,
+  operation,
+  startArgs,
+} from "./remote-fixture.ts";
 import {
   discovery,
   discoveryFixture,
@@ -222,6 +229,187 @@ const exactOnly = {
     exact: "content/AGENTS.md",
   },
 };
+
+test("a same-CLI update requires runtime restoration before starting in a fresh clone", async (t) => {
+  const f = await fixture(t, cli, exactOnly, {
+    project: { "README.md": "Project notes\n" },
+  });
+  const adopted = f.adopt([source]);
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.root);
+  const clone = join(f.external.root, "clone");
+  git(f.root, "clone", "--quiet", f.root, clone);
+  const runtime = ".repo-standards/runtime";
+  assert.equal(existsSync(join(clone, runtime, "node_modules")), false);
+  const manifests = ["package.json", "package-lock.json"].map((name) =>
+    readFileSync(join(clone, runtime, name), "utf8"),
+  );
+  const applied = join(f.external.root, "applied");
+  writeFileSync(
+    join(f.remote.source.root, "standards.yaml"),
+    manifest({
+      ...exactOnly,
+      "project-readme": {
+        kind: "file",
+        target: "README.md",
+        guidance: "guidance/readme.md",
+        fixes: [operation("record", { script: "record.mjs" })],
+      },
+    }),
+  );
+  writeFileSync(
+    join(f.remote.source.root, "content/AGENTS.md"),
+    "Updated instructions\n",
+  );
+  writeFileSync(
+    join(f.remote.source.root, "record.mjs"),
+    `import { writeFileSync } from 'node:fs';
+writeFileSync(${JSON.stringify(applied)}, 'applied');
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'changed',message:'Recorded'}));`,
+  );
+  commit(f.remote.source.root);
+  f.remote.publish("v1.1.0");
+  f.releases("v1.1.0", "v1.0.0");
+  const before = snapshot(clone);
+  const stopped = cli.run(["adopt", "--json"], clone, f.env);
+  assert.equal(stopped.status, 1, stopped.stdout + stopped.stderr);
+  const blocked = JSON.parse(stopped.stdout) as AdoptReport;
+  assert.equal(blocked.outcome, "blocked", stopped.stdout);
+  assert.equal(blocked.run, undefined);
+  assert.ok(blocked.blockers.some(({ code }) => code === "RUNTIME_MISSING"));
+  assert.match(
+    JSON.stringify(blocked.blockers),
+    /npm ci --ignore-scripts --prefix \.repo-standards\/runtime/,
+  );
+  assert.match(JSON.stringify(blocked.blockers), /rerun.*adopt/i);
+  assert.equal(existsSync(applied), false);
+  assert.deepEqual(snapshot(clone), before);
+
+  const restored = spawnSync(
+    "npm",
+    ["ci", "--ignore-scripts", "--prefix", runtime],
+    { cwd: clone, env: f.env, encoding: "utf8", timeout: 120_000 },
+  );
+  assert.equal(restored.status, 0, restored.stdout + restored.stderr);
+  const started = cli.run(["adopt", "--json"], clone, f.env);
+  const contextual = JSON.parse(started.stdout) as AdoptReport;
+  assert.equal(contextual.outcome, "contextual", started.stdout);
+  assert.equal(readFileSync(applied, "utf8"), "applied");
+  assert.equal(
+    readFileSync(join(clone, "AGENTS.md"), "utf8"),
+    "Updated instructions\n",
+  );
+  f.answer(contextual.answers, {
+    "assessment:project-readme": {
+      status: "satisfied",
+      explanation: "README.md names the project under its top-level heading.",
+      evidence: ["README.md"],
+    },
+  });
+  writeFileSync(join(clone, "README.md"), "# Project\n");
+  const command = stepCommands(contextual).find((value) =>
+    value.includes(" adopt --answers"),
+  )!;
+  assert.ok(
+    command.startsWith(`${runtime}/node_modules/.bin/repo-standards `),
+    command,
+  );
+  const completed = spawnSync(
+    "sh",
+    ["-c", `${command.replace("<answers file>", '"$answers_file"')} --json`],
+    {
+      cwd: clone,
+      env: { ...f.env, answers_file: f.answersPath },
+      encoding: "utf8",
+      timeout: 120_000,
+    },
+  );
+  assert.equal(completed.status, 0, completed.stdout + completed.stderr);
+  assert.equal(
+    (JSON.parse(completed.stdout) as AdoptReport).outcome,
+    "complete",
+  );
+  assert.deepEqual(
+    ["package.json", "package-lock.json"].map((name) =>
+      readFileSync(join(clone, runtime, name), "utf8"),
+    ),
+    manifests,
+  );
+  const version = spawnSync(
+    join(clone, runtime, "node_modules/.bin/repo-standards"),
+    ["--version"],
+    {
+      cwd: clone,
+      env: f.env,
+      encoding: "utf8",
+      timeout: 10_000,
+    },
+  );
+  assert.equal(version.status, 0, version.stderr);
+  assert.equal(version.stdout.trim(), cli.version);
+});
+
+test("missing runtime blocks exact updates and public and retained lower-level starts", async (t) => {
+  const f = await fixture(t, cli, exactOnly, {
+    project: { "README.md": "# Project\n" },
+  });
+  const adopted = f.adopt([source]);
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.root);
+  rmSync(join(f.root, ".repo-standards/runtime/node_modules"), {
+    recursive: true,
+  });
+  writeFileSync(
+    join(f.remote.source.root, "content/AGENTS.md"),
+    "Updated instructions\n",
+  );
+  commit(f.remote.source.root);
+  f.remote.publish("v1.1.0");
+  f.releases("v1.1.0", "v1.0.0");
+
+  for (const retained of [false, true]) {
+    if (retained) {
+      // The unchanged selection remains inspectable without the source.
+      for (const key of Object.keys(f.remote.responses))
+        delete f.remote.responses[key];
+      f.remote.save();
+    }
+    const before = snapshot(f.root);
+    const version = retained ? "v1.0.0" : "v1.1.0";
+    const guided = f.adopt(["--standards-version", version]);
+    assert.equal(guided.result.status, 1, guided.result.stdout);
+    assert.equal(guided.report.outcome, "blocked");
+    assert.equal(guided.report.run, undefined);
+    assert.ok(
+      guided.report.blockers.some(({ code }) => code === "RUNTIME_MISSING"),
+    );
+    const args = retained
+      ? ["inspect", "--json"]
+      : [
+          "inspect",
+          "--source",
+          source,
+          "--standards-version",
+          version,
+          "--profile",
+          "work",
+          "--json",
+        ];
+    const inspected = f.run(args);
+    assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+    const inspection = JSON.parse(inspected.stdout) as Inspection;
+    assert.equal(inspection.start.eligible, false);
+    const started = f.run(startArgs(inspection.identity, args));
+    assert.equal(started.status, 1, started.stdout + started.stderr);
+    const error = JSON.parse(started.stdout) as ErrorReport;
+    assert.equal(error.errors[0]!.code, "START_BLOCKED");
+    assert.match(JSON.stringify(error), /RUNTIME_MISSING/);
+    const status = f.run(["status", "--json"]);
+    assert.equal(status.status, 0, status.stdout + status.stderr);
+    assert.equal((JSON.parse(status.stdout) as Status).active, null);
+    assert.deepEqual(snapshot(f.root), before);
+  }
+});
 
 function lockedIdentity(root: string) {
   return (

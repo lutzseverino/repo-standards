@@ -19,6 +19,7 @@ import {
   observeGitStart,
   productStateObservation,
   submoduleTarget,
+  targetBoundaryObservation,
   targetObservation,
 } from "./observation.js";
 import type { Blocker, HashInventory, Observation } from "./observation.js";
@@ -567,6 +568,24 @@ export async function inspectForStart(
         )
       : undefined;
     if (comparison) blockers.push(...comparison.blockers);
+    // A same-CLI update keeps its installed runtime. A fresh clone must
+    // restore it before a run can record an installation baseline. Product
+    // state observation already reported this boundary's safety blockers.
+    if (!preserved && previous?.selection.cli.version === cliVersion) {
+      const path = ".repo-standards/runtime/node_modules";
+      const runtime = targetBoundaryObservation(
+        root,
+        path,
+        [],
+        new Set([join(root, path)]),
+      );
+      if (runtime.type === "missing")
+        blockers.push({
+          code: "RUNTIME_MISSING",
+          path,
+          message: `The project-pinned CLI ${cliVersion} runtime dependencies are missing. Before starting adoption, run npm ci --ignore-scripts --prefix .repo-standards/runtime from the project root, then rerun .repo-standards/runtime/node_modules/.bin/repo-standards adopt with the same requested selection and answers. No adoption run has started.`,
+        });
+    }
     const guidance = [];
     const operations = [];
     const affected: Record<string, Observation> = dictionary();

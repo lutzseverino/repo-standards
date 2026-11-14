@@ -2482,9 +2482,9 @@ test("updates validate excluded directory roots and reject changed boundaries be
         const target = join(f.project.root, path);
         const saved = join(f.remote.support.root, "saved-directory");
         const hadDirectory = existsSync(target);
-        if (hadDirectory) renameSync(target, saved);
         const before = JSON.parse(f.run(args).stdout) as Inspection;
         assert.equal(before.start.eligible, true, path);
+        if (hadDirectory) renameSync(target, saved);
         for (const type of ["file", "directory-link", "dangling-link", "fifo"])
           await t.test(`${path}: ${type}`, () => {
             if (type === "file") writeFileSync(target, "Preserve this file");
@@ -2501,12 +2501,14 @@ test("updates validate excluded directory roots and reject changed boundaries be
               assert.equal(result.status, 0, result.stdout + result.stderr);
               const inspection = JSON.parse(result.stdout) as Inspection;
               assert.equal(inspection.start.eligible, false);
-              assert.ok(
-                inspection.start.blockers.some(
-                  (blocker: { code: string }) =>
+              assert.equal(
+                inspection.start.blockers.filter(
+                  (blocker: { code: string; path?: string }) =>
                     blocker.code ===
-                    (type === "file" ? "TARGET_TYPE" : "UNSAFE_TARGET"),
-                ),
+                      (type === "file" ? "TARGET_TYPE" : "UNSAFE_TARGET") &&
+                    blocker.path === path,
+                ).length,
+                1,
               );
               assert.notEqual(inspection.identity, before.identity);
               const stale = f.run(startArgs(before.identity, args));
@@ -2557,16 +2559,28 @@ test("updates validate excluded directory roots and reject changed boundaries be
     });
 });
 
-test("updates allow absent excluded directories and ignore safe generated descendants", async (t) => {
+test("updates require a reused runtime but allow other absent excluded directories and ignore safe generated descendants", async (t) => {
   for (const { kind, paths } of updateKinds)
     await t.test(kind, async (t) => {
       const f = await pendingUpdate(t, kind);
       const before = JSON.parse(f.run(f.inspectArgs).stdout) as Inspection;
+      const runtime = join(
+        f.project.root,
+        ".repo-standards/runtime/node_modules",
+      );
+      const saved = join(f.remote.support.root, "saved-runtime");
+      if (kind === "standards") renameSync(runtime, saved);
       for (const path of paths)
         rmSync(join(f.project.root, path), { recursive: true, force: true });
       const absent = JSON.parse(f.run(f.inspectArgs).stdout) as Inspection;
-      assert.equal(absent.start.eligible, true);
-      assert.equal(absent.identity, before.identity);
+      assert.equal(absent.start.eligible, kind === "cli");
+      assert.deepEqual(
+        absent.start.blockers.map(({ code }) => code),
+        kind === "standards" ? ["RUNTIME_MISSING"] : [],
+      );
+      if (kind === "standards")
+        assert.notEqual(absent.identity, before.identity);
+      else assert.equal(absent.identity, before.identity);
       for (const path of paths) {
         const target = join(f.project.root, path);
         mkdirSync(target);
@@ -2580,6 +2594,8 @@ test("updates allow absent excluded directories and ignore safe generated descen
       assert.equal(generatedContent.identity, before.identity);
       for (const path of paths)
         rmSync(join(f.project.root, path), { recursive: true });
+      // Same-CLI starts reuse real dependencies; a CLI change installs its own.
+      if (kind === "standards") renameSync(saved, runtime);
       const result = f.run(f.startArgs);
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal((JSON.parse(result.stdout) as Run).outcome, "complete");

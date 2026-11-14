@@ -471,6 +471,15 @@ changes guidance, a contextual declaration's rules, discovery guidance,
 operations, retired declarations, or confirmed scope; see [update class](inspection.md#report-and-inspection-identity).
 `inspect --summary` renders the report as a [Markdown proposal](inspection.md#markdown-summary).
 
+An update that keeps the CLI pin requires its installed runtime dependencies,
+including when reapplying the retained selection. In a fresh clone, run
+`npm ci --ignore-scripts --prefix .repo-standards/runtime` from the project root
+before starting. Otherwise inspection reports `RUNTIME_MISSING`, and `adopt`
+and lower-level `start` stop without starting a run or installing source material.
+After restoration, rerun adoption with the matching project-pinned CLI and the
+same requested selection and answers. This prerequisite does not replace the
+runtime integrity checks of an already-started run.
+
 To select a standards version, source, or profile, pass all three source flags,
 and `--platform <name>` to select a platform of a profile that supports
 several. With the currently pinned CLI:
