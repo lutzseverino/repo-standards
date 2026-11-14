@@ -15,12 +15,11 @@
 // properties only to the elements that read them: the lit copy of each plate
 // the beam reaches and the lit layers drawn in it, in that plate's own
 // coordinates, at night the posts the beam reaches, and the lit edges of
-// shadcn components. Writing them
-// to the root would restyle the whole page every frame, and so would an
-// element's children that inherit them. Plates the beam's footprint misses,
-// and plates off screen, switch their lit copy off and get no writes. Nothing
-// in a frame reads the layout: the rig reads the window's size and scroll
-// when they change.
+// shadcn components. Writing them to the root would restyle the whole page
+// every frame, and so would an element's children that inherit them. Plates
+// the beam's footprint misses, and plates off screen, switch their lit copy
+// off and get no writes. Nothing in a frame reads the layout: the rig reads
+// the window's size and scroll when they change.
 // The page-wide layers are window-sized and paint their disc where the torch
 // tells them; see light.css for why they never scale.
 import { useEffect } from "react";

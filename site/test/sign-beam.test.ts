@@ -1,3 +1,11 @@
+// The beam's writes to the hero sign, in a real browser. The rig (rig.ts)
+// writes each beam value only to what draws it: a plate's lit copy takes all
+// nine, the layers inside it the aim point and radius, and a post only the
+// five its torch-lit layer reads at night, and none by day. The file checks
+// the inline pre-paint rig and the hydrated torch, through pointer movement,
+// remeasurement and theme changes, and the footprint and viewport culling
+// that switches a recipient off.
+//
 // Observe writes, not retained inline values: a culled recipient can keep
 // yesterday's beam without doing any work today.
 //
@@ -67,7 +75,9 @@ before(() =>
 );
 after(() => fixture.close());
 
-// Installed before navigation, so the real inline rest script is observed too.
+/** Records every beam value written to a post, a plate's lit copy or a
+ * layer in it, and whether the torch had hydrated. Installed before
+ * navigation, so the real inline rest script is observed too. */
 function observe() {
   window.beamWrites = [];
   // oxlint-disable-next-line typescript/unbound-method -- Forwarded with its original declaration as `this` below.
@@ -96,6 +106,8 @@ function observe() {
   };
 }
 
+/** The homepage at 1440 px in `theme`, as a returning visitor, with reduced
+ * motion, once the hydrated torch has drawn a reachable plate. */
 async function open(theme: "light" | "dark") {
   const tab = await browser.open(
     "about:blank",
@@ -129,6 +141,8 @@ async function open(theme: "light" | "dark") {
   return tab;
 }
 
+/** Each post took exactly the values it draws in `theme`, and every
+ * reachable plate and layer exactly its own. */
 function assertWrites(
   writes: BeamWrite[],
   theme: "light" | "dark",
