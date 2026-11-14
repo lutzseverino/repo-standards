@@ -347,7 +347,7 @@ release-source decision alongside the platform choice inside each profile.
   2.0.0, 4.0.0, 5.0.0, 6.0.0, and 7.0.0.
 - [Retained exact content](retained-exact-content.md): measurements, readers and
   options for dropping retained inputs that duplicate installed exact content,
-  and the recommendation to keep them.
+  and the case for keeping them that ADR 0036 weighed and did not take.
 - [Release procedure](release.md): package contents, trusted publishing,
   release notes, recovery of a publication, and published and real-agent
   acceptance.
