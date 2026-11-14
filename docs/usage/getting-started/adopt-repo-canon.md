@@ -25,9 +25,10 @@ Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverin
 ```
 
 The command prints the agent's instructions, so nothing needs installing first.
-The agent picks the newest version and a profile: Repo Canon's `standard`
-profile, or `factory` for a repository a factory serves. It then reviews the
-proposed changes, adapts your documentation and leaves the result uncommitted.
+The agent picks the newest version and a profile using
+[Repo Canon's profile guidance](https://github.com/lutzseverino/repo-canon/blob/main/docs/usage/adopt-repo-canon.md#choose-a-profile).
+It then reviews the proposed changes, adapts your documentation and leaves the
+result uncommitted.
 It comes back to you only for what it can't settle itself, such as an unclear
 profile choice or a change that would overwrite a setting someone chose on
 GitHub, which Git can't undo.
