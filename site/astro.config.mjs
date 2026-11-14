@@ -11,6 +11,8 @@ import { settledHydration } from "./src/lib/hydration.ts";
 import { remarkDocs } from "./src/lib/docs-content.ts";
 import { DEFAULT_LOCALE, LOCALES } from "./src/i18n/locales.ts";
 
+import { prepaint } from "./src/lib/prepaint.ts";
+
 const agentUrls = [];
 
 export default defineConfig({
@@ -78,5 +80,5 @@ export default defineConfig({
     }),
   ],
   markdown: { processor: unified({ remarkPlugins: [remarkDocs] }) },
-  vite: { plugins: [tailwindcss()] },
+  vite: { plugins: [tailwindcss(), prepaint()] },
 });

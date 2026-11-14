@@ -157,7 +157,7 @@ function usePostLayout(
     const svg = rail.current;
     if (!el || !svg) return;
     const place = () => {
-      sinkPosts(el, svg, railAt, HERO_RAIL_BASE);
+      sinkPosts(el);
       dressPosts(el);
       redraw.current();
     };

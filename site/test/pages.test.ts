@@ -575,11 +575,34 @@ test("a page that passes its own social image unfurls with it", () => {
 const inlineScripts = (html: string) =>
   [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 
+test("pre-paint scripts are self-contained inline IIFEs, including the docs theme", () => {
+  const home = inlineScripts(read("index.html"));
+  const docs = inlineScripts(read("docs/index.html"));
+  for (const [scripts, source] of [
+    [home, "localeChoice"],
+    [home, "themes"],
+    [home, "sinkPosts"],
+    [docs, "themes"],
+  ] as const) {
+    const script = scripts.find((script) =>
+      script.includes(`function ${source}`),
+    );
+    assert.ok(script, source);
+    assert.match(script, /^\(function\(\)\{/);
+    assert.doesNotMatch(script, /\b(?:import|export)\b/);
+    assert.equal(script.trim().split("\n").length, 1);
+  }
+});
+
 test("the head applies the stored or system theme as the class and the attribute", () => {
   const script = inlineScripts(read("index.html")).find((s) =>
     s.includes("function themes"),
   )!;
-  const run = (stored: string | null, systemDark: boolean) => {
+  const run = (
+    stored: string | null,
+    systemDark: boolean,
+    unavailable = false,
+  ) => {
     const classes = new Set<string>();
     const root = {
       dataset: {} as Record<string, string>,
@@ -590,7 +613,12 @@ test("the head applies the stored or system theme as the class and the attribute
     };
     const window: Record<string, unknown> = {
       document: { documentElement: root },
-      localStorage: { getItem: () => stored },
+      localStorage: {
+        getItem: () => {
+          if (unavailable) throw new Error("storage unavailable");
+          return stored;
+        },
+      },
       matchMedia: () => ({ matches: systemDark }),
     };
     window.window = window;
@@ -601,6 +629,8 @@ test("the head applies the stored or system theme as the class and the attribute
   assert.deepEqual(run("light", true), [false, "light"]);
   assert.deepEqual(run(null, true), [true, "dark"]);
   assert.deepEqual(run("unknown", false), [false, "light"]);
+  assert.deepEqual(run(null, true, true), [true, "dark"]);
+  assert.deepEqual(run(null, false, true), [false, "light"]);
 });
 
 /** A stub element: its style, classes, attributes and the elements its
@@ -819,7 +849,7 @@ test("every site page opens the visitor's language first in its head, and loads 
     const html = read(file);
     assert.match(
       html,
-      /<head><meta charset="UTF-8"><!--[^>]*--><script>\(\(\) => \{\n {2}const choice = \(function localeChoice\(/,
+      /<head><meta charset="UTF-8"><!--[^>]*--><script>[^<]*function localeChoice\(/,
       file,
     );
     // the layout's stylesheet declares the cascade layers' order, so it
@@ -828,6 +858,45 @@ test("every site page opens the visitor's language first in its head, and loads 
       /<link rel="stylesheet" href="([^"]+)"/.exec(html)?.[1] ?? "",
       /^\/_astro\/base\.[\w-]+\.css$/,
       file,
+    );
+  }
+});
+
+test("the built locale entry honours query choices even with unavailable storage", () => {
+  const script = inlineScripts(read("index.html")).find((code) =>
+    code.includes("function localeChoice"),
+  )!;
+  for (const chosen of ["en", "es"]) {
+    const addressed: string[] = [];
+    const replaced: string[] = [];
+    const blocked = {
+      getItem() {
+        throw new Error("storage unavailable");
+      },
+      setItem() {
+        throw new Error("storage unavailable");
+      },
+    };
+    vm.runInNewContext(script, {
+      window: { localStorage: blocked, sessionStorage: blocked },
+      URLSearchParams,
+      location: {
+        pathname: "/how-it-works/",
+        search: `?locale=${chosen}&keep=1`,
+        hash: "#who-does-what",
+        replace: (url: string) => replaced.push(url),
+      },
+      history: {
+        state: null,
+        replaceState: (_state: unknown, _title: string, url: string) =>
+          addressed.push(url),
+      },
+      navigator: { languages: ["ca"] },
+    });
+    assert.deepEqual(addressed, ["/how-it-works/?keep=1#who-does-what"]);
+    assert.deepEqual(
+      replaced,
+      chosen === "en" ? [] : ["/es/how-it-works/?keep=1#who-does-what"],
     );
   }
 });

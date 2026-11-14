@@ -133,3 +133,6 @@ alternatives.
 - [Select check location beside platform](0034-select-check-location-beside-platform.md):
   profiles offer one independent check-location choice and declarations filter
   on it before scope, preserving legacy GitHub behavior.
+- [Bundle pre-paint entry modules](0035-bundle-pre-paint-entry-modules.md):
+  Vite bundles ordinary browser entries into synchronous inline scripts in
+  development and production, preserving initialization before the first paint.

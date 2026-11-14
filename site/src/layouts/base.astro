@@ -12,7 +12,7 @@ import AgentLinks from "@/components/AgentLinks.astro";
 import { format } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { analyticsBeacon } from "@/lib/analytics";
-import { themeScript } from "@/lib/theme-core";
+import themeScript from "@/prepaint/theme.ts?prepaint";
 import "@/styles/global.css";
 import "@/styles/tokens.css";
 import "@/styles/support.css";
@@ -102,7 +102,7 @@ const ogLocale = ogLocales[locale === "en-XA" ? DEFAULT_LOCALE : locale];
     />
     <slot name="head" />
     <!-- applies the stored or system theme before anything is drawn -->
-    <script is:inline set:html={themeScript()} />
+    <script is:inline set:html={themeScript} />
     <script is:inline {...analyticsBeacon.attrs}></script>
   </head>
   <body>

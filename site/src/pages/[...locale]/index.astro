@@ -1,6 +1,6 @@
 ---
 import { HOME_STRINGS, Home, type HomeText } from "@/components/home";
-import { restScript } from "@/components/sign/rig";
+import restScript from "@/prepaint/rest.ts?prepaint";
 import { format, messageSource, rich, strings } from "@/i18n/format";
 import {
   localeAlternates,
@@ -105,7 +105,7 @@ const text: HomeText = {
   />
   <!-- draws the sign at its pose and the lights on before the first paint,
        so hydration changes nothing -->
-  <script is:inline set:html={restScript()} />
+  <script is:inline set:html={restScript} />
   <!-- the first paint waits for this marker: the parser reaches it only
        once the script above has run, while the script element itself is
        in the document before it runs -->
