@@ -13,7 +13,6 @@
     "site/.astro/**",
     ".repo-standards/**",
     ".agents/skills/**",
-    ".sandcastle/**",
     "site/src/components/ui/**"
   ],
   "rules": {
