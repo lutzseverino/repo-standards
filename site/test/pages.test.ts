@@ -414,6 +414,36 @@ for (const source of SOURCES) {
   });
 }
 
+test("each source page puts adoption before its introduction in every built locale", async () => {
+  const { sources } = await loadCatalogue();
+  for (const locale of LOCALES)
+    for (const source of sources) {
+      const page = `${locale === "en" ? "" : `${locale}/`}sources/${source.repository}/index.html`;
+      const expected = [
+        format(locale, "sources.adopt.heading", { name: source.name }),
+        ...(source.repository === "lutzseverino/repo-canon"
+          ? [format(locale, "sources.introduction.heading")]
+          : []),
+        format(locale, "sources.profiles.heading"),
+        format(locale, "sources.installs.heading"),
+      ];
+      assert.deepEqual(headings(read(page), 2), expected, page);
+    }
+  assert.deepEqual(
+    headings(read("sources/lutzseverino/repo-canon/index.html"), 2),
+    [
+      "Adopt repo-canon",
+      "A ready-made setup to start from",
+      "Profiles",
+      "What it installs",
+    ],
+  );
+  assert.deepEqual(
+    headings(read("sources/lutzseverino/repo-standards-example/index.html"), 2),
+    ["Adopt repository-standards-examples", "Profiles", "What it installs"],
+  );
+});
+
 test("each source page offers the source's own prompt and command", async () => {
   const { sources } = await loadCatalogue();
   for (const source of sources) {
