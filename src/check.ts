@@ -91,7 +91,7 @@ export async function check(
         "No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.",
       );
     const { selection, resolved } = recorded;
-    recorded.source();
+    recorded.verifyInputs();
     const checks = await runChecks(root, resolved, selection);
     return {
       format: formats.check,

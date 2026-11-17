@@ -40,8 +40,12 @@ test("current and explicitly supported previous record formats remain readable",
     true,
   );
   assert.equal(
-    readableFormat({ format: "repo-standards/lock/v1" }, formats.lock),
+    readableFormat({ format: "repo-standards/lock/v2" }, formats.lock),
     true,
+  );
+  assert.equal(
+    readableFormat({ format: "repo-standards/lock/v1" }, formats.lock),
+    false,
   );
   for (const expected of recordFormats)
     for (const format of [

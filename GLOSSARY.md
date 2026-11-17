@@ -287,6 +287,9 @@ _Avoid_: Available update, staleness
 **Retained inputs**:
 The selected standards material and provenance committed by an adopting project
 so its pinned standards remain inspectable independently of source availability.
+They hold no second copy of installed exact content that nothing else retains:
+the installed target is that copy while it matches its installed baseline, and
+an edited one needs the source again.
 _Avoid_: Cache, working copy
 
 **Retired format**:

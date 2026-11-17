@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { after, test, type TestContext } from "node:test";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { directoryFixture, installCli, sha256 } from "./installed-cli.ts";
@@ -14,7 +20,7 @@ import {
 } from "./adopt-fixture.ts";
 import {
   committedScopeEvidence,
-  rewriteRetainedInput,
+  previousLockLayout,
 } from "./committed-evidence.ts";
 import type { Lock, Run, Status } from "./json-reports.ts";
 
@@ -62,7 +68,7 @@ function committedProposal(t: TestContext, format: string) {
   return { ...f, scope, bytes, lock, save };
 }
 
-for (const version of [1, 2]) {
+for (const version of [2, 3]) {
   test(`committed lock/v${version} accepts matching historical v6 evidence without a proposal`, (t) => {
     const f = committedProposal(t, `repo-standards/lock/v${version}`);
     assert.equal(
@@ -193,7 +199,8 @@ test("committed proposal rejects malformed lock JSON", (t) => {
 
 for (const format of [
   "repo-standards/lock/v0",
-  "repo-standards/lock/v3",
+  "repo-standards/lock/v1",
+  "repo-standards/lock/v4",
   "repo-standards/lock/vnext",
   "unrelated/v1",
 ]) {
@@ -206,11 +213,21 @@ for (const format of [
   });
 }
 
-// CLI 10 wrote the same durable state/v8 and scope payload, without check
-// locations. Construct those previous committed formats from a complete run.
-async function stoppedUpdate(t: TestContext, legacy: boolean) {
-  const { f } = await discoveryFixture(t, cli, []);
-  if (!legacy) {
+// CLI 11 wrote the same durable state/v8 and scope payload, under the
+// previous lock/v2 with a retained copy of all installed exact content.
+// Construct that previous layout from a complete run.
+async function stoppedUpdate(t: TestContext, previous: boolean) {
+  const { f } = await discoveryFixture(t, cli, [], {
+    declarations: {
+      instructions: { kind: "file", target: "AGENTS.md", exact: "content.md" },
+      review: { kind: "skill", name: "review", source: "skills/review" },
+    },
+    files: {
+      "content.md": "Expected instructions\n",
+      "skills/review/SKILL.md": "# Review\nReview the code.\n",
+    },
+  });
+  if (!previous) {
     const manifest = parse(
       readFileSync(join(f.remote.source.root, "standards.yaml"), "utf8"),
     ) as { profiles: { work: { "check-locations"?: string[] } } };
@@ -230,25 +247,16 @@ async function stoppedUpdate(t: TestContext, legacy: boolean) {
   const previousScope = committedScopeEvidence(f.root);
   assert.ok(previousScope.discovery?.proposal);
   const previousProposal = previousScope.discovery.proposal;
-  if (legacy) {
-    previousScope.format = "repo-standards/scope-history/v6";
-    rewriteRetainedInput(f.root, scopePath, previousScope);
-    const updatedLock = JSON.parse(
-      readFileSync(join(f.root, lockPath), "utf8"),
-    ) as Lock;
-    const { checks: _checks, ...selection } = updatedLock.selection;
-    selection.cli.version = "10.0.0";
-    const selectionBytes = stringify(selection);
-    writeFileSync(
-      join(f.root, ".repo-standards/selection.yaml"),
-      selectionBytes,
-    );
-    updatedLock.files[".repo-standards/selection.yaml"]!.sha256 =
-      sha256(selectionBytes);
-    updatedLock.format = "repo-standards/lock/v1";
-    updatedLock.selection = selection as Lock["selection"];
-    writeFileSync(join(f.root, lockPath), JSON.stringify(updatedLock));
-  }
+  // The current layout keeps no copy of installed exact content.
+  assert.equal(
+    existsSync(join(f.root, ".repo-standards/inputs/source/content.md")),
+    false,
+  );
+  assert.equal(
+    existsSync(join(f.root, ".repo-standards/inputs/source/skills")),
+    false,
+  );
+  const copies = previous ? previousLockLayout(f.root) : [];
   commit(f.root);
   const head = git(f.root, "rev-parse", "HEAD");
   const committedLock = git(f.root, "show", `${head}:${lockPath}`);
@@ -270,7 +278,7 @@ async function stoppedUpdate(t: TestContext, legacy: boolean) {
     version: "v1.1.0",
     profile: "work",
     platform: "github",
-    checks: legacy ? "github" : "self-reported",
+    checks: previous ? "github" : "self-reported",
   };
   assert.deepEqual(started.report.selection, selection);
   return {
@@ -280,13 +288,22 @@ async function stoppedUpdate(t: TestContext, legacy: boolean) {
     committedLock,
     previousProposal,
     selection,
+    copies,
   };
 }
 
-for (const legacy of [true, false]) {
-  test(`${legacy ? "CLI 10 lock/v1" : "current lock/v2"} update remains readable and completes after a contextual stop`, async (t) => {
-    const { f, started, head, committedLock, previousProposal, selection } =
-      await stoppedUpdate(t, legacy);
+for (const previous of [true, false]) {
+  test(`${previous ? "CLI 11 lock/v2" : "current lock/v3"} update remains readable and completes after a contextual stop`, async (t) => {
+    const {
+      f,
+      started,
+      head,
+      committedLock,
+      previousProposal,
+      selection,
+      copies,
+    } = await stoppedUpdate(t, previous);
+    assert.equal(copies.length, previous ? 2 : 0);
     const status = f.json<Status>(["status", "--json"]);
     assert.equal(status.result.status, 0, status.result.stdout);
     assert.equal(status.report.readyToCommit, false);
@@ -318,8 +335,11 @@ for (const legacy of [true, false]) {
     assert.equal(final.report.selection!.checks, selection.checks);
     assert.equal(
       (JSON.parse(readFileSync(join(f.root, lockPath), "utf8")) as Lock).format,
-      "repo-standards/lock/v2",
+      "repo-standards/lock/v3",
     );
+    // The update replaced the retained inputs whole, removing the copies.
+    for (const path of copies)
+      assert.equal(existsSync(join(f.root, path)), false);
     assert.equal(
       committedScopeEvidence(f.root).format,
       "repo-standards/scope-history/v7",
@@ -329,7 +349,7 @@ for (const legacy of [true, false]) {
   });
 }
 
-test("abandoned CLI 10 baseline update reports its recovery and previous non-null proposal", async (t) => {
+test("abandoned CLI 11 baseline update reports its recovery and previous non-null proposal", async (t) => {
   const { f, started, previousProposal } = await stoppedUpdate(t, true);
   const abandoned = f.json<Run>(["abandon", "--json"]);
   assert.equal(abandoned.result.status, 0, abandoned.result.stdout);

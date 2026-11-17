@@ -821,13 +821,50 @@ cannot silently redefine installation baselines.
   covers. They are CLI-owned exact content: the lock records them, completion
   verifies them, and an update replaces the directory whole.
 - Inputs retain normalized source metadata, resolved selection, source license,
-  exact content, guidance, rules, scripts, and declared resources. Other profiles and
-  unrelated source files are omitted.
+  guidance, rules, discovery guidance, scripts, and declared resources. Other
+  profiles and unrelated source files are omitted, and so is installed exact
+  content that nothing else retains.
 
 Exact baselines include file hashes, executable bits, and complete skill path
 inventories. Added, removed, and modified skill files are edits. Contextual
 project content remains project-owned; its assessment identifies a particular
 snapshot rather than an enforced installation baseline.
+
+An adopting project keeps each installed exact file and exact skill file once
+([ADR 0036](../adr/0036-keep-one-copy-of-installed-exact-content.md)). The
+retained inputs keep no copy of a file whose only reason to be retained is
+that it is installed exact content, and the lock records no entry for one; the
+installed target's hash in the lock and its installed baseline in durable state
+are the record of its bytes. A path keeps its retained copy and lock entry
+whenever something else retains it, even when it is also installed: a check,
+fix, remote setup probe or discovery script, or one of their resources; a
+declaration's rules, guidance or discovery guidance; or the source's root
+license. The rule applies per file, so inside a skill directory only the files
+retained for another reason keep a copy, and editing an installed file never
+changes what a check runs.
+
+The recorded adoption reader's retained source lays the retained standards out
+as a standards source outside the project, so that its callers read it as any
+acquired source without learning where each path came from. Each source path
+the retained inputs lack is read from its installed target, once the whole
+target matches its installed baseline: bytes, executable state and, for a
+skill, the complete path inventory. A target that was modified or removed, or a
+skill that gained or lost files, is edited; for an edited target the reader
+acquires the recorded source at the recorded standards version, through the
+verified acquisition and snapshot cache, and uses the snapshot only when the
+version still resolves to the recorded commit, failing with `MOVED_TAG`
+otherwise, and only when its bytes match the installed baseline, failing with
+`STATE_INTEGRITY` otherwise. When the source cannot be reached for an edited
+target, retained inspection, the start of a retained inspection, and `adopt`'s
+fallback to the retained standards fail with the acquisition's outcome, such as
+`SOURCE_UNAVAILABLE` or `QUOTA_EXHAUSTED`, naming each edited target that
+needed it, and write nothing. Unedited targets stay inspectable and startable
+without the source. A preserved run's last complete adoption is read from the
+commit the run started from, with its targets read as blobs at that commit and
+verified against that commit's lock and baselines. `check` verifies only the
+retained inputs' inventory and runs the retained checks; it never resolves
+exact content, so an edited installed target never makes it fail integrity or
+reach the source.
 
 After complete adoption the project's normal workflow commits durable state,
 retained inputs, runtime manifests, installed content and skills, and contextual
@@ -860,11 +897,13 @@ report in any other older run format fails with `RETIRED_FORMAT`, naming that
 report, which only the CLI that wrote it reads.
 
 Updates also read the supported earlier committed formats:
-`repo-standards/state/v7`, `repo-standards/lock/v1` and
+`repo-standards/state/v7`, `repo-standards/lock/v2` and
 `repo-standards/scope-history/v6`, as the established adoption an update
 replaces, so that the update carries its recorded answers forward
 ([ADR 0024](../adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md)).
-It treats the keys they lack as absent and writes only its own formats.
+It treats the keys they lack as absent and writes only its own formats. A
+`repo-standards/lock/v2` adoption retains a copy of all installed exact
+content, which the update's replacement of the retained inputs removes.
 
 Committed product state in any other older format is never read. When every committed
 record present carries its own artifact's current or retired format, an
@@ -938,8 +977,8 @@ format keeps that raise and does not raise it again.
 
 Check-location selection raises `lock/v2`, `scope-history/v7`, `run/v8`,
 `inspection/v10`, `status/v10`, `check/v3`, `answers/v2` and `adopt/v3`.
-The previous `lock/v1` and `scope-history/v6` remain readable; a previous lock
-without `checks` means `github`, and the next completed adoption writes the
+The previous `lock/v1` and `scope-history/v6` remained readable; a previous lock
+without `checks` meant `github`, and the next completed adoption wrote the
 choice explicitly. Current locks require a supported value. Durable state
 keeps `state/v8` (and its existing previous reader), and work requests keep
 `work-request/v5`: their keys do not change and the work request's selection
@@ -947,6 +986,15 @@ digest binds the location. Operation and discovery requests add optional
 `checks` under the author-input exception, keeping their formats. Active runs
 still require their current format; an older active run finishes or is
 abandoned with its earlier pinned CLI.
+
+Keeping one copy of installed exact content raises `lock/v3`, with the same
+keys: `files` no longer lists a retained copy of exact content that nothing
+else retains, and an earlier CLI's retained-source reader, which requires every
+exact and skill source path to be retained, would reject that layout. The
+previous `lock/v2` remains readable as the adoption an update replaces,
+including its retained copies, and requires its recorded check location;
+`lock/v1` is retired and takes the fresh-adoption path. Durable state keeps
+`state/v8`, and no other record or report format changes.
 
 ### Committed evidence
 
@@ -1034,8 +1082,9 @@ each follows the same inspection and start, with confirmation only when required
 CLI inspects and starts a changed CLI pin; source flags select a standards
 version, source, or profile; omitting them keeps the retained standards.
 Existing retained inputs support inspection and use of the current selection if
-its source disappears; selecting a standards version, source, or profile still
-requires its source. Fresh runtime acquisition still requires the npm package
+its source disappears, while its installed exact content is unedited; an
+edited target needs the source's verified snapshot, and selecting a standards
+version, source, or profile still requires its source. Fresh runtime acquisition still requires the npm package
 to be available or already cached. Every update, including an unchanged
 selection, inspects and starts with a confirmed scope for each active
 discovery declaration. Through `adopt`, an update reuses the last complete

@@ -1216,10 +1216,11 @@ test("a confirmation survives an unrelated commit and the run records HEAD at st
   writeFileSync(join(project.root, "unrelated.txt"), "More unrelated work");
   commit(project.root);
   assert.equal(identity(), established);
-  const input = join(project.root, ".repo-standards/inputs/source/content.md");
+  const input = join(project.root, ".repo-standards/inputs/standards.yaml");
+  const retained = readFileSync(input);
   writeFileSync(input, "Edited retained input");
   assert.notEqual(identity(), established);
-  writeFileSync(input, "Expected");
+  writeFileSync(input, retained);
   assert.equal(identity(), established);
   writeFileSync(
     join(project.root, ".repo-standards/extra.txt"),
@@ -1337,31 +1338,15 @@ profiles:`,
       },
     },
   );
+  // The installed skill is the only copy of its files: neither the inputs
+  // nor the retained product state hold one.
+  assert.equal(report.inputs["skills/large"], undefined);
   assert.equal(
     (
-      (
-        (report.inputs["skills/large"]! as DirectoryInventory).entries
-          .references! as DirectoryInventory
-      ).entries["7.md"]! as FileInventory
-    ).sha256,
-    sha256(references["skills/large/references/7.md"]!),
-  );
-  assert.equal(
-    (
-      (
-        (
-          (
-            (
-              (
-                (report.project.productState as DirectoryInventory).entries
-                  .inputs! as DirectoryInventory
-              ).entries.source! as DirectoryInventory
-            ).entries.skills! as DirectoryInventory
-          ).entries.large! as DirectoryInventory
-        ).entries.references! as DirectoryInventory
-      ).entries["7.md"]! as FileInventory
-    ).sha256,
-    sha256(references["skills/large/references/7.md"]!),
+      (report.project.productState as DirectoryInventory).entries
+        .inputs! as DirectoryInventory
+    ).entries.source,
+    undefined,
   );
   const started = capture(["start", "--identity", report.identity, "--json"]);
   assert.equal(started.status, 0, started.stdout + started.stderr);
@@ -1695,10 +1680,16 @@ test("retained inspection preserves selected source manifests and rejects altere
     ).exact[0]!.action,
     "replace",
   );
-  const input = join(
-    project.root,
-    ".repo-standards/inputs/source/standards.yaml",
+  // The installed exact file is the only copy of its bytes; the retained
+  // manifest is still verified.
+  assert.equal(
+    existsSync(
+      join(project.root, ".repo-standards/inputs/source/standards.yaml"),
+    ),
+    false,
   );
+  const input = join(project.root, ".repo-standards/inputs/standards.yaml");
+  const manifest = readFileSync(input, "utf8");
   writeFileSync(input, "Corrupted retained content");
   const before = snapshot(project.root);
   retained = cli.run(["inspect", "--json"], project.root, env);
@@ -1708,7 +1699,7 @@ test("retained inspection preserves selected source manifests and rejects altere
     "STATE_INTEGRITY",
   );
   assert.deepEqual(snapshot(project.root), before);
-  writeFileSync(input, source);
+  writeFileSync(input, manifest);
   const statePath = join(project.root, ".repo-standards/state.json");
   const state = JSON.parse(readFileSync(statePath, "utf8")) as State;
   state.lastComplete.inspection = "sha256:forged";

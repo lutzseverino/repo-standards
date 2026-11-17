@@ -1271,11 +1271,30 @@ test("adopt without a source updates an adopted project, offering the newest sta
   writeFileSync(join(f.root, "AGENTS.md"), "Another local edit\n");
   commit(f.root);
 
-  // Without its source, the project applies its current selection again
-  // from the retained standards.
+  // Without its source, an edited installed target has no local copy of the
+  // standards' bytes, so falling back to the retained standards fails and
+  // writes nothing.
   for (const url of Object.keys(f.remote.responses))
     delete f.remote.responses[url];
   f.remote.save();
+  const edited = snapshot(f.root);
+  const unavailable = f.run(["adopt", "--json"]);
+  assert.equal(unavailable.status, 1, unavailable.stdout);
+  const failure = (JSON.parse(unavailable.stdout) as ErrorReport).errors[0]!;
+  assert.equal(failure.code, "SOURCE_UNAVAILABLE");
+  assert.match(failure.message, /Edited installed target AGENTS\.md needs/);
+  assert.deepEqual(snapshot(f.root), edited);
+  // With the standards' targets unedited, the project applies its current
+  // selection again from the retained standards. An edit to the system
+  // skill, which the CLI packages, keeps it asking.
+  writeFileSync(join(f.root, "AGENTS.md"), "Updated agent guidance\n");
+  const systemSkill = join(
+    f.root,
+    ".agents/skills/repository-standards/SKILL.md",
+  );
+  const packaged = readFileSync(systemSkill, "utf8");
+  writeFileSync(systemSkill, "Local edit\n");
+  commit(f.root);
   const offline = f.adopt([]);
   assert.equal(offline.result.status, 0, offline.result.stdout);
   assert.equal(question(offline.report, "version").answer, "v1.1.0");
@@ -1300,6 +1319,7 @@ test("adopt without a source updates an adopted project, offering the newest sta
     readFileSync(join(f.root, "AGENTS.md"), "utf8"),
     "Updated agent guidance\n",
   );
+  assert.equal(readFileSync(systemSkill, "utf8"), packaged);
 });
 
 test("adopt fails when GitHub refuses the release lookup, rather than proposing the current version", async (t) => {

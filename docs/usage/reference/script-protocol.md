@@ -396,10 +396,10 @@ State v8 holds the last complete run's evidence only, with its `lastComplete`
 record; a completion replaces the previous run's evidence rather than carrying
 it, and Git history keeps earlier runs. Detailed logs remain local; the
 recorded outcomes and interval evidence survive a fresh checkout. The integrity
-lock remains `repo-standards/lock/v2` and binds the new state bytes.
+lock is `repo-standards/lock/v3` and binds the new state bytes.
 
 State v8 is the only state format written. An update also reads state v7,
-lock v1 and scope-history v6 as the adoption it replaces, so that it
+lock v2 and scope-history v6 as the adoption it replaces, so that it
 [reuses the answers](adoption-run.md#reused-answers) they prove. A committed state
 whose intervals carry observation maps, whose closed interval is missing either
 identity, or that carries an earlier run's `history`, fails state integrity

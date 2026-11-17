@@ -188,16 +188,16 @@ test("a retired state, scope evidence, or run record format is rejected with the
   };
   // The oldest and the most recent retired version of each artifact.
   const retired = [
-    {
-      format: "repo-standards/lock/v0",
-      current: "repo-standards/lock/v2",
+    ...["v0", "v1"].map((version) => ({
+      format: `repo-standards/lock/${version}`,
+      current: "repo-standards/lock/v3",
       path: ".repo-standards/lock.json",
       plant: (format: string) =>
         writeFileSync(
           join(root, ".repo-standards/lock.json"),
           JSON.stringify({ format }),
         ),
-    },
+    })),
     ...["v1", "v6"].map((version) => ({
       format: `repo-standards/state/${version}`,
       current: "repo-standards/state/v8",
@@ -522,8 +522,8 @@ test("newer record formats require the pinned CLI without fresh-adoption advice 
     },
     {
       path: join(root, ".repo-standards/lock.json"),
-      format: "repo-standards/lock/v3",
-      expected: "repo-standards/lock/v2",
+      format: "repo-standards/lock/v4",
+      expected: "repo-standards/lock/v3",
     },
   ];
   for (const { path, format, expected } of records) {
@@ -939,6 +939,7 @@ async function retiredProject(t: TestContext) {
     mkdirSync(skill);
     writeFileSync(join(skill, "SKILL.md"), earlierSystemSkill);
   }
+  mkdirSync(join(root, ".repo-standards/inputs/source"), { recursive: true });
   writeFileSync(
     join(root, ".repo-standards/inputs/source/retired.md"),
     "An input only the earlier adoption retained\n",
@@ -1305,14 +1306,14 @@ test("a fresh adoption stopped before removing retired product state blocks chec
 test("a committed record that is neither current nor retired beside retired state fails integrity, and nothing is removed", async (t) => {
   const f = await retiredProject(t);
   const { root } = f;
-  // A real 4.0.0 tree keeps the current lock/v1 beside its retired state.
+  // A real 4.0.0 tree keeps the current lock beside its retired state.
   assert.equal(
     (
       JSON.parse(
         readFileSync(join(root, ".repo-standards/lock.json"), "utf8"),
       ) as Lock
     ).format,
-    "repo-standards/lock/v2",
+    "repo-standards/lock/v3",
   );
   const inspection = f.run<Inspection>(inspectionArgs).report;
   assert.equal(inspection.start.eligible, true);

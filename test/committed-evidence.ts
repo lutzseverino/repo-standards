@@ -1,8 +1,14 @@
 import type { RecordedInterval } from "../src/work-evidence.ts";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
-import { isAbsolute, join } from "node:path";
+import {
+  cpSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, isAbsolute, join } from "node:path";
 import { parseDocument, visit as visitYaml } from "yaml";
 import { git } from "./remote-fixture.ts";
 
@@ -240,6 +246,54 @@ export function rewriteRetainedInput(
   };
   lock.files[path]!.sha256 = createHash("sha256").update(bytes).digest("hex");
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+}
+
+// Rewrite a complete adoption into the layout CLI 11 committed: the previous
+// lock/v2, whose retained source holds a copy of every installed exact file
+// and skill file. Returns the copies' paths.
+export function previousLockLayout(root: string) {
+  const lockPath = join(root, ".repo-standards/lock.json");
+  const lock = JSON.parse(readFileSync(lockPath, "utf8")) as {
+    format: string;
+    files: Record<string, { sha256: string; executable: boolean }>;
+  };
+  const { declarations } = JSON.parse(
+    readFileSync(join(root, ".repo-standards/inputs/resolved.json"), "utf8"),
+  ) as {
+    declarations: {
+      kind: string;
+      name?: string;
+      source?: string;
+      exact?: string;
+      target?: string;
+    }[];
+  };
+  const copies: [target: string, source: string][] = [];
+  for (const declaration of declarations)
+    if (declaration.kind === "skill") {
+      const target = `.agents/skills/${declaration.name}`;
+      for (const entry of readdirSync(join(root, target), {
+        recursive: true,
+        withFileTypes: true,
+      }))
+        if (entry.isFile()) {
+          const name = join(entry.parentPath, entry.name).slice(
+            join(root, target).length + 1,
+          );
+          copies.push([`${target}/${name}`, `${declaration.source}/${name}`]);
+        }
+    } else if (declaration.exact !== undefined)
+      copies.push([declaration.target!, declaration.exact]);
+  const retained = copies.map(([target, source]) => {
+    const path = `.repo-standards/inputs/source/${source}`;
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    cpSync(join(root, target), join(root, path));
+    lock.files[path] = lock.files[target]!;
+    return path;
+  });
+  lock.format = "repo-standards/lock/v2";
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+  return retained;
 }
 
 // Replace the committed durable state and rebind the integrity lock to it.

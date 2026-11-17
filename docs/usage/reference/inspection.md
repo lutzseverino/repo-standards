@@ -452,7 +452,13 @@ repo-standards-bootstrap --cli-version 10.0.0 inspect --json
 Selecting a standards version, source, or profile requires its public source.
 Without source flags, inspection works from retained inputs if the source is
 unavailable, but a changed CLI pin still needs its exact npm package and
-dependencies to be public or cached. The author's `requires.repo-standards`
+dependencies to be public or cached. The retained inputs hold no copy of
+installed exact content that nothing else retains, so retained inspection reads
+an unedited exact file or skill from its installed target, after matching it
+against its installed baseline, and an edited one from the verified snapshot
+of the recorded source, which must be reachable; otherwise inspection fails
+with the acquisition's outcome, naming each edited target
+([fresh checkout and source disappearance](adoption-run.md#fresh-checkout-and-source-disappearance)). The author's `requires.repo-standards`
 range is checked only when a standards version is selected from its source;
 retained inputs are validated against the running CLI's supported source
 formats alone. Every update inspection compares bytes, executable state, and
@@ -717,7 +723,7 @@ Retained inspection reads the committed durable state, which is
 `repo-standards/state/v8`, the only state format written, with the last
 complete run's [work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v10`. The
-older readable `repo-standards/state/v7`, `repo-standards/lock/v1` and
+older readable `repo-standards/state/v7`, `repo-standards/lock/v2` and
 scope-history v6 are read as
 the adoption an update replaces. Retained inspection rejects a committed state,
 retained scope history, or integrity lock in any other older format with
