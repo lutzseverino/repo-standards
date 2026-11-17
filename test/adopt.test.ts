@@ -1274,8 +1274,8 @@ test("adopt without a source updates an adopted project, offering the newest sta
   // Without its source, an edited installed target has no local copy of the
   // standards' bytes, so falling back to the retained standards fails and
   // writes nothing.
-  for (const url of Object.keys(f.remote.responses))
-    delete f.remote.responses[url];
+  const urls = Object.keys(f.remote.responses);
+  for (const url of urls) delete f.remote.responses[url];
   f.remote.save();
   const edited = snapshot(f.root);
   const unavailable = f.run(["adopt", "--json"]);
@@ -1284,6 +1284,17 @@ test("adopt without a source updates an adopted project, offering the newest sta
   assert.equal(failure.code, "SOURCE_UNAVAILABLE");
   assert.match(failure.message, /Edited installed target AGENTS\.md needs/);
   assert.deepEqual(snapshot(f.root), edited);
+  // A quota failure gives its own outcome the same way.
+  for (const url of urls) f.remote.responses[url] = { status: 429, body: {} };
+  f.remote.save();
+  const exhausted = f.run(["adopt", "--standards-version", "v1.1.0", "--json"]);
+  assert.equal(exhausted.status, 1, exhausted.stdout);
+  const quota = (JSON.parse(exhausted.stdout) as ErrorReport).errors[0]!;
+  assert.equal(quota.code, "QUOTA_EXHAUSTED", exhausted.stdout);
+  assert.match(quota.message, /Edited installed target AGENTS\.md needs/);
+  assert.deepEqual(snapshot(f.root), edited);
+  for (const url of urls) delete f.remote.responses[url];
+  f.remote.save();
   // With the standards' targets unedited, the project applies its current
   // selection again from the retained standards. An edit to the system
   // skill, which the CLI packages, keeps it asking.
