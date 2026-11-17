@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v7",
   "evidence": "historical",
-  "inspection": "sha256:da83b62d1d599e329953e30e030eb9e109a6062411e1c210d0ca80ffe31b1cb7",
+  "inspection": "sha256:86badf6ee598604eac64b4af1fe227ebfa1a2364465fda8e41a0a50fa8356e25",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -28,6 +28,14 @@
         "kind": "file",
         "target": ".github/ISSUE_TEMPLATE/bug-report.yml",
         "exact": ".github/ISSUE_TEMPLATE/bug-report.yml"
+      },
+      {
+        "id": "canonical-label-metadata",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/canonical-labels.mjs",
+        "exact": "operations/lib/canonical-labels.mjs"
       },
       {
         "id": "comments",
@@ -118,11 +126,13 @@
             "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
             "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
             "docs/adr/0034-select-check-location-beside-platform.md",
+            "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
             "docs/development/retained-exact-content.md",
+            "docs/development/sign-profiling.md",
             "docs/usage/README.md",
             "docs/usage/getting-started/README.md",
             "docs/usage/getting-started/adopt-repo-canon.md",
@@ -167,6 +177,14 @@
         "exact": ".scriptorium/config.json"
       },
       {
+        "id": "factory-label-metadata",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/factory-labels.mjs",
+        "exact": "operations/lib/factory-labels.mjs"
+      },
+      {
         "id": "factory-sandbox-image",
         "checks": [],
         "fixes": [],
@@ -192,26 +210,7 @@
       },
       {
         "id": "factory-workflow",
-        "checks": [
-          {
-            "id": "factory-model-policy",
-            "run": {
-              "executable": "node",
-              "script": "operations/check-factory-model-policy.mjs",
-              "resources": [
-                "operations/lib/factory-model-policy.mjs"
-              ],
-              "arguments": []
-            },
-            "prerequisite": {
-              "version-arguments": [
-                "--version"
-              ],
-              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
-            },
-            "timeout-seconds": 30
-          }
-        ],
+        "checks": [],
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/factory-workflow.md",
@@ -303,6 +302,8 @@
               "executable": "node",
               "script": "operations/setup-github-labels.mjs",
               "resources": [
+                "operations/lib/canonical-labels.mjs",
+                "operations/lib/factory-labels.mjs",
                 "operations/lib/github-operation.mjs",
                 "vendor/postern/postern.mjs",
                 "vendor/postern/LICENSE",
@@ -657,8 +658,12 @@
                 "operations/lib/entry-document.mjs",
                 "operations/lib/rendered-markdown.mjs",
                 "operations/lib/local-markdown-links.mjs",
+                "operations/lib/github-operation.mjs",
                 "vendor/marked",
-                "vendor/parse5"
+                "vendor/parse5",
+                "vendor/postern/postern.mjs",
+                "vendor/postern/LICENSE",
+                "vendor/postern/README.md"
               ],
               "arguments": []
             },
@@ -982,6 +987,14 @@
         "exact": ".github/ISSUE_TEMPLATE/bug-report.yml"
       },
       {
+        "id": "canonical-label-metadata",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/canonical-labels.mjs",
+        "exact": "operations/lib/canonical-labels.mjs"
+      },
+      {
         "id": "comments",
         "checks": [],
         "fixes": [],
@@ -1071,6 +1084,14 @@
         "exact": ".scriptorium/config.json"
       },
       {
+        "id": "factory-label-metadata",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/factory-labels.mjs",
+        "exact": "operations/lib/factory-labels.mjs"
+      },
+      {
         "id": "factory-sandbox-image",
         "checks": [],
         "fixes": [],
@@ -1096,26 +1117,7 @@
       },
       {
         "id": "factory-workflow",
-        "checks": [
-          {
-            "id": "factory-model-policy",
-            "run": {
-              "executable": "node",
-              "script": "operations/check-factory-model-policy.mjs",
-              "resources": [
-                "operations/lib/factory-model-policy.mjs"
-              ],
-              "arguments": []
-            },
-            "prerequisite": {
-              "version-arguments": [
-                "--version"
-              ],
-              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
-            },
-            "timeout-seconds": 30
-          }
-        ],
+        "checks": [],
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/factory-workflow.md",
@@ -1204,6 +1206,8 @@
               "executable": "node",
               "script": "operations/setup-github-labels.mjs",
               "resources": [
+                "operations/lib/canonical-labels.mjs",
+                "operations/lib/factory-labels.mjs",
                 "operations/lib/github-operation.mjs",
                 "vendor/postern/postern.mjs",
                 "vendor/postern/LICENSE",
@@ -1550,8 +1554,12 @@
                 "operations/lib/entry-document.mjs",
                 "operations/lib/rendered-markdown.mjs",
                 "operations/lib/local-markdown-links.mjs",
+                "operations/lib/github-operation.mjs",
                 "vendor/marked",
-                "vendor/parse5"
+                "vendor/parse5",
+                "vendor/postern/postern.mjs",
+                "vendor/postern/LICENSE",
+                "vendor/postern/README.md"
               ],
               "arguments": []
             },
@@ -1924,7 +1932,7 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:9d61d55cb8be00c22b2a1515000bca0038d30892836d9676bdbb9777ee5863a2",
+    "identity": "sha256:c919cc0cc56d0af553be0b0f2d495af3f7e32f9c933d507de8c1296f9dcac495",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
@@ -2354,10 +2362,9 @@
             {
               "path": "docs/adr/0031-give-every-site-page-one-nav.md",
               "decision": "include",
-              "reason": "Maintained architecture decision added by merged site navigation PR #449; belongs to the existing docs root and ADR index.",
+              "reason": "A file under the documentation root `docs`.",
               "evidence": [
-                "docs/adr/0031-give-every-site-page-one-nav.md",
-                "docs/adr/README.md"
+                "docs/adr/0031-give-every-site-page-one-nav.md"
               ]
             },
             {
@@ -2382,6 +2389,14 @@
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
                 "docs/adr/0034-select-check-location-beside-platform.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0036-keep-one-copy-of-installed-exact-content.md"
               ]
             },
             {
@@ -2462,6 +2477,14 @@
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
                 "docs/development/retained-exact-content.md"
+              ]
+            },
+            {
+              "path": "docs/development/sign-profiling.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/development/sign-profiling.md"
               ]
             },
             {
@@ -3046,7 +3069,7 @@
       "targets": {
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "d7dae2f6dc1673c5cd940f9f986a881a552fbef9783dca9109a914eb7b6d0b07",
+          "sha256": "1f05b1b246807adcd5f3ee760b53c7582e3dcdde252ad2cf58e1e6f4927a0d70",
           "executable": false
         },
         "docs/README.md": {
@@ -3211,7 +3234,7 @@
         },
         "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
           "type": "file",
-          "sha256": "906319de7e82ed305fc9508e2af9f487cde96eb4884e6adb9331151f29b8925f",
+          "sha256": "3ddda737aca912fca0fec153589b0733126d48d93da106d0d96a982a2ab27be3",
           "executable": false
         },
         "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
@@ -3224,19 +3247,24 @@
           "sha256": "22a3656bfcd502b1996475f5bbf264dc982c3d8daa85da9ff8a624d387eca754",
           "executable": false
         },
+        "docs/adr/0036-keep-one-copy-of-installed-exact-content.md": {
+          "type": "file",
+          "sha256": "394e61c943e9ce84c6c2897c66016cf4d23432a5153952c25f1eed9e4e578ba6",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "5b0846f949ab94d8f0e6ad7a10c1fb078f67a4ee97ba52ef03c108a2c7acd233",
+          "sha256": "7215a85fee6fca561beb796696d5aa211de6e24939c9ba2831da3ffdced9bdbf",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "672fc675a384698230360d6790be3866dff7e441e969f99ac5e2f7c4a9a19aa1",
+          "sha256": "60d48574e3323c93dae75fff110fe186a887bf959e350e59f30608e48d95e840",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "53181b8df0d60bb5c2d3e9efa16ea1b54b7d1bd9b71787b6189303b82ab02efb",
+          "sha256": "33ff5776744dff980234460f121b8131b0519919d34f1b1b60e990b21f2cd977",
           "executable": false
         },
         "docs/development/release.md": {
@@ -3246,7 +3274,12 @@
         },
         "docs/development/retained-exact-content.md": {
           "type": "file",
-          "sha256": "4bc0bd7403af6da569c830d82acb524fc11ed8b120f5de9672eb9f1f2919e0d3",
+          "sha256": "39bc9bf30055e2eab6aa7e168a22a0aa8a8369794ac59a30d7bb38cebc6387bf",
+          "executable": false
+        },
+        "docs/development/sign-profiling.md": {
+          "type": "file",
+          "sha256": "b23dadecbadf9ded2d3afc63858f8cd97144de3d5630d3a2459461f3625ef475",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -3261,7 +3294,7 @@
         },
         "docs/usage/getting-started/adopt-repo-canon.md": {
           "type": "file",
-          "sha256": "f994e741b7f59e1c841c35a4e27b4208c1ab668b0930bcd0c63fbff02cc2d35d",
+          "sha256": "ee0ec3012de570c3dcdc8784be84f952ce9594d874d3f7c514246a54540c73ba",
           "executable": false
         },
         "docs/usage/getting-started/keep-it-up-to-date.md": {
@@ -3281,7 +3314,7 @@
         },
         "docs/usage/guides/adopt.md": {
           "type": "file",
-          "sha256": "ee903f41b105265ab2ab8969b4a0e4cd1efa2b3407d25265cec4a988d1ff5c0d",
+          "sha256": "5b6cae861e25054197d73e89ebc80aaa1f24549a12523776cf9bc3d77094f547",
           "executable": false
         },
         "docs/usage/guides/author-a-source.md": {
@@ -3291,7 +3324,7 @@
         },
         "docs/usage/guides/automated-updates.md": {
           "type": "file",
-          "sha256": "ad47b6a0ba0672c79bcc6304f03dd4935f86ed2191a6ad143bc6f4b01e392397",
+          "sha256": "ba56e19c783f4c56e226df87e747273689334c22e74ff9704ab1d51dc3c3326f",
           "executable": false
         },
         "docs/usage/guides/find-sources.md": {
@@ -3311,7 +3344,7 @@
         },
         "docs/usage/guides/update.md": {
           "type": "file",
-          "sha256": "89110a5c781aa40a6ba9b59696af5e6fa89c76fe35a024d2be79eb289943a52b",
+          "sha256": "768a3ab5e2eea00a93df3f855acbb82f95dc08be6d0c5643e18ad88b876c524c",
           "executable": false
         },
         "docs/usage/reference/README.md": {
@@ -3321,7 +3354,7 @@
         },
         "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "72450d9e8d33f1e89b26012da095ef200f3f1b82ba9734ab080a9b6c554d56c7",
+          "sha256": "6c7fc9e5afb1d2234dfb393966624a2cdce9fd5ac1500efd65d65c88172bd6f1",
           "executable": false
         },
         "docs/usage/reference/assessment-protocol.md": {
@@ -3341,7 +3374,7 @@
         },
         "docs/usage/reference/check.md": {
           "type": "file",
-          "sha256": "da03577bcdb80e68cbe2217b6f47b8facf4190da72f27502e80efbeacd6a2dab",
+          "sha256": "6ae526935465980f55a1bf41388f54a6a5b9aa7a637979a61d629d11ce8a2f3c",
           "executable": false
         },
         "docs/usage/reference/github-requests.md": {
@@ -3351,7 +3384,7 @@
         },
         "docs/usage/reference/inspection.md": {
           "type": "file",
-          "sha256": "0b2cf1ae7a2d89dcedca6377be5c32e317b3417f50431254fbb5b8862e49de9b",
+          "sha256": "c4c722c3e4d05e07fe9888d3ca22b449356746f69170a18a9f01c9478e7faa1b",
           "executable": false
         },
         "docs/usage/reference/rules.md": {
@@ -3361,7 +3394,7 @@
         },
         "docs/usage/reference/script-protocol.md": {
           "type": "file",
-          "sha256": "20f368e1b4f9908eda6c4de1c9f2457090147b5916e5a58cd898d03b2bd49e6f",
+          "sha256": "1a28c8904bafbd5faaab88ac7b9a6c500a007f7eb33cb4c09b38a1cc28d83b0a",
           "executable": false
         },
         "package.json": {
@@ -3371,7 +3404,7 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "a9148d6f6904f325cefc5830704d5365279bf7f679df4c4605eecad7007462fe",
+          "sha256": "33a130ecf59f69e1164479afdb7ea36faab45167bcaa435bab2ff0ac5bc6cfd0",
           "executable": false
         },
         "site/package.json": {
@@ -3715,6 +3748,14 @@
             ]
           },
           {
+            "path": "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
+            "decision": "include",
+            "reason": "A file under the documentation root `docs`.",
+            "evidence": [
+              "docs/adr/0036-keep-one-copy-of-installed-exact-content.md"
+            ]
+          },
+          {
             "path": "docs/adr/README.md",
             "decision": "include",
             "reason": "A file under the documentation root `docs`.",
@@ -3792,6 +3833,14 @@
             "reason": "A file under the documentation root `docs`.",
             "evidence": [
               "docs/development/retained-exact-content.md"
+            ]
+          },
+          {
+            "path": "docs/development/sign-profiling.md",
+            "decision": "include",
+            "reason": "A file under the documentation root `docs`.",
+            "evidence": [
+              "docs/development/sign-profiling.md"
             ]
           },
           {
@@ -3988,7 +4037,6 @@
           }
         ],
         "unresolved": [
-          "Which of these Markdown files under `.agents` are documentation this scope must cover, such as a document to move into a documentation category: `.agents/skills/orchestrate/CREDITS.md` and `.agents/skills/orchestrate/SKILL.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `acceptance` are documentation this scope must cover, such as a document to move into a documentation category: `acceptance/projects/bob/CONTRIBUTING.md`, `acceptance/projects/forge/INDEX.md`, `acceptance/projects/forge/groups/developer-tools.md`, `acceptance/projects/forge/guides/hammer.md`, `acceptance/projects/harbor/CONTRIBUTING.md`, `acceptance/projects/harbor/docs/operations.md`, `acceptance/projects/orchard/CATALOG.md`, `acceptance/projects/orchard/legacy/pear-operations.md`, `acceptance/projects/orchard/teams/runtime.md`, `acceptance/projects/relay/groups/messaging-runtime.md`, `acceptance/projects/relay/notes/relay-limitations.md`, `acceptance/sources/wayfinder/guidance/service-discovery.md`, and `acceptance/sources/wayfinder/guidance/service-readiness.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `examples` are documentation this scope must cover, such as a document to move into a documentation category: `examples/alice/defaults/files/AGENTS.md`, `examples/alice/defaults/files/CONTRIBUTING.md`, `examples/alice/defaults/guidance/readme.md`, `examples/alice/defaults/guidance/source-layout.md`, `examples/alice/defaults/skills/review/SKILL.md`, `examples/alice/profiles/work/files/AGENTS.md`, `examples/atlas/guidance/project-discovery.md`, `examples/atlas/guidance/project-documentation.md`, and `examples/mira/guidance/operations.md`? Include each one, with its destination when it moves.",
           "Which of these Markdown files under `site` are documentation this scope must cover, such as a document to move into a documentation category: `site/src/components/ui/AGENTS.md`, `site/src/i18n/prose/ca/how-it-works.md`, `site/src/i18n/prose/ca/repo-canon.md`, `site/src/i18n/prose/en/how-it-works.md`, `site/src/i18n/prose/en/repo-canon.md`, `site/src/i18n/prose/es/how-it-works.md`, `site/src/i18n/prose/es/repo-canon.md`, and `site/test/fixtures/docs/guides/nested/deep.md`? Include each one, with its destination when it moves.",
@@ -4059,6 +4107,7 @@
               "site/src/components/app/badge.ts",
               "site/src/components/app/button.ts",
               "site/src/components/app/card.ts",
+              "site/src/components/app/collapsible.ts",
               "site/src/components/app/dialog.ts",
               "site/src/components/app/dropdown-menu.ts",
               "site/src/components/app/empty.ts",
@@ -4097,6 +4146,7 @@
               "site/src/components/ui/badge.tsx",
               "site/src/components/ui/button.tsx",
               "site/src/components/ui/card.tsx",
+              "site/src/components/ui/collapsible.tsx",
               "site/src/components/ui/dialog.tsx",
               "site/src/components/ui/dropdown-menu.tsx",
               "site/src/components/ui/empty.tsx",
@@ -4180,6 +4230,7 @@
               "site/src/components/app/badge.ts",
               "site/src/components/app/button.ts",
               "site/src/components/app/card.ts",
+              "site/src/components/app/collapsible.ts",
               "site/src/components/app/dialog.ts",
               "site/src/components/app/dropdown-menu.ts",
               "site/src/components/app/empty.ts",
@@ -4218,6 +4269,7 @@
               "site/src/components/ui/badge.tsx",
               "site/src/components/ui/button.tsx",
               "site/src/components/ui/card.tsx",
+              "site/src/components/ui/collapsible.tsx",
               "site/src/components/ui/dialog.tsx",
               "site/src/components/ui/dropdown-menu.tsx",
               "site/src/components/ui/empty.tsx",
@@ -4335,12 +4387,12 @@
         },
         ".agents/skills/babysit/CREDITS.md": {
           "type": "file",
-          "sha256": "3e818ff6a36fad53ee4e9c72a190f4c4f8a01d27320561841414a188ad3b286a",
+          "sha256": "407cbf3f51699040bf0006e3c9722a8a2b9a867bedf52f60c2d734db5103d09e",
           "executable": false
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "d5ad872bc16e66f328575704d65abc1cd60ef9b08e8214e6e8023421305292bf",
+          "sha256": "0fd76955ad2b752809799eddd274486af13640ff16e062f1448bf5c281c081e5",
           "executable": false
         },
         ".agents/skills/babysit/body-links.mjs": {
@@ -4350,27 +4402,32 @@
         },
         ".agents/skills/babysit/merge.mjs": {
           "type": "file",
-          "sha256": "52ec42a2592256b82ca2ee3474e93604eaf2d82169dbc8c087bf877bc23551e1",
+          "sha256": "2cb20c6582ccff25d7821112aa30781820190ecd5662e4cd9e56e7a4f6fc8492",
           "executable": false
         },
         ".agents/skills/babysit/platform.mjs": {
           "type": "file",
-          "sha256": "fc6fdbf5129dea3335ea340882806d7e9ee908f8b4dc72d10873c7637efc1fe3",
+          "sha256": "7275843cf10d1ca4b8dd150066141dffbb6cb9f931b8b967fd99cf9c9ee53d1c",
           "executable": false
         },
         ".agents/skills/babysit/pull-request-reviewer.mjs": {
           "type": "file",
-          "sha256": "d2b3ecf236b1758f299577cfd81ccdec3ec0980e46209fbec0cd06e9060c2f4a",
+          "sha256": "2d22280d01d2835b8e0a47bfc3fa50c507b74aee6b0aa047d4f106f98871a5dd",
           "executable": false
         },
         ".agents/skills/babysit/request.mjs": {
           "type": "file",
-          "sha256": "a293d000f9c190481e345a25bfe01ec7b894f263c0bb03917dde1f35db0b50c7",
+          "sha256": "859748cea839f995d20f31886818f7ca5176f916fd992bb9b3d5a9afa94e9535",
+          "executable": false
+        },
+        ".agents/skills/babysit/required-checks.mjs": {
+          "type": "file",
+          "sha256": "bde82ec3b4520fe625bb61401436dce526fe8e04914baf5ffbe4aa6ddd914bf1",
           "executable": false
         },
         ".agents/skills/babysit/review-outcome.mjs": {
           "type": "file",
-          "sha256": "58632b2e8c8de4487204bdd14a5ff2208b6b824b53f49d3aa512ce606e940108",
+          "sha256": "a3213bb3983f56a1df1b498157105cfd591b4e6a4afbcf9d47b6bf2429feceba",
           "executable": false
         },
         ".agents/skills/babysit/review-policy.mjs": {
@@ -4380,27 +4437,27 @@
         },
         ".agents/skills/babysit/reviewer.mjs": {
           "type": "file",
-          "sha256": "580098ac88a2be873d271dd7107cfcb8b0ab1ab059ccb39236f73e4f4eec3508",
+          "sha256": "fb4d068de25ec4f473fe9dd6e361c395e500fd824563d30f84497bec2eade3b3",
           "executable": false
         },
         ".agents/skills/babysit/trusted-review-config.mjs": {
           "type": "file",
-          "sha256": "25d4cb7bf51366e305d2a741c0ebb4cf6f3dac510f2519e4d0f3977898821dc6",
+          "sha256": "0ac7daa9f12cc8d646849e7f550730d83ecbda2beac6106ee4545f756a04705e",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "f865d885a46d5943823eeca7407fab40bf9d5eea90ab0b5697a18c6d26610f30",
+          "sha256": "c4aa0514411a924001d9c4d28f242256db8d3d61e3ff543bf79fd542a7697681",
           "executable": false
         },
         ".agents/skills/code-review/CREDITS.md": {
           "type": "file",
-          "sha256": "a8a1e5930513f2e4500ed539291ac173800a9e0cf55d9284d6fc4cf7cdf40476",
+          "sha256": "34b37f6a6bf25894a3f87ec1bbaf332f2947dcc3d88488fdd3c275a531c1d244",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
           "type": "file",
-          "sha256": "609b4a6d8e730dcea7ab239b9268160033dd192857587e065b6af716885f7c6f",
+          "sha256": "77eae9f8d2bd383c1decfd8aab8b902e2b258915a60b4f86755610e8c91e8a2c",
           "executable": false
         },
         ".agents/skills/code-review/agents/openai.yaml": {
@@ -4408,9 +4465,14 @@
           "sha256": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352",
           "executable": false
         },
+        ".agents/skills/code-review/ownership-facts.mjs": {
+          "type": "file",
+          "sha256": "906fdcf6301db6188c79c550d9f2e43c704a9bdda0bcb9eb67d5e1f5ea353b1f",
+          "executable": false
+        },
         ".agents/skills/codebase-design/CREDITS.md": {
           "type": "file",
-          "sha256": "0a8a93ed13b6e8b65dd7c59a010c49558a1a670e4eb84b618976d2466e6437bc",
+          "sha256": "8b96c332a632287d74a45715680b1683da910e2e219bd15a7af4fd375161190e",
           "executable": false
         },
         ".agents/skills/codebase-design/DEEPENING.md": {
@@ -4425,7 +4487,7 @@
         },
         ".agents/skills/codebase-design/SKILL.md": {
           "type": "file",
-          "sha256": "ba1a4f9c57ba7f52e0e88b2149d1293495858bcf0993352cc7e0df193bfb67ea",
+          "sha256": "1495f4368b689d14d52282f93eb65dec2760e1aebbb202be739e459b6cc2e9cd",
           "executable": false
         },
         ".agents/skills/codebase-design/agents/openai.yaml": {
@@ -4435,7 +4497,7 @@
         },
         ".agents/skills/diagnosing-bugs/CREDITS.md": {
           "type": "file",
-          "sha256": "9073d0c470ac0b79c9385ec2f7364bd477c0b1a4c3b9125b59602a77a817fa48",
+          "sha256": "23f6645261d3397183fa2aa8078e950447dc209c550ccff764519e100183290f",
           "executable": false
         },
         ".agents/skills/diagnosing-bugs/SKILL.md": {
@@ -4460,7 +4522,7 @@
         },
         ".agents/skills/domain-modeling/CREDITS.md": {
           "type": "file",
-          "sha256": "bbcc5a0d207d4c715189f3110887a379ca5e10787f9fdcf60bfb944aff1480ec",
+          "sha256": "724e6da4dd9f84bbf1a3f3ca74904784a2778e303b305fb8ba6206462f905c59",
           "executable": false
         },
         ".agents/skills/domain-modeling/GLOSSARY-FORMAT.md": {
@@ -4478,14 +4540,24 @@
           "sha256": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b",
           "executable": false
         },
+        ".agents/skills/factory/CREDITS.md": {
+          "type": "file",
+          "sha256": "84f85448b6dbe4baeb6ff2761a1069c598dfba5fddab41ece9acd4bab74fab5d",
+          "executable": false
+        },
+        ".agents/skills/factory/SKILL.md": {
+          "type": "file",
+          "sha256": "9a0df66e24b4d3ae2da6378c055097d88b4a7cd6f96dc6713e31f42704634c0c",
+          "executable": false
+        },
         ".agents/skills/grill-with-docs/CREDITS.md": {
           "type": "file",
-          "sha256": "6bf2b0e20439662835b7ec5e8dff26c99f4e87876bdc7c355265aafb7c427b0d",
+          "sha256": "5beab341239f89a8e49b9e82f0b39856c4d3cd2d3d5cd9ea136bd25d4e6574b0",
           "executable": false
         },
         ".agents/skills/grill-with-docs/SKILL.md": {
           "type": "file",
-          "sha256": "8cf85fcfe4d23acb4d1c50f98f760adbd526c0985551a9e53f34c07315775d0c",
+          "sha256": "4e2d5978170c5cf499ce063a7ea4fea657779268f7677681fb575862613ce866",
           "executable": false
         },
         ".agents/skills/grill-with-docs/agents/openai.yaml": {
@@ -4495,12 +4567,12 @@
         },
         ".agents/skills/grilling/CREDITS.md": {
           "type": "file",
-          "sha256": "50702f66166d7fb00e555c44374c7d4be4a6d4a60f1b09e11b409b2c0b0bbf0e",
+          "sha256": "fe3846dbb144a20a941c89b2d81282ff15b41b82c7bb4848fa12f99e26024e84",
           "executable": false
         },
         ".agents/skills/grilling/SKILL.md": {
           "type": "file",
-          "sha256": "550963b196dafccfb7b438e0772a04859e7c8f09e45fd62d43fdcde6a6104441",
+          "sha256": "760732f8269c80cda86d4ec977bcb99564e7728924b07a19ce94d7e43cd940e7",
           "executable": false
         },
         ".agents/skills/grilling/agents/openai.yaml": {
@@ -4510,12 +4582,12 @@
         },
         ".agents/skills/implement/CREDITS.md": {
           "type": "file",
-          "sha256": "55c3fdf5d679908d21398c292069abc547fe4430897c57a441f5e3afb015d18a",
+          "sha256": "b6b3df15545ee616281f80b2fde9c8eb96354491059ba13e23bf13c8373958fb",
           "executable": false
         },
         ".agents/skills/implement/SKILL.md": {
           "type": "file",
-          "sha256": "c8ee4b891bd4a6ae5d1cb3f73d20f3bf980ce66a783706042339ebcc436ce436",
+          "sha256": "4d10c26aa5c87054db9eb6abca3471a7babf4e3561ea2c16f67ed22d0d106be5",
           "executable": false
         },
         ".agents/skills/implement/agents/openai.yaml": {
@@ -4525,7 +4597,7 @@
         },
         ".agents/skills/improve-codebase-architecture/CREDITS.md": {
           "type": "file",
-          "sha256": "2cb8c96b72929b6cac2780d291f047a8ecb350a678add177159316619e2e2122",
+          "sha256": "f6a40012a71c8efaf53119c4a0a4adb7b40a0dad9e898e0103d86e76b17e56b1",
           "executable": false
         },
         ".agents/skills/improve-codebase-architecture/HTML-REPORT.md": {
@@ -4535,7 +4607,7 @@
         },
         ".agents/skills/improve-codebase-architecture/SKILL.md": {
           "type": "file",
-          "sha256": "96942b6f0b302b2101cb78ea1a7743aa4972a149caba3364a11fad7770b6dc47",
+          "sha256": "05178cd78133cd251d1051bc699ea7f8c38aed31f8cf24d584d7f2320d3823c5",
           "executable": false
         },
         ".agents/skills/improve-codebase-architecture/agents/openai.yaml": {
@@ -4543,34 +4615,14 @@
           "sha256": "c8cb20f68ebf0edb4e497bc11ae5fcaa196004e661cd189015b04f4109ced7f1",
           "executable": false
         },
-        ".agents/skills/orchestrate/CREDITS.md": {
-          "type": "file",
-          "sha256": "aef2eeb3e1c130c9d5cd6e2805b5480d18a96e6bafd1c1c1cdf0c2dcb545a476",
-          "executable": false
-        },
-        ".agents/skills/orchestrate/SKILL.md": {
-          "type": "file",
-          "sha256": "83dabd0a7a3a534558d939edd04dab5a395262c1f627fc88377f0712d4b2cb89",
-          "executable": false
-        },
-        ".agents/skills/orchestrate/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "8fa9f8f0710336e9e9a32915436647c3f5c3bfa9a2acdbdcaf613daba800bf6c",
-          "executable": false
-        },
-        ".agents/skills/orchestrate/wait.mjs": {
-          "type": "file",
-          "sha256": "3dff1616c2b4ba3dd481584a71852732f9fadf52d31a58ed4223b611e7cf17e9",
-          "executable": false
-        },
         ".agents/skills/pr/CREDITS.md": {
           "type": "file",
-          "sha256": "2631c4c0899decfed35bc7c4c930e069e91769490ddcd128e523602469db4962",
+          "sha256": "d1f1e6a3639bab2a9a8b009ed61d0ad20322746e24490376114fd79161ad92aa",
           "executable": false
         },
         ".agents/skills/pr/SKILL.md": {
           "type": "file",
-          "sha256": "708ab786bb60e7b7c266375b00cebd3600b00e44b49c12d8e63b1d1868ce427e",
+          "sha256": "c0b0ea622c08c919435be7fe5462549b761e8f06704d2cbac207ced6a989a7f5",
           "executable": false
         },
         ".agents/skills/pr/agents/openai.yaml": {
@@ -4580,7 +4632,7 @@
         },
         ".agents/skills/prototype/CREDITS.md": {
           "type": "file",
-          "sha256": "54273a012bf62110fe7cf392f6ac3e512a7d4a0ac1f7dbccac7dbcc3805e571f",
+          "sha256": "d7127e14cbad9655d701b88cb2343317b07ab65360a9193092b874b6f9c8c699",
           "executable": false
         },
         ".agents/skills/prototype/LOGIC.md": {
@@ -4615,12 +4667,12 @@
         },
         ".agents/skills/research/CREDITS.md": {
           "type": "file",
-          "sha256": "306f99289f0dcc2da9437d7b3b4d51b06446e2b4ca8395dffd2bdcd80afc51c9",
+          "sha256": "beb53571788b6df7c22fe251b9a23099c6e8102a896bf3e92ee12dfee194486b",
           "executable": false
         },
         ".agents/skills/research/SKILL.md": {
           "type": "file",
-          "sha256": "5d4f569e95e0041f8160837f7fba3e0609df1d8594307109299dff8ecd7b05b1",
+          "sha256": "5e63fce1b54edbb1179be9e2d493131ef8b7194cc8560774b2d6daab2c4291fe",
           "executable": false
         },
         ".agents/skills/research/agents/openai.yaml": {
@@ -4628,9 +4680,24 @@
           "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
           "executable": false
         },
+        ".agents/skills/review/CREDITS.md": {
+          "type": "file",
+          "sha256": "84f85448b6dbe4baeb6ff2761a1069c598dfba5fddab41ece9acd4bab74fab5d",
+          "executable": false
+        },
+        ".agents/skills/review/SKILL.md": {
+          "type": "file",
+          "sha256": "8760d2756881988980baa39cbc069195bd78689d2d03025879f67c28390f795b",
+          "executable": false
+        },
+        ".agents/skills/review/round.mjs": {
+          "type": "file",
+          "sha256": "878bba6ce24758c5b7769cee395d1c784c290f230847bd158ace54bbfc584a1a",
+          "executable": false
+        },
         ".agents/skills/tdd/CREDITS.md": {
           "type": "file",
-          "sha256": "a14fe58f53cd2351f8ad7fe609bb656a726606d001d64c13c8df4a7ea004e8b5",
+          "sha256": "e8fae429588f9cc4099a9a1fcbb3d2be2443b5d1ddbd999a76f4092db14c2c38",
           "executable": false
         },
         ".agents/skills/tdd/SKILL.md": {
@@ -4655,12 +4722,12 @@
         },
         ".agents/skills/to-spec/CREDITS.md": {
           "type": "file",
-          "sha256": "d03f2632fa36e602bcf0e9c38cb7f7fb18b19c821cf1186c1270103b477f264e",
+          "sha256": "ae7522625cbe55c09ff06187833c882a8b13c448f590957cc0ff707deb3c9fac",
           "executable": false
         },
         ".agents/skills/to-spec/SKILL.md": {
           "type": "file",
-          "sha256": "f747048852302b2d5a5327d76da2ef5c193c9e937fbef0a2e22f8447e44e29d5",
+          "sha256": "b1dcebf4e4928e042c2aef15e562c41973769ca90d0be16948586cced1a840dd",
           "executable": false
         },
         ".agents/skills/to-spec/agents/openai.yaml": {
@@ -4670,12 +4737,12 @@
         },
         ".agents/skills/to-tickets/CREDITS.md": {
           "type": "file",
-          "sha256": "9db8d0779baae0285125baff989a039e6dcb9db11d21d3e667a6671e55441add",
+          "sha256": "ddb3ec22b0de7c4e071a890fa72e7abc17145c49c48c4bf2724a212c9663e79b",
           "executable": false
         },
         ".agents/skills/to-tickets/SKILL.md": {
           "type": "file",
-          "sha256": "db4c14dc5d5e78db9e275634ef2284a225dd421106a97b8362d3ac4a84625c90",
+          "sha256": "e07e532190ec55a7749238e0f2b66b48f8e9dd7f315b4f11e3961ad45e052d66",
           "executable": false
         },
         ".agents/skills/to-tickets/agents/openai.yaml": {
@@ -4685,12 +4752,12 @@
         },
         ".agents/skills/triage/AGENT-BRIEF.md": {
           "type": "file",
-          "sha256": "846e20148f152a7bba0b32e780bb01532fd88857a3556ce7f0e920b3d64c5349",
+          "sha256": "3e3f4fcc784acc1d8de456eda8d39f603ebf7997d6d27284d13c14a0d6398aa1",
           "executable": false
         },
         ".agents/skills/triage/CREDITS.md": {
           "type": "file",
-          "sha256": "837ca57f46f720fda1b1ae50ae7b1c0c7a5eceadc3df312974486d0953cc586a",
+          "sha256": "374203880c94f935c6eea9e50adbf38c6c896c6c1bc5fa823a0599f358108c8e",
           "executable": false
         },
         ".agents/skills/triage/OUT-OF-SCOPE.md": {
@@ -4700,7 +4767,7 @@
         },
         ".agents/skills/triage/SKILL.md": {
           "type": "file",
-          "sha256": "bab14b50498f86a0629c6955fb5416f2c166cfe24239d33279dfdfb30187656b",
+          "sha256": "1593e9df610265d357bc97f7eb0893e7a272c58fbba8867513e16cbd31a9eb23",
           "executable": false
         },
         ".agents/skills/triage/agents/openai.yaml": {
@@ -4710,17 +4777,17 @@
         },
         ".agents/skills/triage/ready.mjs": {
           "type": "file",
-          "sha256": "d35dbec41fd48778ef5e95a64e94b9482948b992456272827dd6f41a3ce02f54",
+          "sha256": "615ac52ce5c59d1c39a4b323f5f6f97643fe703773250f1a5f0f20075293c8ea",
           "executable": false
         },
         ".agents/skills/wayfinder/CREDITS.md": {
           "type": "file",
-          "sha256": "e1eea56ad12a8fa780b3d746f2108f421bf1a322c1a5c52c82466a12ecd5c933",
+          "sha256": "c6f847b8083f4a16ab087fda8d18ff19e29e56e9078274599f2ba4cfbb6ec90b",
           "executable": false
         },
         ".agents/skills/wayfinder/SKILL.md": {
           "type": "file",
-          "sha256": "89d8e3f68a5ef0e65f15ff94321dc7feeb22c9f03f5f32b874a6068bee9cb182",
+          "sha256": "801037381f3aed3fe09e69eb3f27d1d0d85660ee57e72c5022b14c413fed00b0",
           "executable": false
         },
         ".agents/skills/wayfinder/agents/openai.yaml": {
@@ -4730,7 +4797,7 @@
         },
         ".agents/skills/writing-for-agents/CREDITS.md": {
           "type": "file",
-          "sha256": "f55ac668257fa933322d694da377d6a49b8b934c883eabec7732bbe53677a9e5",
+          "sha256": "1653c6d6471ab2a5f674c8f4813c81d7bd2325c069db8d21b3442c01b67f43b3",
           "executable": false
         },
         ".agents/skills/writing-for-agents/SKILL-MECHANICS.md": {
@@ -4768,6 +4835,10 @@
           "type": "symlink",
           "target": "../../.agents/skills/domain-modeling"
         },
+        ".claude/skills/factory": {
+          "type": "symlink",
+          "target": "../../.agents/skills/factory"
+        },
         ".claude/skills/grill-with-docs": {
           "type": "symlink",
           "target": "../../.agents/skills/grill-with-docs"
@@ -4784,10 +4855,6 @@
           "type": "symlink",
           "target": "../../.agents/skills/improve-codebase-architecture"
         },
-        ".claude/skills/orchestrate": {
-          "type": "symlink",
-          "target": "../../.agents/skills/orchestrate"
-        },
         ".claude/skills/pr": {
           "type": "symlink",
           "target": "../../.agents/skills/pr"
@@ -4803,6 +4870,10 @@
         ".claude/skills/research": {
           "type": "symlink",
           "target": "../../.agents/skills/research"
+        },
+        ".claude/skills/review": {
+          "type": "symlink",
+          "target": "../../.agents/skills/review"
         },
         ".claude/skills/tdd": {
           "type": "symlink",
@@ -4828,19 +4899,9 @@
           "type": "symlink",
           "target": "../../.agents/skills/writing-for-agents"
         },
-        ".factory/Dockerfile": {
-          "type": "file",
-          "sha256": "a61e429b56610165047745a8f3bbcc37a62721cee24e50637f9b6676107118bf",
-          "executable": false
-        },
-        ".factory/config.json": {
-          "type": "file",
-          "sha256": "66e4037c28481f7a62af7d3873e99a19ad624230c5fb38fbb9b8dba71a87d36a",
-          "executable": false
-        },
         ".gitattributes": {
           "type": "file",
-          "sha256": "35d0db95edd11811a4e4d762b4ce129a3311c12bf711b0b2fc903d11ac8af50e",
+          "sha256": "5fb7690136b4440ddd03e19c2fd7740e1a4a39709ac5eb3283e9f3ae6cb6cffe",
           "executable": false
         },
         ".github/FUNDING.yml": {
@@ -4850,22 +4911,22 @@
         },
         ".github/ISSUE_TEMPLATE/bug-report.yml": {
           "type": "file",
-          "sha256": "5fca3bab67073fdb827cd5eb88d9c413ac1e1df2891a85c7938420dcb1e3dfed",
+          "sha256": "640ba23f2f36bf471b4a2fca372ebc59a284336d80a3a7c7cb235cb49e4a3517",
           "executable": false
         },
         ".github/ISSUE_TEMPLATE/feature-request.yml": {
           "type": "file",
-          "sha256": "d3df4f5c27dd7b7a22d0baec1a52a1dc3301c002549f8634392a3abd26566505",
+          "sha256": "c965084796f10393fe0fb7ee3b3507b16b383949b59d328194aac62778cdecee",
           "executable": false
         },
         ".github/ISSUE_TEMPLATE/implementation-ticket.yml": {
           "type": "file",
-          "sha256": "d452da0ad9e39173f681b699d3848a00ab3466b55be508cc3f36d7731083bff6",
+          "sha256": "357a7458d2747c52388f483312968203e3bee05c180d1092dc8059225a896628",
           "executable": false
         },
         ".github/ISSUE_TEMPLATE/specification.yml": {
           "type": "file",
-          "sha256": "77b6359750ff03695a1dc19ee121e664787f4a6954cd9847277ab40fb6b22dfd",
+          "sha256": "0ca007476479bfe674d477826c706b71cc1baac4608c19b0e16e3d2b10d7a206",
           "executable": false
         },
         ".github/PULL_REQUEST_TEMPLATE.md": {
@@ -4890,7 +4951,7 @@
         },
         ".github/scripts/validate.mjs": {
           "type": "file",
-          "sha256": "bab5f39ee6e1fdb423d90b19dec73b1226ed68ab90a804442a7503e9e9bd6bdc",
+          "sha256": "ba298cfed877e125c274808a16aa33d3ab8939a7a96c6a8a50acb366a34d4a56",
           "executable": false
         },
         ".github/workflows/deploy-site.yml": {
@@ -4900,7 +4961,7 @@
         },
         ".github/workflows/issue-contracts.yml": {
           "type": "file",
-          "sha256": "1734fd905c48e75b80c7a4db7518799c4ae5dbd0eecfef73b6025b0b777ad4f6",
+          "sha256": "12259993d462dc9e0f7915a4142b68ab16dcbef0b70e8de2b47d2a650d42ae8a",
           "executable": false
         },
         ".github/workflows/pr-metadata.yml": {
@@ -4915,7 +4976,7 @@
         },
         ".github/workflows/sandbox-image.yml": {
           "type": "file",
-          "sha256": "598ab9931a8cfc63a3e1d2487fb151eca9b134a5e9a4e3bfa20d4b87b96399b3",
+          "sha256": "0078387a573507d5c8b97adb5d53c5fd13e33fd2c640ab8870c06bf02c5dff69",
           "executable": false
         },
         ".github/workflows/standards-update.yml": {
@@ -4940,7 +5001,7 @@
         },
         ".oxlintrc.json": {
           "type": "file",
-          "sha256": "79998f4646630af2bf09bf705637b9fd268df3e460119b9d4b45b7b08ea8ddee",
+          "sha256": "5431ea016af09bcb3c54812b59bf0f4c4dbdc5dbf00aaeb36c2ad4ff57f2b131",
           "executable": false
         },
         ".prettierignore": {
@@ -4948,19 +5009,29 @@
           "sha256": "6aa73a851db482e037b1bb0cefcb6ab1bf7cf2d176924335be660fe2c59a0d14",
           "executable": false
         },
+        ".scriptorium/Dockerfile": {
+          "type": "file",
+          "sha256": "bcd4ac4a919ab9dd8771160bb3ab9a7af4a5daaebbc67d31a3ae45b09465b5ee",
+          "executable": false
+        },
+        ".scriptorium/config.json": {
+          "type": "file",
+          "sha256": "67071e1314822cdb064c5c02d836d76803caf30e6f7fe38733646567c193b3e3",
+          "executable": false
+        },
         "AGENTS.md": {
           "type": "file",
-          "sha256": "ddc8a1fecde13610ba656ee98c9d2cb128b15b7fc20e9068beb0eef9eaf4ba1b",
+          "sha256": "5ca7e2b78cedb385fe2e06b9c1bb46fc5204f66399b38c46f1dc4ed2f9ded32d",
           "executable": false
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "7339c01ea325a5537d74bedf311b671930a24c6b1134618565167e20ea2b18de",
+          "sha256": "1eb41ff2c50cb6bdbc9561a713ff55e0ef325bb91a639d88c200ecc20b19c930",
           "executable": false
         },
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "d7dae2f6dc1673c5cd940f9f986a881a552fbef9783dca9109a914eb7b6d0b07",
+          "sha256": "1f05b1b246807adcd5f3ee760b53c7582e3dcdde252ad2cf58e1e6f4927a0d70",
           "executable": false
         },
         "LICENSE": {
@@ -5205,7 +5276,7 @@
         },
         "action/github.ts": {
           "type": "file",
-          "sha256": "d0281d11c5ad327c91373c28bae13621317079023ba705fe4f478f08f4e164df",
+          "sha256": "5ac5ff77294f24848c81da979a45975d92ffe47eed435641d745aa6412ba8895",
           "executable": false
         },
         "action/main.ts": {
@@ -5215,7 +5286,7 @@
         },
         "action/update.ts": {
           "type": "file",
-          "sha256": "187572c235e304502556b195688ceecee026acd0fb6635ebc5d4da6c0272971f",
+          "sha256": "b5abcdfcfd14c0fb7001163bf15ca865ea09857d8bc99a43274070a602424259",
           "executable": false
         },
         "bootstrap/repo-standards": {
@@ -5385,7 +5456,7 @@
         },
         "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md": {
           "type": "file",
-          "sha256": "906319de7e82ed305fc9508e2af9f487cde96eb4884e6adb9331151f29b8925f",
+          "sha256": "3ddda737aca912fca0fec153589b0733126d48d93da106d0d96a982a2ab27be3",
           "executable": false
         },
         "docs/adr/0033-keep-astro-for-content-and-static-sites.md": {
@@ -5398,9 +5469,14 @@
           "sha256": "22a3656bfcd502b1996475f5bbf264dc982c3d8daa85da9ff8a624d387eca754",
           "executable": false
         },
+        "docs/adr/0036-keep-one-copy-of-installed-exact-content.md": {
+          "type": "file",
+          "sha256": "394e61c943e9ce84c6c2897c66016cf4d23432a5153952c25f1eed9e4e578ba6",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "5b0846f949ab94d8f0e6ad7a10c1fb078f67a4ee97ba52ef03c108a2c7acd233",
+          "sha256": "7215a85fee6fca561beb796696d5aa211de6e24939c9ba2831da3ffdced9bdbf",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -5415,7 +5491,7 @@
         },
         "docs/agents/issue-tracker.md": {
           "type": "file",
-          "sha256": "bcd5dd6c974b269c98f2b2a9ce81a979e33676f3442c8110bfa4f018fefde895",
+          "sha256": "5b850cbe40cf2f4493c87b559a8c1f7aadaac000dcccae55409307d0ff9df57c",
           "executable": false
         },
         "docs/agents/project.md": {
@@ -5425,17 +5501,17 @@
         },
         "docs/agents/triage-labels.md": {
           "type": "file",
-          "sha256": "7103db589b82930dc1f0b7b6d291c5e1aa9bfc40c34354ae18279127573b23d7",
+          "sha256": "6668843407bb5169d8655ed75f30e1e531d0f895ab19b20bd3dc633f668be3b3",
           "executable": false
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "672fc675a384698230360d6790be3866dff7e441e969f99ac5e2f7c4a9a19aa1",
+          "sha256": "60d48574e3323c93dae75fff110fe186a887bf959e350e59f30608e48d95e840",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "53181b8df0d60bb5c2d3e9efa16ea1b54b7d1bd9b71787b6189303b82ab02efb",
+          "sha256": "33ff5776744dff980234460f121b8131b0519919d34f1b1b60e990b21f2cd977",
           "executable": false
         },
         "docs/development/release.md": {
@@ -5445,7 +5521,12 @@
         },
         "docs/development/retained-exact-content.md": {
           "type": "file",
-          "sha256": "4bc0bd7403af6da569c830d82acb524fc11ed8b120f5de9672eb9f1f2919e0d3",
+          "sha256": "39bc9bf30055e2eab6aa7e168a22a0aa8a8369794ac59a30d7bb38cebc6387bf",
+          "executable": false
+        },
+        "docs/development/sign-profiling.md": {
+          "type": "file",
+          "sha256": "b23dadecbadf9ded2d3afc63858f8cd97144de3d5630d3a2459461f3625ef475",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -5460,7 +5541,7 @@
         },
         "docs/usage/getting-started/adopt-repo-canon.md": {
           "type": "file",
-          "sha256": "f994e741b7f59e1c841c35a4e27b4208c1ab668b0930bcd0c63fbff02cc2d35d",
+          "sha256": "ee0ec3012de570c3dcdc8784be84f952ce9594d874d3f7c514246a54540c73ba",
           "executable": false
         },
         "docs/usage/getting-started/keep-it-up-to-date.md": {
@@ -5480,7 +5561,7 @@
         },
         "docs/usage/guides/adopt.md": {
           "type": "file",
-          "sha256": "ee903f41b105265ab2ab8969b4a0e4cd1efa2b3407d25265cec4a988d1ff5c0d",
+          "sha256": "5b6cae861e25054197d73e89ebc80aaa1f24549a12523776cf9bc3d77094f547",
           "executable": false
         },
         "docs/usage/guides/author-a-source.md": {
@@ -5490,7 +5571,7 @@
         },
         "docs/usage/guides/automated-updates.md": {
           "type": "file",
-          "sha256": "ad47b6a0ba0672c79bcc6304f03dd4935f86ed2191a6ad143bc6f4b01e392397",
+          "sha256": "ba56e19c783f4c56e226df87e747273689334c22e74ff9704ab1d51dc3c3326f",
           "executable": false
         },
         "docs/usage/guides/find-sources.md": {
@@ -5510,7 +5591,7 @@
         },
         "docs/usage/guides/update.md": {
           "type": "file",
-          "sha256": "89110a5c781aa40a6ba9b59696af5e6fa89c76fe35a024d2be79eb289943a52b",
+          "sha256": "768a3ab5e2eea00a93df3f855acbb82f95dc08be6d0c5643e18ad88b876c524c",
           "executable": false
         },
         "docs/usage/reference/README.md": {
@@ -5520,7 +5601,7 @@
         },
         "docs/usage/reference/adoption-run.md": {
           "type": "file",
-          "sha256": "72450d9e8d33f1e89b26012da095ef200f3f1b82ba9734ab080a9b6c554d56c7",
+          "sha256": "6c7fc9e5afb1d2234dfb393966624a2cdce9fd5ac1500efd65d65c88172bd6f1",
           "executable": false
         },
         "docs/usage/reference/assessment-protocol.md": {
@@ -5540,7 +5621,7 @@
         },
         "docs/usage/reference/check.md": {
           "type": "file",
-          "sha256": "da03577bcdb80e68cbe2217b6f47b8facf4190da72f27502e80efbeacd6a2dab",
+          "sha256": "6ae526935465980f55a1bf41388f54a6a5b9aa7a637979a61d629d11ce8a2f3c",
           "executable": false
         },
         "docs/usage/reference/github-requests.md": {
@@ -5550,7 +5631,7 @@
         },
         "docs/usage/reference/inspection.md": {
           "type": "file",
-          "sha256": "0b2cf1ae7a2d89dcedca6377be5c32e317b3417f50431254fbb5b8862e49de9b",
+          "sha256": "c4c722c3e4d05e07fe9888d3ca22b449356746f69170a18a9f01c9478e7faa1b",
           "executable": false
         },
         "docs/usage/reference/rules.md": {
@@ -5560,7 +5641,7 @@
         },
         "docs/usage/reference/script-protocol.md": {
           "type": "file",
-          "sha256": "20f368e1b4f9908eda6c4de1c9f2457090147b5916e5a58cd898d03b2bd49e6f",
+          "sha256": "1a28c8904bafbd5faaab88ac7b9a6c500a007f7eb33cb4c09b38a1cc28d83b0a",
           "executable": false
         },
         "examples/alice/defaults/checks/readme.py": {
@@ -5683,6 +5764,21 @@
           "sha256": "b7f550ea9211da4fcecc0140bee85627d6cdab852ae115b1b5e4843d282c8c4d",
           "executable": false
         },
+        "scripts/issue-contract-cutoff.mjs": {
+          "type": "file",
+          "sha256": "66544ba7309a2139ef5d2d55fefa40304b987a3873b779e83b6fe21b9712b13a",
+          "executable": false
+        },
+        "scripts/issue-contract-sources.mjs": {
+          "type": "file",
+          "sha256": "499e8d36ec621993ecebc5e22fea68c64343213dd646dd9d06e72e7c4c3fea7c",
+          "executable": false
+        },
+        "scripts/issue-contract-store.mjs": {
+          "type": "file",
+          "sha256": "2e191ad301c454303b215098a226595b7a341b59a8ab7dc6efc385a9add90944",
+          "executable": false
+        },
         "scripts/pack-package.ts": {
           "type": "file",
           "sha256": "119f5bfedc93ba2f8f5fb7f5fc060b07064240cfb8f03690e0958996718e0397",
@@ -5703,16 +5799,6 @@
           "sha256": "a0e5cfa2cffec8b0346d3d7e3ccbda7871a61e4b88803eeafe070e0df7f381b2",
           "executable": false
         },
-        "scripts/validate-issue-contract.mjs": {
-          "type": "file",
-          "sha256": "704e738a2baa5ddc826b1ef6bcbc852f49d3f6899c2ea5fd8df2f6f78b20b027",
-          "executable": false
-        },
-        "scripts/validate.mjs": {
-          "type": "file",
-          "sha256": "daeedb8713e64e0334ede3825297ec6338a85ee8051c0dc0385f5533373ecc32",
-          "executable": false
-        },
         "scripts/verify-npm-publisher.ts": {
           "type": "file",
           "sha256": "7bb3fc5708d7892d0e25cae7783f254c76966529592cef5e385bb98d6b9bf17d",
@@ -5725,7 +5811,7 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "a9148d6f6904f325cefc5830704d5365279bf7f679df4c4605eecad7007462fe",
+          "sha256": "33a130ecf59f69e1164479afdb7ea36faab45167bcaa435bab2ff0ac5bc6cfd0",
           "executable": false
         },
         "site/astro.config.mjs": {
@@ -5845,7 +5931,7 @@
         },
         "site/registry-manifest.json": {
           "type": "file",
-          "sha256": "58578f35578c0a0a45ba474d7f308f2a6f41177f5228d6184ce4c388928a493a",
+          "sha256": "8a35710a51522894400a38120a5919bc9819225b1975ed6a3ea3580fb986645d",
           "executable": false
         },
         "site/scripts/count-adopters.ts": {
@@ -5906,6 +5992,11 @@
         "site/src/components/app/card.ts": {
           "type": "file",
           "sha256": "d97862e45992af592e95473cb471488231eacf5d67e218c9d98057dbc1077089",
+          "executable": false
+        },
+        "site/src/components/app/collapsible.ts": {
+          "type": "file",
+          "sha256": "ccf43fdafce6990c3b93a32564d690dc2922fa82f0f8fbe4d26005938a9f958f",
           "executable": false
         },
         "site/src/components/app/dialog.ts": {
@@ -6020,7 +6111,7 @@
         },
         "site/src/components/sign/assembly.tsx": {
           "type": "file",
-          "sha256": "6a13fa13b8afa6626611351969e910c02d4323cfaeac4f8c4f71fe7a8f09cf77",
+          "sha256": "c7dd5151aa8144026e06320840664800e8e9f1b6f5fd0bd2e4ee219766c43756",
           "executable": false
         },
         "site/src/components/sign/face.tsx": {
@@ -6040,7 +6131,7 @@
         },
         "site/src/components/sign/posts.ts": {
           "type": "file",
-          "sha256": "896ef2564e5baf43e6e89005349a9bbe538c4fd23e426d82ddec4e164a4ac15c",
+          "sha256": "9968961e2af204513961a44e93ac7090fbf978e328dada8b12c345c5742d4bc8",
           "executable": false
         },
         "site/src/components/sign/rail.tsx": {
@@ -6050,12 +6141,12 @@
         },
         "site/src/components/sign/rig.ts": {
           "type": "file",
-          "sha256": "9fb20bef246b49b83ceb480629cdfe346ed5d0e9ca700216ef2e0cd05985f26c",
+          "sha256": "90021ea8f2897e9f8119e6c16f25741b28f5bd3563eca48a1467792b344dc874",
           "executable": false
         },
         "site/src/components/sign/sign.css": {
           "type": "file",
-          "sha256": "db87b754212a08dd106b76df8933c26ba6d1aa9d36d14c8d2691d4ea07a10a41",
+          "sha256": "08e988bde4affdf7f25693586734919d6505402a410bf334153a60a540f86f02",
           "executable": false
         },
         "site/src/components/sign/signposts.tsx": {
@@ -6075,12 +6166,12 @@
         },
         "site/src/components/sign/torch.ts": {
           "type": "file",
-          "sha256": "a26e6a10b580e8d4ecb0ee163ff8477d68ee1d9e9186b77aa56a579143168daf",
+          "sha256": "5947d5c99034aa8e1d47f4ad120c43cf63c48707d2721dae930bb742a7480d7b",
           "executable": false
         },
         "site/src/components/site-nav.tsx": {
           "type": "file",
-          "sha256": "8ec54376231ddb971eb4a17222706cd528ab9bebc0dc674b64dfeb5edf9473f4",
+          "sha256": "e7755aded514c037d0ad6b260d3eff41515ba24e54dc48bda5472e6e956dd1ac",
           "executable": false
         },
         "site/src/components/source-adoption.tsx": {
@@ -6116,6 +6207,11 @@
         "site/src/components/ui/card.tsx": {
           "type": "file",
           "sha256": "8ad3a18d36bda0598dc0e9aa96ea22854944d5443ee4946f1d173815e115375f",
+          "executable": false
+        },
+        "site/src/components/ui/collapsible.tsx": {
+          "type": "file",
+          "sha256": "3de60b605e64c835588cecc189fbcf907eb602b0158f970d614b067e868b491e",
           "executable": false
         },
         "site/src/components/ui/dialog.tsx": {
@@ -6445,7 +6541,7 @@
         },
         "site/src/pages/[...locale]/sources/[owner]/[repo].astro": {
           "type": "file",
-          "sha256": "0b84c97645968bff991897cf3309a44167078bd83d417cdaae2b20a8d9d28ed7",
+          "sha256": "92f52cac13607cc4020ccf72f06e108479deb305f4a824ba2c9e8f3b8ee04424",
           "executable": false
         },
         "site/src/pages/llms.txt.ts": {
@@ -6475,7 +6571,7 @@
         },
         "site/src/styles/global.css": {
           "type": "file",
-          "sha256": "df48773de5423bc7500c5377224c22f7eea60eb23f6cf5566afd9e83b0ea4cf5",
+          "sha256": "3c83daaa1065074781b3286c16fbd94634199986f0c47e2d607e8271f062fd77",
           "executable": false
         },
         "site/src/styles/plate.css": {
@@ -6535,7 +6631,7 @@
         },
         "site/test/docs.test.ts": {
           "type": "file",
-          "sha256": "dd8d585297b213ec367982d5f2cf1aa382bfa6b6e16bb8e82e1341f2ff3d595f",
+          "sha256": "a2bd604633066de103d2e2299cc4c75e779967cded9290e25a4a3ed175f24efb",
           "executable": false
         },
         "site/test/fixture-watchdog.ts": {
@@ -6595,12 +6691,12 @@
         },
         "site/test/pages.test.ts": {
           "type": "file",
-          "sha256": "40816aaeb8bac7d3ffdf8037070558eb9fd02769f0fd456fee53622ba5a2b259",
+          "sha256": "c53c59d6d5686b864ab6a0fae022749df40ab804598878b9041c2cd44ae2b5a7",
           "executable": false
         },
         "site/test/phone-layout.test.ts": {
           "type": "file",
-          "sha256": "be35afae973756d62dc1b5d07866deaf2565f736481311769736a022858134ca",
+          "sha256": "00407d03352c681bb7b59d8281a61f9443ab90b4375307e280f25dd1919c0989",
           "executable": false
         },
         "site/test/pseudo-locale.test.ts": {
@@ -6623,9 +6719,14 @@
           "sha256": "56a6ccbb6c15c7153b56a1699b9349d07b95c6dea175ef86cbc09204fa644816",
           "executable": false
         },
+        "site/test/sign-beam.test.ts": {
+          "type": "file",
+          "sha256": "0e564a66e558cee2d2658b2b95dbe561fd42e5286e5b030866def2e5b1277df9",
+          "executable": false
+        },
         "site/test/sign-clamps.test.ts": {
           "type": "file",
-          "sha256": "38d393449c7b93ac40e205c8a65b9a0e07f3072fa6daf967c1d7e7aa1a44cca9",
+          "sha256": "bcfd161af0837d898044ced909cd9bee099a7f314074f4e0dee9190c5ed39171",
           "executable": false
         },
         "site/test/social.test.ts": {
@@ -6730,7 +6831,7 @@
         },
         "src/adopt.ts": {
           "type": "file",
-          "sha256": "cad95e1cd601f6951277f8f807f0c899fc6a6ba313108b4230099c1869e0bc94",
+          "sha256": "49868c1bc6d0540299650cc8c0553999531706c08f46c458d1fbf02b7c303b42",
           "executable": false
         },
         "src/adopter-action.ts": {
@@ -6745,7 +6846,7 @@
         },
         "src/adoption-run.ts": {
           "type": "file",
-          "sha256": "983eb0617c53bb914c42a0bfde6686f36210db5ca087c8f4b6582fa47979b880",
+          "sha256": "1c23a6055de69b653616c75683136a6fdf080e9f79a4ac0abb317afc47e701df",
           "executable": false
         },
         "src/adoption.ts": {
@@ -6765,7 +6866,7 @@
         },
         "src/check.ts": {
           "type": "file",
-          "sha256": "5e2234a3959866ece74ed25d6fd137a130ef78f61a0b814c8c0dfeb70b4b8a14",
+          "sha256": "05b5335d53da228293ff0038ff94a9f9bf165c9c026e8349028abb748d5d31c7",
           "executable": false
         },
         "src/cli.ts": {
@@ -6800,12 +6901,12 @@
         },
         "src/formats.ts": {
           "type": "file",
-          "sha256": "b5f339d131cacf8c5c9f5c12d9a44ff68159bca5547360497df327c5d3546830",
+          "sha256": "997ba541a20a8c9890ed894ba53277d7939b797de2134962477b58028d185937",
           "executable": false
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "7bd1233ea8de2e1cc055c071318c8cf0302ac64d369ff7f01cf3babfad3bda62",
+          "sha256": "5ccb06301fa03cf436134e0c0eee45f28c0bd9c9db4254ecab7ee6c7754901e9",
           "executable": false
         },
         "src/installation.ts": {
@@ -6855,7 +6956,7 @@
         },
         "src/recorded-state.ts": {
           "type": "file",
-          "sha256": "50d869f5d94668a09b4bde4152efd948212cd21f0eb92bbabf173f791a62f6f5",
+          "sha256": "92d1952e84356a6b557e2c955b85401bd1eb10a0bf030b66bf08c2ab2a75842d",
           "executable": false
         },
         "src/records.ts": {
@@ -6873,9 +6974,14 @@
           "sha256": "a5359da93266939974cf00e96f38be4a920b052d3603fd87a4d846b97642ae53",
           "executable": false
         },
+        "src/retained-source.ts": {
+          "type": "file",
+          "sha256": "5da32ac6e6037fa6a4e38db981c14a521c3498b6b3d821a9d38004c052c955b7",
+          "executable": false
+        },
         "src/reused-answers.ts": {
           "type": "file",
-          "sha256": "042839dd0d142aff1fa170d3bcd0f46d9bd0508acb6a95ea9ec5ea9c192c33c2",
+          "sha256": "36f6cd95e006c2f4d7b8fa7b19bbaf9a06536209ce85e4209a3568e9c4c558d6",
           "executable": false
         },
         "src/rules.ts": {
@@ -6958,6 +7064,11 @@
           "sha256": "55a4d49f5039854945b8fffc1d45357540910a97086b86344917851f530b1be5",
           "executable": false
         },
+        "test/action-github.test.ts": {
+          "type": "file",
+          "sha256": "322ed680dad9c33a4a8f9ca9a8d57f2dccef8e3dbe6187da99d12ac7f9df0101",
+          "executable": false
+        },
         "test/adopt-fixture.ts": {
           "type": "file",
           "sha256": "8da7b2dcd0acdf8a3fea6de51c8c4367ab785f8019b33a57dfcdf0b62f066f6d",
@@ -6970,7 +7081,7 @@
         },
         "test/adopt.test.ts": {
           "type": "file",
-          "sha256": "7e89cee1cb285d23555bbad511fa308cf10eb44aa31675646b8eacbbcd1d915a",
+          "sha256": "4107f5b75fde7f3ca8bc49622da32bbf6d07dbb96ecbbc847cdd54ea6ac48f14",
           "executable": false
         },
         "test/adopter-action.test.ts": {
@@ -6990,7 +7101,7 @@
         },
         "test/adoption.test.ts": {
           "type": "file",
-          "sha256": "a30ae1f7966511a0c86b9cfe2c43e5ebc3e40035c5dc52afa07b7fced570cc86",
+          "sha256": "61b201019b2ea8d4496c531e0ddea9bbe2490984a2946faa86dc0511f8d528c7",
           "executable": false
         },
         "test/assessment.test.ts": {
@@ -7005,7 +7116,7 @@
         },
         "test/check-location-selection.test.ts": {
           "type": "file",
-          "sha256": "928654914e72f5385020b48bdf29e4e7f87dbff06c4c2bf6d6eb48d2baa479a7",
+          "sha256": "458a04713e7c56517f48e3d650c25b3122eac2a575948ca4784ccad20a70a3b9",
           "executable": false
         },
         "test/check.test.ts": {
@@ -7025,17 +7136,17 @@
         },
         "test/committed-evidence.ts": {
           "type": "file",
-          "sha256": "4805d414cb72d35284c7078634f0646be91e90ac84f9f137f3fc8c1482bda195",
+          "sha256": "569b6e10f336f1951e00ca9fe6148ff19f2bf4b5e021136530334861d1b8dcc3",
           "executable": false
         },
         "test/committed-scope-proposal.test.ts": {
           "type": "file",
-          "sha256": "566a85ce25487cc3d9d3127bee6a0493cfcdf3708b0a1fee173bad24cc2b3ac2",
+          "sha256": "f74772319fe6a917de2cdc23cb6bff30e5549635a68a3068e363b76987b97a76",
           "executable": false
         },
         "test/discovery-lifecycle.test.ts": {
           "type": "file",
-          "sha256": "653c9484980a03c39038f88cee52f97f19e17352234d632feb5a62fbeb16ff28",
+          "sha256": "0989468fd12db1009ba8e4fa4f5c1419d5650a45dfe378674b3e0c9434a75735",
           "executable": false
         },
         "test/discovery-script.test.ts": {
@@ -7055,7 +7166,7 @@
         },
         "test/formats.test.ts": {
           "type": "file",
-          "sha256": "63c01d410ca5557eb69880ee53ca67678e0599b0277969e4f9c3057c6cbb57fb",
+          "sha256": "52df3e48bbb8256461e0d4aad6cd61ceb5354a5e056693fa83720d9acc73dd48",
           "executable": false
         },
         "test/github-fixture.ts": {
@@ -7065,7 +7176,7 @@
         },
         "test/github-token.test.ts": {
           "type": "file",
-          "sha256": "2d2984da74004e44ed4be2c50846552a39c4299fb567a2bd9c40bcd2fca4f245",
+          "sha256": "b7edffa3af493014273327f9546ee9e906b3127162c735038291296a6b2d6c04",
           "executable": false
         },
         "test/headless.test.ts": {
@@ -7106,6 +7217,11 @@
         "test/observed-scope.test.ts": {
           "type": "file",
           "sha256": "911e881f8e348f8e3f69889257e014eaf007fb5e43ef9888bfec3ba10023742d",
+          "executable": false
+        },
+        "test/one-copy.test.ts": {
+          "type": "file",
+          "sha256": "ed34ab563865ca6eeac9b6d76846cacad210d085f13067fd3a00d52c3a2f64a2",
           "executable": false
         },
         "test/operation-validation.test.ts": {
@@ -7190,12 +7306,12 @@
         },
         "test/retired-formats.test.ts": {
           "type": "file",
-          "sha256": "5b2ae4de485eb0f50a8de102a5b5f9bc999f0dcbd58f9c00030cbbf7986bd766",
+          "sha256": "f5a93e0035110d6de7888aa93eeeb5ba2dfee7923ba3b9b4678a302d41a55986",
           "executable": false
         },
         "test/reused-answers.test.ts": {
           "type": "file",
-          "sha256": "dfa5e1d96c90a1d9cb3f5903adf406f33b0e896b37f723822b13e6419adefc61",
+          "sha256": "548a5b386c3e676378d85207f098a97abd88b6f8d9a720f78a8583bfa6f9a171",
           "executable": false
         },
         "test/rules.test.ts": {
@@ -7230,7 +7346,7 @@
         },
         "test/status.test.ts": {
           "type": "file",
-          "sha256": "6eee4d80b2ad04ef9a965f353a4d17a92982492d8ed892d4e96f97b7d1c43869",
+          "sha256": "f25677f7594fe8772ca419aeff7730628fbd387793dc91935012a58f2a1849d2",
           "executable": false
         },
         "test/submodules.test.ts": {
@@ -7255,12 +7371,12 @@
         },
         "test/update-action-cli.mjs": {
           "type": "file",
-          "sha256": "51e1a44cd5de8bf270280554b90e1516bc5e7c93ae31d014412922fe1beaed56",
+          "sha256": "c83733253b67839038c1d186a4f7c1ab829882c03bb82378cdc4fa9f24c306e9",
           "executable": false
         },
         "test/update-action.test.ts": {
           "type": "file",
-          "sha256": "783ff1f818ee9980e9605a4fe5340a779511f30e2ff58ff1dac229bb1e61eb9e",
+          "sha256": "e52d7620c9237712b8152bd8a885b7e127cb7b50023b7b72cfa6377896c6c12c",
           "executable": false
         },
         "test/update-class.test.ts": {
@@ -7270,7 +7386,7 @@
         },
         "test/update.test.ts": {
           "type": "file",
-          "sha256": "30044bdedd8915892eca1dfc2baf67b5bef8909917af95db63d31e544565baa2",
+          "sha256": "58637801e199f32f70d9ae2a5b6360313856178248c0da7e7448a49d649beecf",
           "executable": false
         },
         "tsconfig.build.json": {
@@ -7332,19 +7448,29 @@
           "type": "file",
           "sha256": "5203c7e825a065c33aaa02ea4b6dbe776704ccd55b220aee75eb82427a8b83d5",
           "executable": false
+        },
+        "vendor/repo-canon/validate-issue-contract.mjs": {
+          "type": "file",
+          "sha256": "fe13b317f71c647975a1d5dc663a2a78bd26f6ec25ab5be21d56c55d314596c5",
+          "executable": false
+        },
+        "vendor/repo-canon/validate.mjs": {
+          "type": "file",
+          "sha256": "4e200a90252579cad398b74cbe56e3588f98dcdc36e71de59c38941cfeba986e",
+          "executable": false
         }
       },
       "inventories": {
         ".": [
           ".agents",
           ".claude",
-          ".factory",
           ".gitattributes",
           ".github",
           ".gitignore",
           ".node-version",
           ".oxlintrc.json",
           ".prettierignore",
+          ".scriptorium",
           "AGENTS.md",
           "CONTRIBUTING.md",
           "GLOSSARY.md",
@@ -7380,15 +7506,16 @@
           ".agents/skills/codebase-design",
           ".agents/skills/diagnosing-bugs",
           ".agents/skills/domain-modeling",
+          ".agents/skills/factory",
           ".agents/skills/grill-with-docs",
           ".agents/skills/grilling",
           ".agents/skills/implement",
           ".agents/skills/improve-codebase-architecture",
-          ".agents/skills/orchestrate",
           ".agents/skills/pr",
           ".agents/skills/prototype",
           ".agents/skills/repository-standards",
           ".agents/skills/research",
+          ".agents/skills/review",
           ".agents/skills/tdd",
           ".agents/skills/to-spec",
           ".agents/skills/to-tickets",
@@ -7404,6 +7531,7 @@
           ".agents/skills/babysit/platform.mjs",
           ".agents/skills/babysit/pull-request-reviewer.mjs",
           ".agents/skills/babysit/request.mjs",
+          ".agents/skills/babysit/required-checks.mjs",
           ".agents/skills/babysit/review-outcome.mjs",
           ".agents/skills/babysit/review-policy.mjs",
           ".agents/skills/babysit/reviewer.mjs",
@@ -7413,7 +7541,8 @@
         ".agents/skills/code-review": [
           ".agents/skills/code-review/CREDITS.md",
           ".agents/skills/code-review/SKILL.md",
-          ".agents/skills/code-review/agents"
+          ".agents/skills/code-review/agents",
+          ".agents/skills/code-review/ownership-facts.mjs"
         ],
         ".agents/skills/code-review/agents": [
           ".agents/skills/code-review/agents/openai.yaml"
@@ -7450,6 +7579,10 @@
         ".agents/skills/domain-modeling/agents": [
           ".agents/skills/domain-modeling/agents/openai.yaml"
         ],
+        ".agents/skills/factory": [
+          ".agents/skills/factory/CREDITS.md",
+          ".agents/skills/factory/SKILL.md"
+        ],
         ".agents/skills/grill-with-docs": [
           ".agents/skills/grill-with-docs/CREDITS.md",
           ".agents/skills/grill-with-docs/SKILL.md",
@@ -7483,15 +7616,6 @@
         ".agents/skills/improve-codebase-architecture/agents": [
           ".agents/skills/improve-codebase-architecture/agents/openai.yaml"
         ],
-        ".agents/skills/orchestrate": [
-          ".agents/skills/orchestrate/CREDITS.md",
-          ".agents/skills/orchestrate/SKILL.md",
-          ".agents/skills/orchestrate/agents",
-          ".agents/skills/orchestrate/wait.mjs"
-        ],
-        ".agents/skills/orchestrate/agents": [
-          ".agents/skills/orchestrate/agents/openai.yaml"
-        ],
         ".agents/skills/pr": [
           ".agents/skills/pr/CREDITS.md",
           ".agents/skills/pr/SKILL.md",
@@ -7524,6 +7648,11 @@
         ],
         ".agents/skills/research/agents": [
           ".agents/skills/research/agents/openai.yaml"
+        ],
+        ".agents/skills/review": [
+          ".agents/skills/review/CREDITS.md",
+          ".agents/skills/review/SKILL.md",
+          ".agents/skills/review/round.mjs"
         ],
         ".agents/skills/tdd": [
           ".agents/skills/tdd/CREDITS.md",
@@ -7588,25 +7717,22 @@
           ".claude/skills/codebase-design",
           ".claude/skills/diagnosing-bugs",
           ".claude/skills/domain-modeling",
+          ".claude/skills/factory",
           ".claude/skills/grill-with-docs",
           ".claude/skills/grilling",
           ".claude/skills/implement",
           ".claude/skills/improve-codebase-architecture",
-          ".claude/skills/orchestrate",
           ".claude/skills/pr",
           ".claude/skills/prototype",
           ".claude/skills/repository-standards",
           ".claude/skills/research",
+          ".claude/skills/review",
           ".claude/skills/tdd",
           ".claude/skills/to-spec",
           ".claude/skills/to-tickets",
           ".claude/skills/triage",
           ".claude/skills/wayfinder",
           ".claude/skills/writing-for-agents"
-        ],
-        ".factory": [
-          ".factory/Dockerfile",
-          ".factory/config.json"
         ],
         ".github": [
           ".github/FUNDING.yml",
@@ -7635,6 +7761,10 @@
           ".github/workflows/sandbox-image.yml",
           ".github/workflows/standards-update.yml",
           ".github/workflows/validate.yml"
+        ],
+        ".scriptorium": [
+          ".scriptorium/Dockerfile",
+          ".scriptorium/config.json"
         ],
         "acceptance": [
           "acceptance/README.md",
@@ -7853,6 +7983,7 @@
           "docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md",
           "docs/adr/0033-keep-astro-for-content-and-static-sites.md",
           "docs/adr/0034-select-check-location-beside-platform.md",
+          "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -7866,7 +7997,8 @@
           "docs/development/README.md",
           "docs/development/architecture.md",
           "docs/development/release.md",
-          "docs/development/retained-exact-content.md"
+          "docs/development/retained-exact-content.md",
+          "docs/development/sign-profiling.md"
         ],
         "docs/usage": [
           "docs/usage/README.md",
@@ -7985,12 +8117,13 @@
         ],
         "scripts": [
           "scripts/check-import-cycles.ts",
+          "scripts/issue-contract-cutoff.mjs",
+          "scripts/issue-contract-sources.mjs",
+          "scripts/issue-contract-store.mjs",
           "scripts/pack-package.ts",
           "scripts/pack-release.ts",
           "scripts/release-status.ts",
           "scripts/run-tests.ts",
-          "scripts/validate-issue-contract.mjs",
-          "scripts/validate.mjs",
           "scripts/verify-npm-publisher.ts"
         ],
         "site": [
@@ -8088,6 +8221,7 @@
           "site/src/components/app/badge.ts",
           "site/src/components/app/button.ts",
           "site/src/components/app/card.ts",
+          "site/src/components/app/collapsible.ts",
           "site/src/components/app/dialog.ts",
           "site/src/components/app/dropdown-menu.ts",
           "site/src/components/app/empty.ts",
@@ -8124,6 +8258,7 @@
           "site/src/components/ui/badge.tsx",
           "site/src/components/ui/button.tsx",
           "site/src/components/ui/card.tsx",
+          "site/src/components/ui/collapsible.tsx",
           "site/src/components/ui/dialog.tsx",
           "site/src/components/ui/dropdown-menu.tsx",
           "site/src/components/ui/empty.tsx",
@@ -8276,6 +8411,7 @@
           "site/test/pseudo.test.ts",
           "site/test/search-report.test.ts",
           "site/test/section-ids.test.ts",
+          "site/test/sign-beam.test.ts",
           "site/test/sign-clamps.test.ts",
           "site/test/social.test.ts",
           "site/test/source-page.test.ts",
@@ -8364,6 +8500,7 @@
           "src/records.ts",
           "src/remote-setup.ts",
           "src/resolver.ts",
+          "src/retained-source.ts",
           "src/reused-answers.ts",
           "src/rules.ts",
           "src/run-lock.ts",
@@ -8383,6 +8520,7 @@
         "test": [
           "test/acceptance-sources.test.ts",
           "test/acquisition.test.ts",
+          "test/action-github.test.ts",
           "test/adopt-fixture.ts",
           "test/adopt-terminal.test.ts",
           "test/adopt.test.ts",
@@ -8413,6 +8551,7 @@
           "test/json-reports.ts",
           "test/lint.test.ts",
           "test/observed-scope.test.ts",
+          "test/one-copy.test.ts",
           "test/operation-validation.test.ts",
           "test/optional-scope.test.ts",
           "test/outdated.test.ts",
@@ -8450,7 +8589,8 @@
         "vendor": [
           "vendor/marked",
           "vendor/parse5",
-          "vendor/postern"
+          "vendor/postern",
+          "vendor/repo-canon"
         ],
         "vendor/marked": [
           "vendor/marked/LICENSE",
@@ -8467,6 +8607,10 @@
           "vendor/postern/LICENSE",
           "vendor/postern/README.md",
           "vendor/postern/postern.mjs"
+        ],
+        "vendor/repo-canon": [
+          "vendor/repo-canon/validate-issue-contract.mjs",
+          "vendor/repo-canon/validate.mjs"
         ]
       },
       "boundaries": {
@@ -8506,6 +8650,9 @@
         ".agents/skills/domain-modeling/agents": {
           "type": "directory"
         },
+        ".agents/skills/factory": {
+          "type": "directory"
+        },
         ".agents/skills/grill-with-docs": {
           "type": "directory"
         },
@@ -8530,12 +8677,6 @@
         ".agents/skills/improve-codebase-architecture/agents": {
           "type": "directory"
         },
-        ".agents/skills/orchestrate": {
-          "type": "directory"
-        },
-        ".agents/skills/orchestrate/agents": {
-          "type": "directory"
-        },
         ".agents/skills/pr": {
           "type": "directory"
         },
@@ -8558,6 +8699,9 @@
           "type": "directory"
         },
         ".agents/skills/research/agents": {
+          "type": "directory"
+        },
+        ".agents/skills/review": {
           "type": "directory"
         },
         ".agents/skills/tdd": {
@@ -8602,9 +8746,6 @@
         ".claude/skills": {
           "type": "directory"
         },
-        ".factory": {
-          "type": "directory"
-        },
         ".github": {
           "type": "directory"
         },
@@ -8615,6 +8756,9 @@
           "type": "directory"
         },
         ".github/workflows": {
+          "type": "directory"
+        },
+        ".scriptorium": {
           "type": "directory"
         },
         "acceptance": {
@@ -8994,6 +9138,9 @@
         },
         "vendor/postern": {
           "type": "directory"
+        },
+        "vendor/repo-canon": {
+          "type": "directory"
         }
       },
       "targets": {},
@@ -9011,7 +9158,7 @@
         },
         "info": {
           "type": "file",
-          "sha256": "321dffcb77a68a6c079d35da12944866b895b4cc9fb3b1fae72fe9468c7eafeb",
+          "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
           "executable": false
         },
         ".gitignore": {
@@ -9055,6 +9202,9 @@
         ".agents/skills/domain-modeling/agents/.gitignore": {
           "type": "missing"
         },
+        ".agents/skills/factory/.gitignore": {
+          "type": "missing"
+        },
         ".agents/skills/grill-with-docs/.gitignore": {
           "type": "missing"
         },
@@ -9079,12 +9229,6 @@
         ".agents/skills/improve-codebase-architecture/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/orchestrate/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/orchestrate/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/pr/.gitignore": {
           "type": "missing"
         },
@@ -9107,6 +9251,9 @@
           "type": "missing"
         },
         ".agents/skills/research/agents/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/review/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/tdd/.gitignore": {
@@ -9151,9 +9298,6 @@
         ".claude/skills/.gitignore": {
           "type": "missing"
         },
-        ".factory/.gitignore": {
-          "type": "missing"
-        },
         ".github/.gitignore": {
           "type": "missing"
         },
@@ -9164,6 +9308,9 @@
           "type": "missing"
         },
         ".github/workflows/.gitignore": {
+          "type": "missing"
+        },
+        ".scriptorium/.gitignore": {
           "type": "missing"
         },
         "acceptance/.gitignore": {
@@ -9545,6 +9692,9 @@
         },
         "vendor/postern/.gitignore": {
           "type": "missing"
+        },
+        "vendor/repo-canon/.gitignore": {
+          "type": "missing"
         }
       },
       "limits": {
@@ -9559,7 +9709,8 @@
     {
       "id": "documentation",
       "additions": [
-        "docs/adr/0034-select-check-location-beside-platform.md"
+        "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
+        "docs/development/sign-profiling.md"
       ],
       "removals": []
     }
