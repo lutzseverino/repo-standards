@@ -1,6 +1,7 @@
 <div align="center">
+  <img src="site/public/favicon.svg" width="96" height="96" alt="">
   <h1>Repo Standards</h1>
-  <p>A CLI and agent skills for maintainers who publish and apply versioned repository standards.</p>
+  <p>Write your setup down once, and your coding agent applies it to every repository: agent instructions, docs, templates and checks, kept in step by versioned updates.</p>
   <p>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
     <img src="https://img.shields.io/badge/Node.js-24%20%7C%2026-5FA04E?logo=node.js&logoColor=white" alt="Node.js 24 or 26">

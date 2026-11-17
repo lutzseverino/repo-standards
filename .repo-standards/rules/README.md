@@ -1,6 +1,6 @@
 # Installed rules
 
-These rules come from https://github.com/lutzseverino/repo-canon v0.27.0, profile factory.
+These rules come from https://github.com/lutzseverino/repo-canon v0.29.0, profile factory.
 Repo Standards installs and verifies them; adopt again to change them.
 Run `repo-standards rules <path>` to print the rules that cover a path.
 
@@ -42,11 +42,13 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0032-open-the-phone-nav-as-a-sheet-under-the-header.md`
   - `docs/adr/0033-keep-astro-for-content-and-static-sites.md`
   - `docs/adr/0034-select-check-location-beside-platform.md`
+  - `docs/adr/0036-keep-one-copy-of-installed-exact-content.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`
   - `docs/development/release.md`
   - `docs/development/retained-exact-content.md`
+  - `docs/development/sign-profiling.md`
   - `docs/usage/README.md`
   - `docs/usage/getting-started/README.md`
   - `docs/usage/getting-started/adopt-repo-canon.md`
