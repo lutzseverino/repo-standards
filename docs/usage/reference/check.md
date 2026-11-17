@@ -20,7 +20,11 @@ selects another Git working tree.
 
 `check` reads the committed product state and retained inputs, verified
 against the integrity lock, and nothing else: no standards source, registry or
-network connection is needed. It runs the checks of the retained resolved
+network connection is needed. It never reads installed exact content. The
+retained inputs keep their own copy of every script and resource a check runs,
+even one that is also installed, so editing, adding or removing an installed
+exact file or skill file neither changes what a check runs nor fails `check`'s
+integrity verification. It runs the checks of the retained resolved
 selection exactly as a run does, as the [script protocol](script-protocol.md)
 describes:
 

@@ -1,17 +1,7 @@
-import {
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { validImpact, type Impact } from "./adopter-action.js";
-import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { externalPath, hash, type acquireSource } from "./acquisition.js";
+import { hash, type SourceObservations } from "./acquisition.js";
 import {
   inventory,
   json,
@@ -47,16 +37,13 @@ import {
   type RetainedScopeEvidence,
 } from "./scope-evidence.js";
 import { linkTextAt, linkedSkillTarget } from "./targets.js";
+import { retainedSource, type RetainedSource } from "./retained-source.js";
 import {
   validExecutionEvidence,
   type ExecutionEvidence,
 } from "./work-evidence.js";
 import { dictionary } from "./records.js";
-import {
-  defaultCheckLocation,
-  isCheckLocation,
-  type CheckLocation,
-} from "./check-locations.js";
+import { isCheckLocation, type CheckLocation } from "./check-locations.js";
 import { defaultPlatform } from "./platforms.js";
 
 // The one reader of a recorded adoption: everything the last complete adoption
@@ -80,7 +67,7 @@ export interface RecordedSelection {
 type Baseline = Pick<Content, "sha256" | "executable">;
 interface RecordedLock {
   format: string;
-  // Previous locks may omit platform and checks; both then mean github.
+  // A lock may omit platform, which then means github.
   selection: Omit<RecordedSelection, "platform" | "checks"> & {
     platform?: unknown;
     checks?: unknown;
@@ -117,11 +104,6 @@ interface RecordedState extends ExecutionEvidence {
 }
 type RecordedFile = Extract<Observation, { type: "file" }>;
 
-// Retained standards used in place of an acquired source.
-export type RetainedSource = Awaited<ReturnType<typeof acquireSource>> & {
-  manifest: string;
-};
-
 export interface RecordedAdoption {
   selection: RecordedSelection;
   // Every file the last complete adoption installed or retained, by project path.
@@ -135,15 +117,20 @@ export interface RecordedAdoption {
   // The retained scope evidence of the last complete run, when the adoption
   // retains any.
   scopeEvidence?: RetainedScopeEvidence;
-  // The retained inputs as a standards source. It fails when the inputs
-  // directory holds files the lock does not record.
-  source(): RetainedSource;
+  // Verifies that the inputs directory holds only the files the lock records,
+  // whose retained scripts and resources the checks run.
+  verifyInputs(): void;
+  // The retained standards as a standards source, after verifying the inputs.
+  // Installed exact content the inputs keep no copy of is read from its
+  // verified target, or from the verified snapshot of the recorded source when
+  // the target was edited, which needs the source to be reachable.
+  source(observations?: SourceObservations): Promise<RetainedSource>;
 }
 
 const lockFile = ".repo-standards/lock.json";
 const stateFile = ".repo-standards/state.json";
 const inputs = ".repo-standards/inputs";
-const retainedSource = `${inputs}/source`;
+const retainedRoot = `${inputs}/source`;
 const resolvedFile = `${inputs}/resolved.json`;
 const scopeFile = `${inputs}/scope-history.json`;
 const manifestFile = `${inputs}/standards.yaml`;
@@ -237,9 +224,7 @@ function decode(lock: Observation, observed: Observation) {
     !pinned.selection ||
     (pinned.selection.platform !== undefined &&
       typeof pinned.selection.platform !== "string") ||
-    (pinned.format === formats.lock
-      ? !isCheckLocation(pinned.selection.checks)
-      : pinned.selection.checks !== undefined) ||
+    !isCheckLocation(pinned.selection.checks) ||
     !pinned.files
   ) {
     invalid();
@@ -247,14 +232,14 @@ function decode(lock: Observation, observed: Observation) {
   return { pinned, state, stateFile: observed };
 }
 
-// Where a recorded adoption's product files are read: the working tree, or
-// the commit an incomplete or abandoned run started from. Each file is observed
-// without following links, with whether it was safe to read, and the retained
-// inputs can be laid out as a project directory for use as a source.
+// Where a recorded adoption's files are read: the working tree, or the commit
+// an incomplete or abandoned run started from. Each product file is observed
+// without following links, with whether it was safe to read, and so is each
+// installed target, which reads as unsafe when it cannot be read safely.
 interface ProductFiles {
   observe(path: string): { value: Observation; safe: boolean };
   inventory(path: string): string[];
-  inputs(): { root: string; close(): void };
+  target(path: string): Observation;
 }
 
 function workingTree(root: string): ProductFiles {
@@ -265,13 +250,43 @@ function workingTree(root: string): ProductFiles {
       return { value, safe: blockers.length === 0 };
     },
     inventory: (path) => inventory(root, path),
-    inputs: () => ({ root, close() {} }),
+    target(path) {
+      const blockers: Blocker[] = [];
+      const value = targetObservation(root, path, blockers);
+      return blockers.length ? { type: "unsafe" } : value;
+    },
   };
 }
 
-// A commit's product files, read as Git stores them. Its retained inputs are
-// written to temporary storage outside the project for as long as the source
-// they make is open.
+// The tree of committed files at a path: the file there, or the directory of
+// those under it.
+function committedTree(
+  files: ReadonlyMap<string, Observation>,
+  path: string,
+): Observation {
+  const found = files.get(path);
+  if (found) return found;
+  const tree: Observation = { type: "directory", entries: {} };
+  let any = false;
+  for (const [name, value] of files) {
+    if (!name.startsWith(path + "/")) continue;
+    any = true;
+    const parts = name.slice(path.length + 1).split("/");
+    let directory = tree;
+    for (const part of parts.slice(0, -1)) {
+      const child = (directory.entries[part] ??= {
+        type: "directory",
+        entries: {},
+      });
+      if (child.type !== "directory") return { type: "unsafe" };
+      directory = child;
+    }
+    directory.entries[parts.at(-1)!] = value;
+  }
+  return any ? tree : { type: "missing" };
+}
+
+// A commit's files, read as Git stores them.
 function commitFiles(root: string, commit: string): ProductFiles {
   const files = committedFiles(root, commit, ".repo-standards");
   return {
@@ -284,24 +299,7 @@ function commitFiles(root: string, commit: string): ProductFiles {
         .filter((name) => name.startsWith(path + "/"))
         .map((name) => name.slice(path.length + 1))
         .sort(),
-    inputs() {
-      const directory = mkdtempSync(
-        join(externalPath(tmpdir(), root), "repo-standards-committed-"),
-      );
-      for (const [path, value] of files)
-        if (path.startsWith(`${inputs}/`) && value.type === "file") {
-          mkdirSync(dirname(join(directory, path)), { recursive: true });
-          writeFileSync(
-            join(directory, path),
-            Buffer.from(value.content, value.encoding),
-            { mode: value.executable ? 0o755 : 0o644 },
-          );
-        }
-      return {
-        root: directory,
-        close: () => rmSync(directory, { recursive: true, force: true }),
-      };
-    },
+    target: (path) => committedTree(committedFiles(root, commit, path), path),
   };
 }
 
@@ -561,55 +559,51 @@ function readFrom(
   const verified = verifiedProductFiles(product, pinned.files);
   const resolved = recordedResolution(verified[resolvedFile]);
   const scope = verified[scopeFile];
+  const verifyInputs = () => {
+    const recorded = Object.keys(pinned.files)
+      .filter((path) => path.startsWith(`${inputs}/`))
+      .map((path) => path.slice(inputs.length + 1))
+      .sort();
+    if (json(product.inventory(inputs)) !== json(recorded))
+      throw new ProductError(
+        "STATE_INTEGRITY",
+        "Retained input inventory changed.",
+      );
+  };
   return {
     selection: {
       ...pinned.selection,
       platform:
         (pinned.selection.platform as string | undefined) ?? defaultPlatform,
-      checks:
-        (pinned.selection.checks as CheckLocation | undefined) ??
-        defaultCheckLocation,
+      checks: pinned.selection.checks as CheckLocation,
     },
     files: pinned.files,
     state: decoded.state,
     stateFile: decoded.stateFile,
     resolved,
     ...(scope ? { scopeEvidence: recordedScopeEvidence(scope) } : {}),
-    source() {
-      const recorded = Object.keys(pinned.files).filter((path) =>
-        path.startsWith(`${inputs}/`),
-      );
-      if (
-        json(product.inventory(inputs)) !==
-        json(recorded.map((path) => path.slice(inputs.length + 1)).sort())
-      )
-        throw new ProductError(
-          "STATE_INTEGRITY",
-          "Retained input inventory changed.",
-        );
-      const paths = new Set<string>();
-      for (const path of recorded)
-        if (path.startsWith(`${retainedSource}/`)) {
-          const parts = path.slice(retainedSource.length + 1).split("/");
-          for (let length = 1; length <= parts.length; length++)
-            paths.add(parts.slice(0, length).join("/"));
-        }
+    verifyInputs,
+    source(observations) {
+      verifyInputs();
       const manifest = verified[manifestFile];
       if (!manifest) unreadable();
-      const layout = product.inputs();
-      return {
-        root: join(
-          layout.root,
-          existsSync(join(layout.root, retainedSource))
-            ? retainedSource
-            : inputs,
-        ),
-        identity: pinned.selection.standards,
-        paths,
-        symlinks: new Set<string>(),
-        manifest: text(manifest),
-        close: () => layout.close(),
-      };
+      const retained = new Map<string, Content>();
+      for (const [path, value] of Object.entries(verified))
+        if (path.startsWith(`${retainedRoot}/`))
+          retained.set(path.slice(retainedRoot.length + 1), value);
+      return retainedSource(
+        {
+          project: root,
+          identity: pinned.selection.standards,
+          manifest: text(manifest),
+          retained,
+          declarations: resolved.declarations,
+          baselines: decoded.state.baselines,
+          skills: decoded.state.skills,
+          target: (path) => product.target(path),
+        },
+        observations,
+      );
     },
   };
 }

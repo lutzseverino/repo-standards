@@ -633,10 +633,7 @@ test("start retains no tokens in inputs, reports, runtime logs or caches, and ou
       .every((request) => !request.authorized),
   );
   assert.ok(
-    readFileSync(
-      join(project.root, ".repo-standards/inputs/source/readme.md"),
-      "utf8",
-    ).includes("README"),
+    readFileSync(join(project.root, "README.md"), "utf8").includes("README"),
   );
   const outputs = [
     inspection.stdout,

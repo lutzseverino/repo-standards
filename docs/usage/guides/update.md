@@ -81,7 +81,9 @@ runtime and pass the current standards version.
 
 Without `--standards-version`, `adopt` proposes the newest stable release. The
 pinned runtime keeps the CLI pin, and the run applies the retained standards
-again even when the source cannot be read. A discovered scope whose recorded
+again even when the source cannot be read, unless an installed exact file or
+skill was edited: the retained inputs keep no copy of installed exact content,
+so `adopt` then needs the source and fails with its outcome. A discovered scope whose recorded
 paths no longer all exist comes back with a fresh draft for review. See
 [Update the selection](../reference/adoption-run.md#update-the-selection).
 

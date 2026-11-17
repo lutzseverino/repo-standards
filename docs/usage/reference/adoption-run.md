@@ -20,7 +20,10 @@ The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
 adopted project, `adopt` without a source updates the current selection. When
 the source cannot be reached, it proposes the current version and profile and
 applies them again from the retained standards, as `inspect` and `start` do
-without source flags; its report says so next to the selection. When GitHub
+without source flags; its report says so next to the selection. An edited
+installed exact target still needs the source's snapshot, so then `adopt`
+fails with the acquisition's outcome and writes nothing, as
+[a fresh checkout](#fresh-checkout-and-source-disappearance) describes. When GitHub
 refuses to list the source's releases because the API quota is exhausted or it
 rejected the token in `GH_TOKEN` or `GITHUB_TOKEN`, `adopt` fails with
 `QUOTA_EXHAUSTED` or `SOURCE_UNAVAILABLE` and writes nothing instead. To apply
@@ -119,9 +122,10 @@ before adoption writes; flag/answer conflicts fail under the ordinary selection
 answer validation. Omitting the profile's offer means `github` alone.
 
 The selection, lock, inspection identity, run, status, retained inputs and
-script requests carry `checks`. A supported previous selection without it
-means `github`, and the next completed run writes it explicitly. Retained and
-offline adoption preserve it. An inspection or confirmation for one location
+script requests carry `checks`. Every readable lock records it; a CLI 10
+selection without it carries the retired `repo-standards/lock/v1` and
+[adopts fresh](#adopt-fresh-from-a-retired-format). Retained and offline
+adoption preserve it. An inspection or confirmation for one location
 cannot start another; an active run cannot change it. A deliberate update
 re-resolves declarations, reports `checks` as a changed component and reports
 the resulting additions and removals under ordinary target ownership.
@@ -530,7 +534,9 @@ content its standards should cover, run the pinned CLI without source flags:
 ```
 
 Without source flags, inspection and start resolve the selection from retained
-inputs, so the original standards repository can be unavailable. Selecting a
+inputs, so the original standards repository can be unavailable while the
+installed exact content is unedited; an edited target needs it, as
+[a fresh checkout](#fresh-checkout-and-source-disappearance) describes. Selecting a
 standards version, source, or profile requires its public source. The author's
 `requires.repo-standards` range is checked only when a standards version is
 selected from its source. Retained inputs are validated against the running
@@ -676,7 +682,7 @@ Review and commit these files through the adopting project's normal workflow:
 | `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, profile, platform, and check location (`checks`).                                                                                                            |
 | `.repo-standards/lock.json`                                 | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state.                                                                  |
 | `.repo-standards/state.json`                                | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
-| `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted.                                  |
+| `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a single-profile manifest, selected source files/trees, and root license material. Installed exact content nothing else retains, other profiles and unrelated material are omitted.      |
 | `.repo-standards/rules/`                                    | The [installed rules](rules.md) of every active declaration that has rules, and the generated `README.md` index of what each covers.                                                                                                  |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values.                                                                                                                                            |
 | `.repo-standards/.gitignore`                                | Ignores runtime dependencies, local reports/logs, and caches.                                                                                                                                                                         |
@@ -729,16 +735,18 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Artifact                                                             | Format                                                           |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Durable state, `.repo-standards/state.json`                          | `repo-standards/state/v8`                                        |
-| Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v2`                                         |
+| Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v3`                                         |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v7`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v8`                                          |
 | `status` report                                                      | `repo-standards/status/v10`                                      |
 | Inspection report                                                    | `repo-standards/inspection/v10`                                  |
 | Work request and assessment                                          | `repo-standards/work-request/v5`, `repo-standards/assessment/v3` |
 
-An update also reads `repo-standards/state/v7`, `repo-standards/lock/v1` and
+An update also reads `repo-standards/state/v7`, `repo-standards/lock/v2` and
 `repo-standards/scope-history/v6` as the adoption it updates, so that it [reuses](#reused-answers) what those
-records prove. Every other earlier format is retired: it is not read,
+records prove. A `repo-standards/lock/v2` adoption, which CLI 11 wrote, also
+retains a copy of every installed exact file and skill file; the update
+replaces the retained inputs whole, which removes those copies. Every other earlier format is retired: it is not read,
 converted, or compacted. A project whose committed files carry one
 [adopts fresh](#adopt-fresh-from-a-retired-format), and a run record in one
 calls for the CLI that wrote it. An agent's assessment
@@ -1228,10 +1236,27 @@ npm ci --ignore-scripts --prefix .repo-standards/runtime
 ```
 
 The npm package must remain available from its locked location or an npm cache.
-No standards-source connection is needed for these commands. `inspect` without
-source flags verifies retained input integrity and resolves the current profile
-from retained material. Local edits to exact project content remain visible in
-the report, which has `retained: true`. With the pinned CLI it describes the
+No standards-source connection is needed for these commands while the
+installed exact content is unedited. `inspect` without source flags verifies
+retained input integrity and resolves the current profile from retained
+material. The retained inputs keep no copy of installed exact content that
+nothing else retains
+([ADR 0036](https://github.com/lutzseverino/repo-standards/blob/main/docs/adr/0036-keep-one-copy-of-installed-exact-content.md)): a
+check, fix, probe or discovery script and its resources, rules, guidance,
+discovery guidance and the source's root license keep their copies, even when
+they are also installed, and every other exact file and skill file is read
+from its installed target once the target matches its installed baseline.
+Local edits to exact project content remain visible in the report, which has
+`retained: true`: for an edited target, a modified or removed file or a skill
+that gained or lost files, inspection reads the source's bytes from its
+verified snapshot at the recorded version. That needs the source: when it
+cannot be reached, retained `inspect`, the `start` of a retained inspection and
+`adopt`'s fallback to the retained standards fail with the acquisition's
+outcome, such as `SOURCE_UNAVAILABLE` or `QUOTA_EXHAUSTED`, naming each edited
+target, and change nothing. A version that now resolves to another commit
+fails with `MOVED_TAG`, and snapshot bytes other than the installed baseline
+fail with `STATE_INTEGRITY`. `check` never reads exact content, so an edited
+target does not affect it. With the pinned CLI it describes the
 unchanged selection; with a different exact CLI version it describes a CLI
 update. Either can be started as described above. Active discovery
 declarations require fresh `--scope` proposals; retained historical scope never

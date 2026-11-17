@@ -298,7 +298,9 @@ npm ci --ignore-scripts --prefix .repo-standards/runtime
 ```
 
 The lock restores the exact CLI and dependencies. Retained standards remain
-inspectable if their source disappears. Restoring the runtime still requires
+inspectable if their source disappears, as long as the installed exact content
+is unedited: the retained inputs keep no second copy of it, so inspecting an
+edited exact file or skill reads the source again. Restoring the runtime still requires
 its npm package and dependencies to be available or cached; new standards
 versions still require the source. These are independent availability limits.
 Status reports historical adoption evidence, not ongoing compliance.

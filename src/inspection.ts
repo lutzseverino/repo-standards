@@ -288,7 +288,7 @@ export async function inspectForStart(
       : retiredRecords.length
         ? undefined
         : readRecordedAdoption(root));
-  const retainedSource = retained?.source();
+  const retainedSource = await retained?.source(observations);
   const source =
     retainedSource ??
     (await acquireSource(
@@ -529,13 +529,13 @@ export async function inspectForStart(
         },
       },
     });
+    // Installed exact content is retained only where something else retains
+    // it (ADR 0036): the installed target holds its bytes.
     for (const declaration of profile.declarations) {
       const paths = [
-        declaration.kind === "skill"
-          ? declaration.source
-          : "exact" in declaration
-            ? declaration.exact
-            : declaration.guidance,
+        ...(declaration.kind === "skill" || "exact" in declaration
+          ? []
+          : [declaration.guidance]),
         ...("discovery" in declaration ? [declaration.discovery] : []),
         ...("rules" in declaration && declaration.rules !== undefined
           ? [declaration.rules]

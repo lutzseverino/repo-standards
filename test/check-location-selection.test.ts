@@ -6,9 +6,8 @@ import { adoptionFixture } from "./adoption-fixture.ts";
 import { directoryFixture } from "./installed-cli.ts";
 import { commit, git, startArgs } from "./remote-fixture.ts";
 import { createHash } from "node:crypto";
-import { rewriteRetainedInput } from "./committed-evidence.ts";
 import { terminalSession } from "./terminal.ts";
-import { parse, stringify } from "yaml";
+import { stringify } from "yaml";
 import { installCli, sourceFixture } from "./installed-cli.ts";
 import type {
   AdoptReport,
@@ -494,7 +493,7 @@ test("an active or abandoned run preserves its check location", async (t) => {
   assert.equal(again.report.outcome, "contextual", again.result.stdout);
 });
 
-test("legacy selections read as github through retained inspection and offline reapplication", async (t) => {
+test("a CLI 10 lock/v1 selection without a check location is retired state that a fresh adoption replaces", async (t) => {
   const f = await fixture(t, standards());
   const adopted = f.adopt();
   assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
@@ -503,13 +502,8 @@ test("legacy selections read as github through retained inspection and offline r
     adopted.report.answers.questions.some(({ id }) => id === "checks"),
     false,
   );
-  const manifestPath = ".repo-standards/inputs/standards.yaml";
-  const manifest = parse(readFileSync(join(f.root, manifestPath), "utf8")) as {
-    profiles: { work: { "check-locations"?: string[] } };
-  };
-  delete manifest.profiles.work["check-locations"];
-  rewriteRetainedInput(f.root, manifestPath, manifest);
   const lock = f.lock();
+  assert.equal(lock.format, "repo-standards/lock/v3");
   const { checks: _checks, ...selection } = lock.selection;
   const yaml = stringify(selection);
   writeFileSync(join(f.root, ".repo-standards/selection.yaml"), yaml);
@@ -523,27 +517,32 @@ test("legacy selections read as github through retained inspection and offline r
     JSON.stringify(lock, null, 2) + "\n",
   );
   commit(f.root);
-  const status = f.json<Status>(["status", "--json"]);
-  assert.equal(status.result.status, 0, status.result.stdout);
-  assert.equal(status.report.selection!.checks, "github");
-  const retained = f.json<Inspection>(["inspect", "--json"]);
-  assert.equal(retained.result.status, 0, retained.result.stdout);
-  assert.equal(retained.report.selection.checks, "github");
-  assert.equal(retained.report.previousSelection!.checks, "github");
-  assert.deepEqual(retained.report.update, []);
-  for (const url of Object.keys(f.remote.responses))
-    delete f.remote.responses[url];
-  f.remote.save();
-  const again = f.json<AdoptReport>([
-    "adopt",
-    "--standards-version",
-    "v1.0.0",
-    "--json",
-  ]);
-  assert.equal(again.result.status, 0, again.result.stdout);
-  assert.equal(again.report.outcome, "complete", again.result.stdout);
+  for (const command of [["status"], ["inspect"], ["check"]]) {
+    const rejected = f.json<ErrorReport>([...command, "--json"]);
+    assert.equal(rejected.result.status, 1, rejected.result.stdout);
+    const [error] = rejected.report.errors;
+    assert.equal(error!.code, "RETIRED_FORMAT", command[0]);
+    assert.deepEqual(error!.details, {
+      path: ".repo-standards/lock.json",
+      format: "repo-standards/lock/v1",
+      expected: "repo-standards/lock/v3",
+    });
+  }
+  // An inspection with source flags offers the fresh adoption, whose start
+  // removes the retired product state and writes the current lock.
+  const fresh = f.inspect();
+  assert.equal(fresh.start.eligible, true, JSON.stringify(fresh.start));
+  assert.deepEqual(
+    fresh.retiredState!.records.map(({ path }) => path),
+    [".repo-standards/lock.json"],
+  );
+  const started = f.json<Run>(
+    startArgs(fresh.identity, undefined, fresh.confirmation.required),
+  );
+  assert.equal(started.result.status, 0, started.result.stdout);
+  assert.equal(started.report.outcome, "complete", started.result.stdout);
+  assert.equal(f.lock().format, "repo-standards/lock/v3");
   assert.equal(f.lock().selection.checks, "github");
-  assert.equal(f.lock().format, "repo-standards/lock/v2");
 });
 
 test("a terminal asks for several check locations and selects a sole location without asking", async (t) => {

@@ -40,7 +40,6 @@ import {
 import {
   readRecordedAdoption,
   type RecordedAdoption,
-  type RetainedSource,
 } from "./recorded-state.js";
 import {
   canResumeAssessment,
@@ -53,6 +52,7 @@ import type { Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { inspectForStart } from "./inspection.js";
+import type { RetainedSource } from "./retained-source.js";
 import type { Blocker } from "./observation.js";
 import { observeGitStart, requireSupportedGit } from "./observation.js";
 import {
@@ -665,7 +665,7 @@ async function prepare(
       ? preserved.previous
       : readRecordedAdoption(root);
     if (recordedAdoption?.selection.standards.version !== version) throw error;
-    retained = recordedAdoption.source();
+    retained = await recordedAdoption.source(observations);
     acquired = retained;
   }
   let profileQuestion: Question;

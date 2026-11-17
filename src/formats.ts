@@ -7,7 +7,7 @@ import { ProductError } from "./errors.js";
 // fresh adoption.
 export const formats = {
   state: "repo-standards/state/v8",
-  lock: "repo-standards/lock/v2",
+  lock: "repo-standards/lock/v3",
   scopeHistory: "repo-standards/scope-history/v7",
   run: "repo-standards/run/v8",
   status: "repo-standards/status/v10",
@@ -39,7 +39,7 @@ type RecordFormat =
 export const previousFormats: Partial<Record<RecordFormat, string>> = {
   [formats.state]: "repo-standards/state/v7",
   [formats.scopeHistory]: "repo-standards/scope-history/v6",
-  [formats.lock]: "repo-standards/lock/v1",
+  [formats.lock]: "repo-standards/lock/v2",
 };
 
 // Public CLI 9's archived run reports stay as opaque local history. This is
