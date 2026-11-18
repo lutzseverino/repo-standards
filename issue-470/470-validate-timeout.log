@@ -1,0 +1,1741 @@
+$ pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test && pnpm --dir site validate
+$ tsc --noEmit
+$ pnpm --dir site exec astro sync && oxlint
+08:22:17 [content] Syncing content
+08:22:17 [content] Synced content
+08:22:17 [types] Generated 884ms
+$ prettier --plugin prettier-plugin-astro --check .
+Checking formatting...
+All matched files use Prettier code style!
+$ tsc -p tsconfig.build.json
+$ node scripts/run-tests.ts
+✔ Wayfinder service evidence handles repository-root and nested targets (86.889044ms)
+✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (678.592825ms)
+✔ inspection peels nested annotated tags beyond ten objects and rereads them with a warm snapshot (726.731464ms)
+✔ inspection distinguishes a missing tag from one that names no commit (770.77747ms)
+✔ inspection rejects a response for another tag before retaining an observation (668.17302ms)
+✔ public inspection acquires a source larger than the anonymous API allowance without per-blob requests (677.800913ms)
+✔ a self-adopted remote source ignores unselected links without extracting them (863.847643ms)
+✔ remote and local validation reject selected links and linked ancestors with SOURCE_SYMLINK (6877.897077ms)
+✔ remote acquisition and local validation reject a symbolic standards.yaml (1013.053436ms)
+✔ remote acquisition and local validation reject linked root license files (2497.218634ms)
+✔ root license directories retain regular contents and reject links at every depth locally and remotely (3337.069956ms)
+✔ unselected links still participate in tree-listing integrity and source safety checks (4440.832144ms)
+✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (5337.892749ms)
+✔ private, missing, truncated and corrupt remote snapshots are rejected (3405.467061ms)
+✔ malformed GitHub responses are rejected as source errors (2015.05815ms)
+✔ inspection rejects a GitHub tree listing that substitutes another reachable blob under the observed tree identity (1007.014675ms)
+✔ remote source references require exact Git path spelling for every material kind (6165.885563ms)
+✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (1730.396338ms)
+✔ the remote root entry point must be spelled standards.yaml in Git (692.997893ms)
+▶ forge diagnostics retain nested transport codes without error text or credentials
+  ✔ 0 (1.741913ms)
+  ✔ 1 (0.299775ms)
+  ✔ 2 (0.20717ms)
+  ✔ 3 (1.105824ms)
+  ✔ 4 (0.266161ms)
+  ✔ 5 (0.1803ms)
+✔ forge diagnostics retain nested transport codes without error text or credentials (5.23743ms)
+✔ interrupted response consumption preserves the HTTP status and cause (22.263557ms)
+✔ invalid response JSON retains context without echoing its credential-bearing content (1.560551ms)
+✔ an HTTP rejection remains confirmed even if its body cannot be consumed (0.695931ms)
+✔ adopt --json in a terminal prints its report and starts the run like any agent invocation (3260.781999ms)
+✔ adopt in a terminal asks its questions, walks contextual work until its checks pass, and completes (18376.804219ms)
+✔ a blocked declaration leaves the run incomplete, and adopt resumes an interrupted run where it stopped (20110.99153ms)
+✔ adopt in a terminal retries a run interrupted during its fixes on the person's choice (10000.7474ms)
+✔ adopt in a terminal asks a discovery script's open questions and reviews the confirmed scope (13343.179189ms)
+✔ an update in a terminal shows the reused answers without asking them (17691.244383ms)
+✔ adopt in a terminal reruns a fix allowed to overwrite a setting once the person confirms (10111.469549ms)
+✔ a scope the person reports incomplete stops the walk and the run, which the person abandons (8973.521486ms)
+✔ a person lists the files a discovery declaration covers, and a rejected path asks again (7397.444038ms)
+▶ edited terminal scopes keep included missing files and drop evidence-free exclusions
+  ✔ omit the missing file (5330.058044ms)
+  ✔ retain the missing file (5255.791637ms)
+✔ edited terminal scopes keep included missing files and drop evidence-free exclusions (10586.561111ms)
+✔ a failed check outside contextual work waits for the person to resolve it, then runs every check again (11529.099329ms)
+✔ resolving remote setup that is not ready stops before any other question (932.089417ms)
+✔ an exhausted GitHub API quota fails the update instead of offering the current version (8425.625172ms)
+✔ a walk's checks run only from a verified installation (4079.489916ms)
+✔ a person changes a scope reported incomplete, and adopt replaces the run in place and completes it (21024.131395ms)
+✔ a scope can be blocked before contextual work without missing files and requires a reason (7101.770723ms)
+✔ a scope reported incomplete after contextual work stops the run with no missing files (8119.909452ms)
+✔ a scope reported incomplete after contextual work stops the run with missing files (7687.105241ms)
+✔ a walk's checks may not change the run's records (8902.973076ms)
+✔ a scope review the assessment rejects is asked again (6763.603177ms)
+✔ adopt without an answers file prints a complete template and changes nothing (4118.022311ms)
+✔ a start stopped before writing keeps the pre-start no-edit instruction (1307.971356ms)
+✔ a same-CLI update requires runtime restoration before starting in a fresh clone (16574.127476ms)
+✔ missing runtime blocks exact updates and public and retained lower-level starts (13034.557825ms)
+✔ adopt starts in the invocation that finds nothing open, for an adoption and for its unchanged update (6390.6938ms)
+✔ a start that needs no confirmation binds the fresh inspection, whatever inspection an answer names (9333.326438ms)
+✔ an inspection that requires confirmation starts only with its identity and the confirmation (5013.196891ms)
+▶ adopt stops and tells the maintainer about an uncommitted project before a new run
+  ✔ no commit (2183.027523ms)
+  ✔ unstaged tracked changes (2074.115174ms)
+  ✔ staged changes (2059.534407ms)
+  ✔ untracked content (2102.978979ms)
+✔ adopt stops and tells the maintainer about an uncommitted project before a new run (8421.805723ms)
+▶ adopt reports Git blockers before asking for a profile from a multi-profile source
+  ✔ dirty tree (739.75071ms)
+  ✔ no commit (659.533599ms)
+✔ adopt reports Git blockers before asking for a profile from a multi-profile source (1400.052596ms)
+✔ self-adoption answer rounds use an external exact CLI and preserve the target project (21288.658875ms)
+✔ ordinary adopting projects can execute their pinned npx answer-round command (1862.193372ms)
+✔ self-adoption recovery uses the matching runtime or the external exact CLI (4250.286305ms)
+✔ an answers file adopts through missing answers, confirmation, contextual work and completion with the pinned CLI (15811.674916ms)
+✔ adopt without a source updates an adopted project, offering the newest stable release (9562.922568ms)
+✔ adopt fails when GitHub refuses the release lookup, rather than proposing the current version (7058.27274ms)
+✔ adopt asks a discovery script's open questions as answers-file fields and starts once they are answered (5846.98195ms)
+✔ an answers file confirms a fix's overwrite only with the run's inspection identity (5418.949623ms)
+✔ a drafted scope without open questions is an answer only once the answers file carries it (5133.1258ms)
+✔ adopt reconciles an out-of-scope file the agent removed again and completes with the resubmitted assessment (8924.547754ms)
+✔ an update skipping a release derives its line and records every release's author-written line (6193.781523ms)
+✔ a release the lookup cannot read is reported in the record without failing the update (5928.764953ms)
+✔ an initial adoption records only the adopted release's line (3950.767214ms)
+✔ an unreadable release list is reported in the record without failing the update (6028.617468ms)
+✔ adoption installs repository-standards for rule lookup and update notices in both agents (3312.229643ms)
+✔ start binds to an inspection identity, and the retired --confirm form is a usage error, before any project mutation (842.284978ms)
+✔ start proceeds with the identity alone when the inspection requires no confirmation, and rejects a confirmation it does not need (8803.103389ms)
+✔ start refuses without confirmation when the inspection requires it, naming each reason, and proceeds with it (5920.21447ms)
+✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (8058.976873ms)
+✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (6582.458466ms)
+✔ every installed skill, system and author, gets a relative link that Git records, and nothing else is linked (6161.195174ms)
+✔ fresh adoption over previously installed content claims byte-identical skills once product state is removed (6094.178218ms)
+▶ start rejects every invalid initial project state without mutation
+  ✔ no commit (1303.592033ms)
+  ✔ dirty working tree (1326.188848ms)
+  ✔ dirty index (1396.366148ms)
+  ✔ untracked content (1340.497332ms)
+  ✔ ignored replacement (1337.023846ms)
+  ✔ unsafe target (1380.429966ms)
+  ✔ link at a target shaped like a skill link (1779.956204ms)
+  ✔ unsafe ancestor (1535.624434ms)
+  ✔ wrong target type (1449.282061ms)
+  ✔ case conflict (1284.116932ms)
+  ✔ ignored matching system skill (1271.256884ms)
+  ✔ untracked author skill resource (1209.877458ms)
+  ✔ ignored author skill (1169.309847ms)
+  ✔ ignored system skill resource (1115.295466ms)
+  ✔ existing product state (1173.5364ms)
+  ✔ hidden index flags (1159.529457ms)
+  ✔ skip-worktree flags (1085.035628ms)
+✔ start rejects every invalid initial project state without mutation (22438.938171ms)
+▶ initial adoption replaces differing tracked files, author skills, and the system skill, and lists each replacement
+  ✔ exact file with differing bytes (4673.671241ms)
+  ✔ skill with differing bytes (3796.677237ms)
+  ✔ skill with a differing mode (3729.159062ms)
+  ✔ skill with an additional resource (3550.339772ms)
+  ✔ skill missing a supplied resource (3365.100004ms)
+  ✔ reserved system skill (3274.532106ms)
+  ✔ system skill with a differing mode (3309.676599ms)
+  ✔ system skill with an additional resource (3223.859093ms)
+  ✔ system skill and author skill together (3202.324625ms)
+✔ initial adoption replaces differing tracked files, author skills, and the system skill, and lists each replacement (32223.181232ms)
+▶ skill links follow target ownership and leave the project its own skills
+  ✔ untracked link (807.944874ms)
+  ✔ ignored file (825.135927ms)
+  ✔ ignored copy (798.57566ms)
+  ✔ linked .claude (876.199086ms)
+  ✔ linked .claude/skills (827.792053ms)
+  ✔ link with other text (809.096444ms)
+  ✔ tracked content is replaced and listed, and the project keeps its own skills (3399.216089ms)
+✔ skill links follow target ownership and leave the project its own skills (8421.943699ms)
+▶ start rejects stale identities, project content and profile selection
+  ✔ identity (1136.67433ms)
+  ✔ content (1152.065583ms)
+  ✔ profile (1137.378468ms)
+✔ start rejects stale identities, project content and profile selection (3494.051437ms)
+✔ a confirmation survives an unrelated commit and the run records HEAD at start (5112.30976ms)
+▶ a source blob that changed between inspection and start is rejected before mutation
+  ✔ observed tag (743.086411ms)
+  ✔ fresh tag cache (837.939814ms)
+✔ a source blob that changed between inspection and start is rejected before mutation (1653.938895ms)
+✔ the report of an established project with a large tree carries hashes and stays under the capture limit (23659.992956ms)
+▶ final integrity failures preserve work and report an incomplete locked run with no complete adoption
+  ✔ exact bytes (8026.914783ms)
+  ✔ executable bit (2830.559447ms)
+  ✔ skill link (2901.123331ms)
+  ✔ skill inventory (2974.345854ms)
+  ✔ product inventory (3055.808865ms)
+  ✔ attributes file (2952.234089ms)
+  ✔ runtime dependencies (3070.052084ms)
+✔ final integrity failures preserve work and report an incomplete locked run with no complete adoption (25881.244021ms)
+▶ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation
+  ✔ content (2232.901977ms)
+  ✔ symlink (1894.787447ms)
+  ✔ ignored (1903.334703ms)
+✔ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation (6121.139531ms)
+✔ unsafe targets introduced during installation are rechecked before each write (2475.090825ms)
+✔ a link ancestor replaced just before a skill link is written is caught before any directory is created through it (2604.451701ms)
+✔ exact installation preserves binary bytes and executable state and retains only the selected profile (8392.792549ms)
+✔ an empty exact profile remains inspectable from retained metadata (3317.514689ms)
+✔ retained inspection preserves selected source manifests and rejects altered retained or last-complete evidence (9148.823471ms)
+▶ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout
+  ✔ .repo-standards/ (2860.16879ms)
+  ✔ .agents/ (2603.089423ms)
+  ✔ AGENTS.md (2584.345093ms)
+✔ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout (8135.501143ms)
+✔ changes to unrelated tracked content during the final source acquisition invalidate confirmation before mutation (2090.503616ms)
+✔ contextual handoff identifies the run, retained guidance, allowed targets and required evidence (7090.879799ms)
+✔ scripted agent completes Alice work with separate assessment and check evidence and unchanged HEAD (12142.229851ms)
+✔ blocked agent evidence is retained separately and prevents checks until renewed assessment (12435.766928ms)
+▶ malformed assessments, copied run fields, changed paths and missing declarations stay incomplete
+  ✔ invalid JSON (294.61023ms)
+  ✔ null (1144.528645ms)
+  ✔ unknown field (1115.981556ms)
+  ✔ retired format (953.031222ms)
+  ✔ copied run fields (900.051982ms)
+  ✔ missing declaration (894.099968ms)
+  ✔ duplicate declaration (894.251552ms)
+  ✔ unknown declaration (853.012315ms)
+  ✔ no explanation (871.491706ms)
+  ✔ no evidence (817.046635ms)
+  ✔ array status (877.447178ms)
+  ✔ invalid status (867.950323ms)
+  ✔ supplied changed paths (803.538642ms)
+✔ malformed assessments, copied run fields, changed paths and missing declarations stay incomplete (23235.486386ms)
+✔ an assessment submitted for no active run is rejected with the next step (13227.137027ms)
+▶ observed out-of-scope tracked and untracked changes block completion while ignored content is excluded
+  ✔ CONTRIBUTING.md (5651.94147ms)
+  ✔ unrelated.txt (5656.409289ms)
+  ✔ src-other.txt (5814.076502ms)
+✔ observed out-of-scope tracked and untracked changes block completion while ignored content is excluded (24029.392989ms)
+✔ an out-of-scope file the agent added and removed again reconciles and the run completes (8532.745743ms)
+✔ an out-of-scope edit to a tracked file reconciles once its committed content is restored (10027.128095ms)
+▶ an out-of-scope directory reconciles once restored, whether created, re-moded or replaced by a file
+  ✔ created and removed (7750.184669ms)
+  ✔ mode changed (7225.807644ms)
+  ✔ created, then replaced by a file (7819.527101ms)
+✔ an out-of-scope directory reconciles once restored, whether created, re-moded or replaced by a file (22796.388462ms)
+✔ changed content invalidates prior assessment and every check runs again after renewed evidence (8886.686626ms)
+✔ contextual work cannot corrupt installed exact content (6664.856671ms)
+✔ checks after assessment still reject mutation (5559.301769ms)
+✔ content changing between assessment and final verification requires reassessment and fresh checks (8693.93938ms)
+✔ a second independent author uses fixes, repository configuration and runbook evidence through the same handoff (6320.795495ms)
+✔ assessment accounts for deleted tracked files and executable changes (12282.102143ms)
+✔ only one resume can execute checks for an active contextual adoption (6224.409694ms)
+▶ uncertain check outcomes cannot be retried through contextual resume
+  ✔ NONZERO_EXIT (5496.463332ms)
+  ✔ PROTOCOL_ERROR (10797.932976ms)
+✔ uncertain check outcomes cannot be retried through contextual resume (16294.913843ms)
+✔ the standalone bootstrap invokes the explicit CLI and resolves omitted latest stable only once outside the project (3732.396823ms)
+✔ bootstrap prerequisite failures give setup instructions before package acquisition (368.100824ms)
+✔ exact-version bootstrap can inspect using the configured npm cache with the registry unavailable (4428.729756ms)
+✔ source validation accepts check-location subsets and diagnoses invalid arrays at either author field (2205.592748ms)
+✔ guided adoption asks for check location independently of platform and accepts the flag or answers value (6331.105382ms)
+✔ location filters apply to defaults and replacements before discovery, rules or executable checks (4793.089251ms)
+✔ target conflicts consider offered check locations together with platform filters (505.311701ms)
+✔ inspection identities bind check location even with identical declarations, and invalid choices write nothing (2480.378489ms)
+✔ updates retain check location, report a deliberate change, and headless updates stop when it is unsupported (6968.349965ms)
+✔ an active or abandoned run preserves its check location (7140.954063ms)
+✔ a CLI 10 lock/v1 selection without a check location is retired state that a fresh adoption replaces (6174.997948ms)
+✔ a terminal asks for several check locations and selects a sole location without asking (6212.494283ms)
+✔ discovery requests expose the selected check location and bind it in their identity (964.28676ms)
+✔ terminal updates carry a supported recorded check location without asking again (4847.398306ms)
+✔ check diagnoses missing system ps and succeeds when only real ps is restored (7560.430114ms)
+▶ check preserves failed ps invocation causes and the successful prerequisite outcome
+  ✔ nonzero exit (535.230618ms)
+  ✔ signal (536.037978ms)
+  ✔ executable spawn failure (497.52542ms)
+✔ check preserves failed ps invocation causes and the successful prerequisite outcome (7344.071148ms)
+✔ check retains a ps failure after an operation and starts no later check (6328.086423ms)
+✔ check runs every retained check with a run's inputs, reports each result, and changes nothing (7783.419784ms)
+▶ check fails when any check fails, is blocked, or returns a malformed result, and still runs every check
+  ✔ {"first":"failed"} (752.898891ms)
+  ✔ {"second":"blocked"} (766.485973ms)
+  ✔ {"first":"malformed","third":"exit"} (767.913162ms)
+  ✔ {"first":"multiple results","second":"retired version","third":"wrong status"} (776.819876ms)
+  ✔ {"second":"confirmation-required"} (769.733182ms)
+✔ check fails when any check fails, is blocked, or returns a malformed result, and still runs every check (10484.46685ms)
+✔ the readable summary keeps each check on one line while JSON keeps its message (7545.837137ms)
+✔ the readable summary keeps the profile on one line while JSON keeps it (7650.352426ms)
+✔ check probes the checks' prerequisites as a run does (6594.079584ms)
+▶ a check that changes the working tree, product state, HEAD or the index fails check and names the changes
+  ✔ tracked file (1326.889524ms)
+  ✔ new file (1305.865899ms)
+  ✔ product state (1295.304328ms)
+  ✔ index (1306.421536ms)
+  ✔ HEAD (1336.368205ms)
+✔ a check that changes the working tree, product state, HEAD or the index fails check and names the changes (12437.066113ms)
+▶ a check that leaves the project unsafe or unreadable to observe fails check with a mutation diagnostic
+  ✔ corrupted index (564.507795ms)
+  ✔ symbolic target (604.617824ms)
+  ✔ nested Git metadata (598.455092ms)
+  ✔ unsafe product state (651.59323ms)
+  ✔ replaced local directory (653.326647ms)
+  ✔ unreadable target directory (600.93228ms)
+  ✔ initial observation (140.252919ms)
+  ✔ initial unsafe product state (228.721972ms)
+✔ a check that leaves the project unsafe or unreadable to observe fails check with a mutation diagnostic (10174.297667ms)
+▶ a prerequisite probe that writes, or a check that leaves its process group running, fails check
+  ✔ probe (396.305891ms)
+  ✔ probe leaves a target directory unreadable (352.332893ms)
+  ✔ surviving process (421.008699ms)
+✔ a prerequisite probe that writes, or a check that leaves its process group running, fails check (6939.070584ms)
+▶ check fails with the existing diagnostics without a complete adoption, during a run, under another CLI, or with changed retained inputs
+  ✔ no adoption (119.393073ms)
+  ✔ active run (5777.79663ms)
+  ✔ another CLI (123.188094ms)
+  ✔ unsupported Git (393.589272ms)
+  ✔ unsupported Git under another CLI (181.864919ms)
+  ✔ unwritable Git directory (257.181989ms)
+  ✔ changed retained check (133.879008ms)
+  ✔ edited attributes file (133.563795ms)
+  ✔ deleted attributes file (134.3942ms)
+✔ check fails with the existing diagnostics without a complete adoption, during a run, under another CLI, or with changed retained inputs (13192.610638ms)
+✔ status and outdated reject a CLI other than the pin, while inspect and start take it as a CLI pin change (8496.09367ms)
+✔ status, resume and abandon of an active run require the run's pinned CLI (4963.466252ms)
+✔ an older CLI rejects the pin before record formats or integrity for status, resume and abandon (11662.900378ms)
+✔ a CLI pin change interrupted before its runtime is installed sends the former CLI to the candidate CLI instead of a reinstall (7374.319145ms)
+✔ committed evidence allows exact authored executables beneath a rejected location in retained JSON and YAML (21.066085ms)
+✔ committed evidence recognizes escaped JSON and quoted YAML authored values (12.93878ms)
+✔ committed json evidence still rejects a separate machine location alongside an authored executable (23.108193ms)
+✔ committed json evidence does not allow siblings, extensions or embedded authored paths (26.824155ms)
+✔ committed json evidence does not exempt authored paths used as keys (10.872497ms)
+✔ committed yaml evidence still rejects a separate machine location alongside an authored executable (23.532562ms)
+✔ committed yaml evidence does not allow siblings, extensions or embedded authored paths (23.383762ms)
+✔ committed yaml evidence does not exempt authored paths used as keys (9.332075ms)
+✔ committed evidence rejects non-authored absolute paths and parent traversal in JSON keys and values (29.438821ms)
+✔ committed evidence keeps the narrow in-project skill-link exemption (9.740695ms)
+✔ committed evidence still scans YAML comments and ordinary text for machine locations (14.059954ms)
+✔ committed lock/v2 accepts matching historical v6 evidence without a proposal (32.939518ms)
+✔ committed lock/v2 returns a verified discovery proposal from v6 evidence (29.37974ms)
+✔ committed lock/v2 rejects corrupt scope JSON (27.958723ms)
+✔ committed lock/v2 rejects corrupt missing files (26.030309ms)
+✔ committed lock/v2 rejects corrupt missing scope file (40.09952ms)
+✔ committed lock/v2 rejects corrupt scope format (30.002784ms)
+✔ committed lock/v2 rejects corrupt scope hash (26.635359ms)
+✔ committed lock/v2 rejects corrupt lock inspection (22.879742ms)
+✔ committed lock/v2 rejects corrupt scope inspection (27.919569ms)
+✔ committed lock/v3 accepts matching historical v6 evidence without a proposal (28.987652ms)
+✔ committed lock/v3 returns a verified discovery proposal from v6 evidence (33.050367ms)
+✔ committed lock/v3 rejects corrupt scope JSON (34.315411ms)
+✔ committed lock/v3 rejects corrupt missing files (24.040239ms)
+✔ committed lock/v3 rejects corrupt missing scope file (42.124445ms)
+✔ committed lock/v3 rejects corrupt scope format (29.07727ms)
+✔ committed lock/v3 rejects corrupt scope hash (26.348077ms)
+✔ committed lock/v3 rejects corrupt lock inspection (24.571551ms)
+✔ committed lock/v3 rejects corrupt scope inspection (27.986456ms)
+✔ committed proposal rejects malformed lock JSON (25.045213ms)
+✔ committed proposal rejects unsupported lock marker repo-standards/lock/v0 (26.164872ms)
+✔ committed proposal rejects unsupported lock marker repo-standards/lock/v1 (25.126726ms)
+✔ committed proposal rejects unsupported lock marker repo-standards/lock/v4 (23.835955ms)
+✔ committed proposal rejects unsupported lock marker repo-standards/lock/vnext (25.20814ms)
+✔ committed proposal rejects unsupported lock marker unrelated/v1 (24.536144ms)
+✔ CLI 11 lock/v2 update remains readable and completes after a contextual stop (11847.742648ms)
+✔ current lock/v3 update remains readable and completes after a contextual stop (12079.615917ms)
+✔ abandoned CLI 11 baseline update reports its recovery and previous non-null proposal (9824.02712ms)
+✔ an unchanged v2 selection recomputes retained discovery and reports scope changes without deleting former content (14852.223695ms)
+✔ a completed discovery run reports its proposal even when cleanup was interrupted (9819.239169ms)
+✔ an incomplete or abandoned standards update keeps the last complete proposal (15426.007869ms)
+✔ repeated updates retain only the current run without growing, and status reports its scope change (22579.50057ms)
+✔ compatible standards updates preserve discovery evidence through discovery retirement and reintroduction (23368.659095ms)
+✔ a compatible CLI update uses retained v2 guidance and fresh scope without the original source (16623.434106ms)
+✔ durable product state over the per-file limit leaves discovery inspectable and separately verified (13039.27143ms)
+✔ inspection runs a declared discovery script read-only and reports its draft and open questions (989.881899ms)
+✔ a draft with unanswered questions cannot start a run, and an answered one can (1816.43135ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script writes to the project (477.876726ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script times out (1451.254015ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script exits unsuccessfully (476.058619ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script prints something other than a proposal for its declaration (450.079728ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script drafts a candidate with a path outside the project (457.221696ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script drafts a candidate with an existing path without evidence (483.523135ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script drafts a candidate with a reserved target (462.208201ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script drafts overlapping targets (464.748929ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script changes a directory's permissions (462.444015ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script changes a file's permissions (456.177908ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script changes its root's permissions (461.588473ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script takes away a directory's permissions (465.884378ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script only touches a file (454.298627ms)
+✔ inspection fails, leaving the project unchanged, when a discovery script creates a deep tree (514.04654ms)
+✔ a discovery script's copy omits symbolic links that leave it, and keeps those within it (570.483304ms)
+✔ a discovery script whose prerequisite is unavailable fails inspection without running (421.199869ms)
+✔ a discovery script that leaves a process running fails, and the process is stopped (468.834387ms)
+✔ prose-only discovery returns no draft (471.61705ms)
+✔ source validation accepts a discovery script and validates its fields (264.688634ms)
+✔ Alice author example checks actual README headings through installed adoption (11842.472527ms)
+✔ Mira service source retains check resources and preserves fix output on explicit retry (8232.365145ms)
+✔ every prerequisite is probed before mutation and all failures are reported (940.067904ms)
+✔ trusted operations receive literal arguments, retained resources and resolved identities in declared order (8148.806094ms)
+▶ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes
+  ✔ README.md (3541.009151ms)
+  ✔ NEW.txt (3522.906329ms)
+✔ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes (7064.61692ms)
+▶ standards results and process errors remain distinct and stop only the required work
+  ✔ changed (5115.928318ms)
+  ✔ blocked fix (4647.156559ms)
+  ✔ failed check (4294.763854ms)
+  ✔ blocked check (3477.318027ms)
+  ✔ nonzero (3596.77467ms)
+  ✔ signal (3646.83081ms)
+  ✔ timeout (8605.653934ms)
+  ✔ malformed (3628.444154ms)
+  ✔ retired result format (3508.723254ms)
+  ✔ fix needing confirmation (3635.718742ms)
+✔ standards results and process errors remain distinct and stop only the required work (44160.023742ms)
+✔ fixes finish before the contextual handoff and checks wait for the later assessment interface (4006.030031ms)
+✔ prerequisite arguments stay literal and failed or hung probes block installation (1865.401705ms)
+✔ the first observed version wins across probe streams and long valid timeouts do not overflow (5140.339505ms)
+✔ version probes cannot fabricate a version by joining stdout and stderr fragments (869.31256ms)
+▶ author operations that hide index entries stop adoption before further work
+  ✔ fixes --skip-worktree (3659.078088ms)
+  ✔ fixes --assume-unchanged (3662.998325ms)
+  ✔ checks --skip-worktree (3769.482994ms)
+  ✔ checks --assume-unchanged (3695.305923ms)
+✔ author operations that hide index entries stop adoption before further work (14787.765677ms)
+✔ a readable record must carry a format marker for every expected artifact (0.685462ms)
+✔ current and explicitly supported previous record formats remain readable (0.236526ms)
+✔ inspection authenticates every REST endpoint, keeps Git anonymous, and preserves identity without storing tokens (2447.250636ms)
+✔ inspection trims tokens, treats whitespace as absent, and never scans an unused token (1982.268719ms)
+✔ CLI Git subprocesses receive neither REST token while GitHub REST requests remain authenticated (1550.224265ms)
+✔ inspect and start classify quota headers, keep ordinary failures, and never retry a rejected token anonymously (12412.78534ms)
+✔ authenticated search fails the whole page when quota runs out in the page, release list, or candidate acquisition (1905.395876ms)
+✔ a token cannot make private metadata an adoptable source (353.888945ms)
+✔ redirects, disconnected requests, and credential-reflecting bodies never disclose tokens (1573.802424ms)
+✔ start retains no tokens in inputs, reports, runtime logs or caches, and outdated uses the shared authentication and quota classification (11216.778479ms)
+✔ Postern release and tag reads retry only once before a response and keep credentials out of failures (4118.900864ms)
+✔ a headless update with every answer reused completes in one invocation, defers remote setup ready or not, and a later local adopt applies it (37675.841907ms)
+✔ a confirmation, an unreused scope proposal, a missing profile and a start blocker each stop a headless update before it writes (12416.301225ms)
+✔ contextual work whose assessment is not reused stops a headless update with its run active, and adopt --answers finishes it (16105.562197ms)
+✔ a fix that returns confirmation-required stops a headless update with its fix question open (6994.490291ms)
+✔ adopt --headless rejects a source, answers and a profile, fails without an established adoption, and asks nothing in a terminal (5372.048336ms)
+✔ validation rejects a runtime import cycle among source modules and names it (161.129827ms)
+✔ validation rejects an import whose every specifier is an inline type, because the module still loads (163.048743ms)
+✔ validation ignores type-only imports and exports in a cycle (156.416045ms)
+✔ validation counts every re-export that loads its module, including inline type re-exports (496.179374ms)
+✔ a changed scope answer replaces a run stopped for an out-of-scope path in place, and its change set covers both runs (14671.95811ms)
+✔ a run stopped for an incomplete scope recovers in place through the answers file (14241.441897ms)
+✔ abandonment exits 0, and adopt then adopts again in place over the preserved changes (12722.412572ms)
+✔ abandon --json exits 0 on success (4833.723428ms)
+✔ a declined overwrite defers its fix: the run continues, records the deferral, and every later run runs the fix again (12512.937748ms)
+✔ resume --defer defers the fix a run stopped at, and refuses any other run (5233.651234ms)
+✔ inspection reports invalid invocation settings under their skill metadata paths (375.267679ms)
+✔ inspect and start reject Git older than 2.32 before observing public or retained selections (593.457545ms)
+✔ resume rejects Git older than 2.32 before reading records or observing work (5036.931644ms)
+✔ resume rejects a CLI other than the pin before rejecting old Git (226.337269ms)
+✔ Git 2.32 and newer versions including vendor suffixes permit inspection and resume (3791.39842ms)
+✔ discovery identity ignores directory permissions but still binds a committed executable-bit change (1294.51992ms)
+✔ inspection reports the pinned complete profile without changing a dirty project or executing author code (992.469304ms)
+✔ validation and inspection reject reserved skills and targets in an unselected profile with their original locations (628.383997ms)
+✔ an unsafe ancestor is reported without following its link, and the identity binds the link target (775.927254ms)
+✔ inspection identity binds affected bytes, executable state and profile, not the index or HEAD (3503.909063ms)
+✔ contextual path names cannot disappear from the inspection identity (798.060269ms)
+✔ inspection never executes Git clean filters while observing dirty tracked content (487.36812ms)
+✔ contextual files and repository directory trees reject incompatible existing target types (913.292712ms)
+✔ inspection orders all fixes before checks, declarations by ID and operations by their declared order (503.70316ms)
+✔ exact changes carry a unified diff for text and before-and-after hashes for binary content (515.143437ms)
+✔ exact replacements preserve both root observations when files and directories conflict (1006.65217ms)
+✔ case conflicts retain the exact target hashes and bind them into inspection identity (1535.564582ms)
+✔ inspection reports project, scope, and product-state blockers before one block per installation target (588.903834ms)
+▶ inspection requires confirmation only when the run discards edits, with one reason per discarded edit
+  ✔ a first adoption that discards nothing (594.407805ms)
+  ✔ a first adoption that replaces existing content (601.936111ms)
+  ✔ an update that replaces an edited installed file (3675.906799ms)
+  ✔ a breaking update that changes, retires and removes unedited installed content (3816.8135ms)
+✔ inspection requires confirmation only when the run discards edits, with one reason per discarded edit (8690.386837ms)
+✔ inspection without npm on PATH fails with setup instructions before any other work (150.908959ms)
+✔ public inspection and adoption reject unsupported and prerelease runtimes before mutation (2226.032473ms)
+✔ packaged engine metadata admits exactly stable Node.js 24 and 26 (0.184197ms)
+✔ root lint generates usable Astro collection types from a clean checkout (4255.527381ms)
+✔ root lint refreshes collection types and forwards paths, fixes and lint failures (16041.783418ms)
+✔ root lint stops on failed synchronization instead of linting with stale types (7189.675379ms)
+✔ fixes enforce their owning declaration rather than the union of authorized paths (3967.603344ms)
+✔ named targets stay observable when fixes make them ignored (10672.113434ms)
+✔ retry preserves same-file agent work across fix replay and attributes it to its declaration (7993.147656ms)
+✔ additions, deletions and executable changes a fix makes outside its scope are reported (4110.983345ms)
+✔ observation preserves explicit directory scope, ignored descendants and the limit for unlisted ignored siblings (6249.935403ms)
+✔ checks remain read-only even for ignored named targets and keep operation outcomes separate (5112.912835ms)
+✔ an exact declaration cannot redefine its installed content with its own fix (3973.436215ms)
+✔ incomplete observations block author progression and preserve its definite outcome (4993.594514ms)
+✔ retry records agent edits after rejected evidence before replay can overwrite them (7749.137816ms)
+✔ observation refuses unsafe named ancestors and stale assessments after observation settings change (4138.074073ms)
+✔ a gap between completed fixes is observed before another operation can accept a new baseline (4388.744562ms)
+✔ interrupted checks close their interval by retry and keep the observed mutation (5227.744824ms)
+▶ a fix may remove a directory whose files its authority removed, and every other directory change stays a violation
+  ✔ empty ancestor (5847.00531ms)
+  ✔ emptied directory (5893.062104ms)
+  ✔ unauthorized file (3650.383716ms)
+  ✔ root mode (3552.695201ms)
+  ✔ directory mode (3640.528936ms)
+  ✔ replaced by a file (3727.100573ms)
+  ✔ replaced by a link (3827.280413ms)
+  ✔ unnamed directory (3710.866132ms)
+  ✔ empty directory (5136.422505ms)
+  ✔ removed by a check (5123.331187ms)
+  ✔ replaced by an ignored file (3621.989061ms)
+  ✔ replaced by an ignored link (3901.046351ms)
+  ✔ emptied and replaced by an ignored file (3316.432229ms)
+  ✔ kept but ignored (3559.355581ms)
+✔ a fix may remove a directory whose files its authority removed, and every other directory change stays a violation (58510.298361ms)
+▶ a fix or check change restored in place is reconciled, and a repeated write violates again
+  ✔ added file (6792.707852ms)
+  ✔ added file, written again (4869.289455ms)
+  ✔ edited tracked file (7116.471762ms)
+  ✔ edited tracked file, written again (4797.862174ms)
+  ✔ created directory (11861.586925ms)
+  ✔ created directory, written again (4795.167617ms)
+  ✔ directory mode (6610.640371ms)
+  ✔ directory mode, written again (4826.312784ms)
+  ✔ directory replaced by a file (6891.40627ms)
+  ✔ directory replaced by a file, written again (10041.373187ms)
+  ✔ check mutation (13105.968849ms)
+  ✔ check mutation, written again (7573.136127ms)
+✔ a fix or check change restored in place is reconciled, and a repeated write violates again (89284.048404ms)
+✔ verified restoration of an exact file leaves only its installation in the change set (13494.291016ms)
+▶ retry restores complete exact skill inventories and their necessary directories
+  ✔ removed (10208.203827ms)
+  ✔ added (5450.650015ms)
+✔ retry restores complete exact skill inventories and their necessary directories (15659.413247ms)
+✔ exact skill integrity includes empty directories during execution, recovery and retained inspection (5884.768437ms)
+▶ durable product directories are protected while generated local and cache directories are permitted
+  ✔ inputs/unexpected (7480.533443ms)
+  ✔ runtime/unexpected (13819.372268ms)
+✔ durable product directories are protected while generated local and cache directories are permitted (21300.498529ms)
+✔ run records and completion keep work evidence as identities and deltas (7136.569081ms)
+✔ work evidence records an ignore input change by its role and content state, never its location (3563.682454ms)
+✔ an adoption retains no copy of installed exact content that nothing else retains, and the lock records its target (5773.182786ms)
+✔ a fresh checkout with unedited targets inspects, starts and checks its retained standards without a network request (10247.674972ms)
+✔ retained inspection of edited targets reads the source snapshot, reports the source's diffs, and its start replaces the edits (10359.658393ms)
+✔ retained inspection of an edited target fails with the source's outcome when the source is unreachable, and check still runs (7389.449615ms)
+✔ an edited target rejects a snapshot at another commit or with bytes other than its installed baseline (6418.26682ms)
+✔ an extra file under the retained inputs fails integrity, including a leftover exact copy (16169.597388ms)
+▶ an abandoned update reads the installed targets of the commit it started from, and the snapshot for one edited there
+  ✔ unedited (15946.563835ms)
+  ✔ edited in that commit (17595.134826ms)
+✔ an abandoned update reads the installed targets of the commit it started from, and the snapshot for one edited there (33542.652889ms)
+✔ executable syntax accepts command names and paths without resolving or rewriting them (148.786429ms)
+✔ executable syntax rejects shell expressions, controls and malformed executable paths consistently (173.286374ms)
+✔ executable character restrictions do not apply to literal arguments (137.428767ms)
+✔ source validation accepts optional only on a discovery declaration (271.114122ms)
+✔ an optional declaration with no scope installs no rules and runs no operations, while an empty scope stays repository-wide (7516.695785ms)
+✔ no scope is rejected for a declaration that is not optional, and nothing is installed (1523.291065ms)
+✔ updates move an optional declaration between scope and no scope, and carry no scope forward (27460.534925ms)
+✔ a discovery script drafts no scope only for an optional declaration (1456.058768ms)
+✔ adopt accepts no scope for an optional declaration in its answers file (16040.325832ms)
+✔ adopt in a terminal offers no scope for an optional declaration and judges it by its scope reviews (6878.147727ms)
+✔ outdated reports the newest stable CLI and standards versions and the stable releases since each pin (3045.071442ms)
+✔ outdated finds stable releases past the first hundred entries (177.778839ms)
+✔ a pin at the newest stable version reports no available update (170.579804ms)
+✔ a second invocation within a day answers from the ignored product cache and changes nothing else in a dirty project (315.2891ms)
+✔ an unreachable registry leaves the CLI pin unknown and still answers the standards pin (311.752868ms)
+✔ an unreachable remote leaves the standards pin unknown and still answers the CLI pin (166.18869ms)
+✔ exhausted GitHub quota leaves the standards pin unknown with exit status 0 (171.611659ms)
+✔ degraded answers are not cached, so the next invocation looks up again (338.96366ms)
+✔ a project without a selection reports both pins unknown and changes nothing (358.844894ms)
+✔ a GitHub token from the environment is sent as authorization only to GitHub and only when present (514.61964ms)
+✔ status makes no network request (146.865901ms)
+✔ invalid outdated usage exits 2 with a structured diagnostic (339.093275ms)
+✔ plain outdated renders Markdown that agrees with the JSON report, identically for the same report (545.647196ms)
+✔ plain outdated renders no update for pins at their newest versions (237.398761ms)
+✔ plain outdated reports an unanswered pin with its reason beside the answered one (314.669614ms)
+✔ plain outdated without a selection reports both pins unknown with the reason, with no request or change (128.153991ms)
+✔ outdated --json is unchanged beside the plain report, and usage errors stay structured (282.395509ms)
+✔ plain outdated lists each newer release's author-written line, agreeing with the JSON report (410.840468ms)
+✔ an unreadable release reports its reason without failing the report, and is read again next time (322.124901ms)
+✔ authors cannot supply the product-owned repository-standards skill (127.025645ms)
+✔ authors cannot supply the product-owned author-standards skill (122.295222ms)
+✔ authors cannot supply the product-owned adopt-repository-standards skill (122.648047ms)
+✔ authors may supply a skill named for the retired adopt-standards system skill (128.034506ms)
+✔ authors may supply a skill named for the retired standards-updates system skill (125.831996ms)
+✔ unreadable selected files are reported for every reference kind (136.465322ms)
+▶ all file and repository guidance forms reject system-skill targets, their links, and overlapping paths
+  ✔ exact: .agents/skills/repository-standards (125.90337ms)
+  ✔ contextual: .agents/skills/repository-standards (123.113173ms)
+  ✔ paths: .agents/skills/repository-standards (123.544154ms)
+  ✔ directories: .agents/skills/repository-standards (131.229266ms)
+  ✔ exact: .agents/skills/repository-standards/SKILL.md (123.115718ms)
+  ✔ contextual: .agents/skills/repository-standards/SKILL.md (120.213488ms)
+  ✔ paths: .agents/skills/repository-standards/SKILL.md (125.850781ms)
+  ✔ directories: .agents/skills/repository-standards/SKILL.md (126.580446ms)
+  ✔ exact: .claude/skills/repository-standards (126.999035ms)
+  ✔ contextual: .claude/skills/repository-standards (120.606399ms)
+  ✔ paths: .claude/skills/repository-standards (125.336572ms)
+  ✔ directories: .claude/skills/repository-standards (123.226857ms)
+  ✔ exact: .claude/skills/repository-standards/SKILL.md (126.158882ms)
+  ✔ contextual: .claude/skills/repository-standards/SKILL.md (121.308922ms)
+  ✔ paths: .claude/skills/repository-standards/SKILL.md (125.861551ms)
+  ✔ directories: .claude/skills/repository-standards/SKILL.md (125.043961ms)
+  ✔ exact: .agents/skills/author-standards (122.301363ms)
+  ✔ contextual: .agents/skills/author-standards (123.708565ms)
+  ✔ paths: .agents/skills/author-standards (122.158163ms)
+  ✔ directories: .agents/skills/author-standards (129.021195ms)
+  ✔ exact: .agents/skills/author-standards/SKILL.md (122.502402ms)
+  ✔ contextual: .agents/skills/author-standards/SKILL.md (146.166963ms)
+  ✔ paths: .agents/skills/author-standards/SKILL.md (131.998455ms)
+  ✔ directories: .agents/skills/author-standards/SKILL.md (130.784057ms)
+  ✔ exact: .claude/skills/author-standards (132.614656ms)
+  ✔ contextual: .claude/skills/author-standards (131.339805ms)
+  ✔ paths: .claude/skills/author-standards (125.791249ms)
+  ✔ directories: .claude/skills/author-standards (126.615372ms)
+  ✔ exact: .claude/skills/author-standards/SKILL.md (122.243294ms)
+  ✔ contextual: .claude/skills/author-standards/SKILL.md (120.485751ms)
+  ✔ paths: .claude/skills/author-standards/SKILL.md (120.508424ms)
+  ✔ directories: .claude/skills/author-standards/SKILL.md (124.691897ms)
+  ✔ exact: .agents/skills/adopt-repository-standards (122.863793ms)
+  ✔ contextual: .agents/skills/adopt-repository-standards (123.84428ms)
+  ✔ paths: .agents/skills/adopt-repository-standards (130.75378ms)
+  ✔ directories: .agents/skills/adopt-repository-standards (147.233713ms)
+  ✔ exact: .agents/skills/adopt-repository-standards/SKILL.md (126.347978ms)
+  ✔ contextual: .agents/skills/adopt-repository-standards/SKILL.md (119.825398ms)
+  ✔ paths: .agents/skills/adopt-repository-standards/SKILL.md (125.21314ms)
+  ✔ directories: .agents/skills/adopt-repository-standards/SKILL.md (126.788468ms)
+  ✔ exact: .claude/skills/adopt-repository-standards (123.141627ms)
+  ✔ contextual: .claude/skills/adopt-repository-standards (123.192552ms)
+  ✔ paths: .claude/skills/adopt-repository-standards (126.536564ms)
+  ✔ directories: .claude/skills/adopt-repository-standards (132.204614ms)
+  ✔ exact: .claude/skills/adopt-repository-standards/SKILL.md (134.116386ms)
+  ✔ contextual: .claude/skills/adopt-repository-standards/SKILL.md (130.447002ms)
+  ✔ paths: .claude/skills/adopt-repository-standards/SKILL.md (124.176426ms)
+  ✔ directories: .claude/skills/adopt-repository-standards/SKILL.md (126.749785ms)
+  ✔ exact: .agents (129.5808ms)
+  ✔ contextual: .agents (128.773037ms)
+  ✔ paths: .agents (127.205354ms)
+  ✔ directories: .agents (127.695848ms)
+  ✔ exact: .agents/skills (120.584137ms)
+  ✔ contextual: .agents/skills (127.762423ms)
+  ✔ paths: .agents/skills (126.003689ms)
+  ✔ directories: .agents/skills (122.340657ms)
+  ✔ exact: .claude (127.157563ms)
+  ✔ contextual: .claude (124.919847ms)
+  ✔ paths: .claude (128.773589ms)
+  ✔ directories: .claude (128.613908ms)
+  ✔ exact: .claude/skills (127.376005ms)
+  ✔ contextual: .claude/skills (121.973856ms)
+  ✔ paths: .claude/skills (124.833033ms)
+  ✔ directories: .claude/skills (127.34139ms)
+  ✔ exact: .AGENTS/SKILLS/REPOSITORY-STANDARDS/SKILL.md (125.86064ms)
+  ✔ contextual: .AGENTS/SKILLS/REPOSITORY-STANDARDS/SKILL.md (123.541389ms)
+  ✔ paths: .AGENTS/SKILLS/REPOSITORY-STANDARDS/SKILL.md (129.613932ms)
+  ✔ directories: .AGENTS/SKILLS/REPOSITORY-STANDARDS/SKILL.md (123.374195ms)
+  ✔ exact: .agents/ſkills/repository-standards/café.md (128.670014ms)
+  ✔ contextual: .agents/ſkills/repository-standards/café.md (123.931675ms)
+  ✔ paths: .agents/ſkills/repository-standards/café.md (123.001752ms)
+  ✔ directories: .agents/ſkills/repository-standards/café.md (124.945546ms)
+  ✔ exact: .CLAUDE/SKILLS/REPOSITORY-STANDARDS (124.872808ms)
+  ✔ contextual: .CLAUDE/SKILLS/REPOSITORY-STANDARDS (123.097684ms)
+  ✔ paths: .CLAUDE/SKILLS/REPOSITORY-STANDARDS (127.859436ms)
+  ✔ directories: .CLAUDE/SKILLS/REPOSITORY-STANDARDS (124.462605ms)
+✔ all file and repository guidance forms reject system-skill targets, their links, and overlapping paths (9604.674043ms)
+✔ source and target paths reject escaped control U+0001 (126.024248ms)
+✔ source and target paths reject escaped control U+007f (126.221901ms)
+✔ source and target paths reject escaped control U+0080 (121.339571ms)
+✔ source and target paths reject escaped control U+0085 (122.592181ms)
+✔ source and target paths reject escaped control U+009f (129.949214ms)
+✔ whole skill and resource trees reject control characters in nested source paths (133.289699ms)
+✔ empty profile names are rejected (120.639562ms)
+✔ target path "/absolute" is rejected (126.271915ms)
+✔ target path "C:/outside" is rejected (129.936911ms)
+✔ target path "../outside" is rejected (123.931405ms)
+✔ target path "a/../../outside" is rejected (125.150632ms)
+✔ target path "./file" is rejected (126.966063ms)
+✔ target path "a//file" is rejected (127.745631ms)
+✔ target path "a\\file" is rejected (131.123076ms)
+✔ target path "src/*.ts" is rejected (125.845983ms)
+✔ source symlinks are rejected at the document and source ancestor boundaries (237.111801ms)
+✔ source directories must not be symlinks even with a trailing slash (117.684473ms)
+✔ references must have the declared filesystem type and skills require SKILL.md (122.485831ms)
+✔ whole skills collide with files and other skill declarations after case folding (126.135428ms)
+✔ an author skill's link collides with any target overlapping it (125.649552ms)
+✔ replaced and excluded targets are absent from overlap validation (128.178117ms)
+✔ Unicode case-folded target collisions include capital and small sharp S (125.696511ms)
+✔ distinct Unicode targets are not conflated by uppercasing (129.664497ms)
+✔ a profile declares its platforms and platform-specific declarations, and validation rejects platforms this CLI does not support (1283.640269ms)
+✔ a profile that supports one platform adopts github without asking or detecting, in a project without a remote (2994.741626ms)
+✔ adopt in a terminal selects a profile's only platform without asking, whatever the remote (3272.875295ms)
+✔ with several platforms, detection proposes one, an override is honored, and an undetectable remote requires an explicit choice (8350.01901ms)
+✔ adopt in a terminal proposes the detected platform and honors an override (3418.005313ms)
+✔ the platform is part of the inspection identity, so another platform's inspection does not start a run (4133.265993ms)
+✔ a recorded selection without a platform is read as github and behaves as before, and the next run records it (5692.907613ms)
+✔ adopting again in place over a stopped run keeps its platform over detection (7700.458731ms)
+✔ a headless update keeps the recorded platform, and stops when the profile no longer supports it (5334.045808ms)
+✔ shared execution retains a census failure separately from the author's exit and output (102.958365ms)
+✔ shared execution distinguishes an unreadable group from an exited probe with real ps (137.930893ms)
+✔ group census still ignores zombies and protects against leader identity reuse (103.27943ms)
+✔ the previous published npm release is the highest stable SemVer below the candidate (1.932421ms)
+✔ stable predecessor selection validates build metadata and ignores it for precedence (0.226657ms)
+✔ public update acceptance commits the previous adoption then completes exactly one unanswered candidate adopt (22.623199ms)
+✔ one candidate adopt ending answers-required fails without another invocation or answers (2.431091ms)
+✔ one candidate adopt ending blocked fails without another invocation or answers (1.964071ms)
+✔ one candidate adopt ending contextual fails without another invocation or answers (2.008665ms)
+✔ one candidate adopt ending incomplete fails without another invocation or answers (1.838364ms)
+✔ public update acceptance rejects nonzero complete report and retains failure evidence (1.872889ms)
+✔ public update acceptance rejects retired format and retains failure evidence (1.649117ms)
+✔ public update acceptance rejects command error and retains failure evidence (1.636613ms)
+✔ public update acceptance rejects malformed output and retains failure evidence (2.500582ms)
+✔ public update acceptance rejects missing outcome and retains failure evidence (1.651923ms)
+✔ public update acceptance rejects not ready and retains failure evidence (1.594875ms)
+✔ public update acceptance rejects stale pinned runtime and retains failure evidence (1.38491ms)
+✔ public update acceptance rejects missing action and retains failure evidence (1.358169ms)
+✔ public update acceptance rejects missing adopt format (1.5337ms)
+✔ public update acceptance rejects retired adopt format (1.418854ms)
+✔ public update acceptance rejects predecessor adopt format (1.520425ms)
+✔ public update acceptance rejects missing adopt selection (1.391252ms)
+✔ public update acceptance rejects predecessor adopt CLI (1.632836ms)
+✔ public update acceptance rejects different adopt source (1.364741ms)
+✔ public update acceptance rejects different adopt profile (1.35883ms)
+✔ public update acceptance rejects different adopt source release (1.399016ms)
+✔ public update acceptance rejects missing adopt source release (2.38783ms)
+✔ public update acceptance rejects missing adopt platform (1.341387ms)
+✔ public update acceptance rejects different adopt platform (1.346999ms)
+✔ public update acceptance rejects complete with questions (1.725511ms)
+✔ public update acceptance rejects complete with blockers (1.69261ms)
+✔ public update acceptance rejects missing status format (1.331459ms)
+✔ public update acceptance rejects predecessor status format (1.347028ms)
+✔ public update acceptance rejects missing status selection (1.313656ms)
+✔ public update acceptance rejects missing status standards (1.609192ms)
+✔ public update acceptance rejects different status source (1.365994ms)
+✔ public update acceptance rejects different status profile (1.431547ms)
+✔ public update acceptance rejects different status release (1.479267ms)
+✔ public update acceptance rejects different status commit (1.874072ms)
+✔ public update acceptance rejects missing status commit (1.32679ms)
+✔ public update acceptance rejects invalid status commit (1.410538ms)
+✔ public update acceptance rejects different status platform (1.466092ms)
+✔ public update acceptance rejects missing status platform (1.482363ms)
+✔ public update acceptance rejects different baseline adopt release (1.633709ms)
+✔ public update acceptance rejects missing baseline source release (1.308967ms)
+✔ public update acceptance rejects invalid baseline source release (1.377185ms)
+✔ public update acceptance rejects missing baseline commit (1.304037ms)
+✔ public update acceptance rejects invalid baseline commit (1.316831ms)
+✔ a missing stable predecessor fails before project commands run (0.614628ms)
+✔ the public request observer preserves transport and response identity while counting anonymous requests (89.760736ms)
+✔ public installation still refuses external NODE_OPTIONS before acquisition (89.654737ms)
+✔ public installation reaches command setup in a clean checkout without node_modules (166.789593ms)
+✔ explicit retry recovers installation after process death and verifies confirmed files before writing (3839.549832ms)
+✔ uncertain fixes require explicit retry, keep their interrupted interval, rerun fixes, renew contextual evidence and rerun checks (7492.79031ms)
+✔ a fix that needs confirmation to overwrite a setting stops the run until resume --confirmed reruns it allowed to overwrite (17959.024173ms)
+✔ retry stops at a fix that needs confirmation again, and a fix allowed to overwrite cannot ask again (6075.141778ms)
+✔ a fix that asks for confirmation after changing the project breaks the protocol and cannot be confirmed (8894.750952ms)
+✔ surviving author processes block retry and abandonment after the CLI dies (8667.340932ms)
+✔ abandon preserves actual work, historical evidence and an accessible report without moving HEAD (4884.686578ms)
+✔ abandon closes the last interval in its archived report and keeps no observation beside the journal (3660.075197ms)
+✔ abandon without the kept observation preserves earlier interval evidence and reports the uncertainty (3679.369724ms)
+✔ retry rejects installed edits and binds a renewed assessment to the new snapshot even when project bytes stay the same (8686.196261ms)
+✔ retry recovers an interrupted completion without trusting its candidate state (4149.142739ms)
+▶ retry recovers before installation and from partial runtime copying without source reacquisition
+  ✔ runtime (3418.30064ms)
+  ✔ runtime-copy (3597.419103ms)
+✔ retry recovers before installation and from partial runtime copying without source reacquisition (7016.417368ms)
+▶ retry recovers interrupted installation, and blocks content added since before further installation
+  ✔ a file staged before its rename (3458.959263ms)
+  ✔ an added skill file (3634.577091ms)
+  ✔ an added skill directory (3605.092082ms)
+  ✔ an added retained input directory (3701.649516ms)
+✔ retry recovers interrupted installation, and blocks content added since before further installation (14401.224255ms)
+✔ an active start blocks a competing start, retry and abandonment, and completed state cannot be abandoned (3674.20954ms)
+✔ abandoning an interrupted completion preserves its candidate without claiming last-complete evidence (3670.213611ms)
+✔ unreadable process groups block adoption and recovery with the ps cause intact (1400.96221ms)
+▶ background descendants of returned fixes and prerequisite probes retain active execution
+  ✔ fixes (4072.985917ms)
+  ✔ prerequisites (1453.739918ms)
+✔ background descendants of returned fixes and prerequisite probes retain active execution (5527.391841ms)
+✔ retry recovers completion files interrupted between staging and rename (4078.155047ms)
+✔ live process ownership is authoritative before any mirror of a running operation (3655.760056ms)
+▶ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation
+  ✔ staged runtime (3746.555833ms)
+  ✔ installed runtime (4132.53238ms)
+  ✔ linked stage root (2927.448165ms)
+✔ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation (10807.200288ms)
+✔ a fast author operation cannot have its local report corruption overwritten by spawn journaling (3439.4704ms)
+✔ retry preserves a report altered by an author after killing the CLI (5094.551557ms)
+✔ abandoned operation logs remain readable after reconciliation and another adoption (7654.021458ms)
+✔ same-second process identities distinguish reused worker and author process numbers (3501.912671ms)
+▶ operation output written before its result reached the journal is kept by abandonment and before retry reuses its log index
+  ✔ abandonment (3741.660669ms)
+  ✔ retry (5159.13375ms)
+✔ operation output written before its result reached the journal is kept by abandonment and before retry reuses its log index (8901.359303ms)
+✔ failed abandonment archives leave the actual report, journal and logs available for recovery (21383.967391ms)
+✔ committed retry evidence in a linked worktree names no location outside the project (20561.88117ms)
+✔ incomplete status retains ignored exact files and complete author and system skill changes (8698.424021ms)
+✔ a final report persistence failure retains incomplete evidence and recovery guidance (3650.51914ms)
+✔ a failed initial ignore-file write preserves the run without exposing local reports to Git (13516.000253ms)
+✔ status recovers ignored installed targets after the adoption process is interrupted (5384.963762ms)
+✔ public author acquisition retains quota diagnostics and a recovery action without the response body (178.731314ms)
+✔ public author acquisition retains the failed URL when no HTTP response arrives (165.194056ms)
+✔ public author acquisition does not classify an unexplained HTTP 403 as quota exhaustion (178.58596ms)
+✔ public author acquisition honors Retry-After on HTTP 403 without primary quota headers (173.630653ms)
+✔ public author acquisition honors Retry-After on HTTP 429 without primary quota headers (174.292691ms)
+✔ public author acquisition respects HTTP date (174.304043ms)
+✔ public author acquisition respects longer Retry-After (172.668349ms)
+✔ public author acquisition respects longer primary reset (173.816183ms)
+✔ public author acquisition respects invalid Retry-After with primary reset (173.640922ms)
+✔ public author acquisition retains invalid Retry-After invalid without inventing a delay (165.958747ms)
+✔ public author acquisition retains invalid Retry-After -1 without inventing a delay (172.98719ms)
+✔ public author acquisition retains invalid Retry-After 999999999999999999999 without inventing a delay (171.641325ms)
+✔ public author acquisition retains invalid Retry-After Sat, 99 Sep 2026 17:10:38 GMT without inventing a delay (169.469322ms)
+✔ public author acquisition retains invalid Retry-After Sat, 31 Feb 2026 17:10:38 GMT without inventing a delay (170.806311ms)
+✔ public author acquisition retains invalid Retry-After Sun, 12 Sep 2026 17:10:38 GMT without inventing a delay (172.546009ms)
+✔ public author acquisition retains invalid Retry-After Sun, 12 Sep 2026 24:00:00 GMT without inventing a delay (168.388655ms)
+✔ release status verifies a published bundle from the complete supported OS/runtime matrix (246.107562ms)
+✔ release status rejects a failure matrix validation validate (ubuntu-latest, 24) even beside successful legacy jobs (136.324226ms)
+✔ release status rejects a missing matrix validation validate (ubuntu-latest, 24) even beside successful legacy jobs (136.823528ms)
+✔ release status rejects a failure matrix validation validate (ubuntu-latest, 26) even beside successful legacy jobs (136.943002ms)
+✔ release status rejects a missing matrix validation validate (ubuntu-latest, 26) even beside successful legacy jobs (136.073614ms)
+✔ release status rejects a failure matrix validation validate (macos-latest, 24) even beside successful legacy jobs (135.695702ms)
+✔ release status rejects a missing matrix validation validate (macos-latest, 24) even beside successful legacy jobs (135.833191ms)
+✔ release status rejects a failure matrix validation validate (macos-latest, 26) even beside successful legacy jobs (136.672473ms)
+✔ release status rejects a missing matrix validation validate (macos-latest, 26) even beside successful legacy jobs (146.308109ms)
+✔ release status verifies the original bundle and prints the missing GitHub release action without publishing (285.011058ms)
+✔ release status refuses to recreate a release whose supplied notes are absent (288.364436ms)
+✔ release status refuses to recreate a release whose supplied notes are empty (296.51758ms)
+✔ release status refuses to recreate a release whose supplied notes are unnamed (298.733014ms)
+✔ release status reports run status queued as in progress with a wait action (116.241514ms)
+✔ release status reports run status in_progress as in progress with a wait action (110.654136ms)
+✔ release status reports run status waiting as in progress with a wait action (112.823504ms)
+✔ release status verifies published assets before recommending verification-only acceptance (250.599917ms)
+✔ release status recommends only the original tarball when npm confirms the version is absent (266.424345ms)
+✔ release status verifies existing assets and recommends uploading only the missing original asset (225.793063ms)
+✔ release status recovers draft with matching tag without mutation (336.672414ms)
+✔ release status recovers draft-partial with matching tag without mutation (313.688344ms)
+✔ release status recovers draft with absent tag without mutation (384.107806ms)
+✔ release status recovers draft-partial with absent tag without mutation (364.214812ms)
+✔ release status blocks draft recovery with mismatched tag (201.762351ms)
+✔ release status blocks draft recovery with unestablished target (218.539375ms)
+✔ release status blocks draft recovery with mismatched target (222.258964ms)
+✔ release status blocks draft recovery with mismatched asset (269.300484ms)
+✔ release status blocks draft recovery with unavailable asset (280.669948ms)
+✔ release status blocks draft recovery with insufficient draft access (246.393591ms)
+✔ release status blocks draft recovery with duplicate drafts (270.648395ms)
+✔ release status blocks draft recovery with a body that differs from the supplied notes (247.12558ms)
+✔ release status blocks draft recovery with no retained release notes (251.476809ms)
+✔ release status accepts a draft body that differs from the supplied notes only in line endings (341.94084ms)
+✔ release status rejects a damaged original bundle before contacting npm (165.341273ms)
+✔ release status refuses to overwrite an earlier inspection (87.880233ms)
+✔ release status refuses recovery with different npm integrity (185.151663ms)
+✔ release status refuses recovery with a moved tag (202.571106ms)
+✔ release status refuses recovery with GitHub unavailable (226.935606ms)
+✔ public CLI acceptance records an assertion failure even when every external command exited successfully (627.574922ms)
+✔ public CLI acceptance waits for the published version and release assets and logs each attempt (758.237861ms)
+✔ public CLI acceptance observes npm availability at 327 seconds on the next 10-second poll (3047.79254ms)
+✔ public CLI acceptance fails after the propagation bound naming the version and the elapsed wait (4847.410328ms)
+✔ public CLI acceptance shares the npm deadline across successive assets with 1 missing bootstrap observations (3075.908549ms)
+✔ public CLI acceptance shares the npm deadline across successive assets with Infinity missing bootstrap observations (2919.326541ms)
+✔ public CLI acceptance shortens the final interval and lets the last asset observation finish after the bound (527.958665ms)
+✔ public CLI acceptance stops immediately for {"npmError":"E403"} (462.635807ms)
+✔ public CLI acceptance stops immediately for {"assetStatus":500} (492.009075ms)
+✔ release packaging is repeatable, its artifacts match their recorded hashes, and the tarball installs the matching CLI and bootstrap (803.767102ms)
+✔ the package ships each product skill whole, with its invocation settings and no delivery vocabulary (11.223178ms)
+✔ the packaged adoption skill delegates only the approved entry contract to the CLI (0.831977ms)
+✔ the adoption entry contract rejects added instructions, protocol examples, resources, and changed delegation (4.419026ms)
+✔ the authoring skill names packaged usage documents and acquires the released CLI on its own (1.987726ms)
+✔ the package carries only product material, and its usage documents resolve their links and address no agent (45.358319ms)
+✔ the packaged example sources validate (250.90413ms)
+✔ the packed README reaches repository documents outside the package through absolute repository URLs (602.290779ms)
+✔ packing keeps README query strings and fragments on repository URLs and rejects links that leave the repository (293.765363ms)
+✔ a remote setup that is not ready stops start before any write unless it is deferred (10526.803435ms)
+✔ every later run probes deferred remote setup, keeps it deferred while not ready, and applies it once ready (11272.079092ms)
+✔ a ready remote setup runs as any fix does, and deferral changes nothing (5099.200116ms)
+✔ a probe that cannot run is not ready, and a deferred fix's own prerequisite is not probed (8593.632042ms)
+✔ a probe that changes the project fails inspection and its change is preserved (720.87071ms)
+✔ with start blockers no probe runs, and every remote setup, even an undiscovered declaration's, is not checked (527.44106ms)
+✔ a guided adoption and its unchanged update stay within the request budget with a lightweight tag (16571.273619ms)
+ℹ lightweight tag: {"template":5,"profile":2,"scope":2,"start":4,"continuation":0,"update":5,"outdated":1}; adoption 13, update 5, total 19
+✔ annotated tags add a read per observation to adoption and update request budgets (17259.749967ms)
+ℹ annotated tag: {"template":6,"profile":3,"scope":3,"start":6,"continuation":0,"update":7,"outdated":1}; adoption 18, update 7, total 26
+✔ terminal rounds reuse the snapshot and observe only the repository and tag (9299.609338ms)
+ℹ terminal: 11 requests, 4 observations
+✔ release pages and annotation chains have counted allowances, source size costs nothing, and answers keep their selected version (8580.61837ms)
+✔ a cached snapshot inspects identically, and a damaged, incomplete or evicted one is acquired again (3676.06675ms)
+✔ a tag that moves while start acquires the runtime is rejected before installation (7220.048141ms)
+✔ a warm snapshot neither hides GitHub refusing the tag lookup nor retries a rejected token anonymously, and caches no credentials (1905.078588ms)
+✔ a retired state, scope evidence, or run record format is rejected with the fresh-adoption diagnostic and nothing is written (11374.267266ms)
+✔ exact v6 archives leave inspection and current adoption unchanged and preserve every history entry (11809.88409ms)
+✔ archive exclusion requires an exact object marker in a regular file and preserves format precedence (11463.847462ms)
+✔ newer record formats require the pinned CLI without fresh-adoption advice or writes (22809.87282ms)
+✔ the single committed formats are validated on read (17102.355448ms)
+✔ durable state records only the skill link of a recorded skill (9378.501515ms)
+▶ tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike
+  ✔ .repo-standards/inputs/resolved.json (1673.171365ms)
+  ✔ .repo-standards/inputs/scope-history.json (1716.365716ms)
+  ✔ .repo-standards/inputs/source/guidance.md (1716.197699ms)
+  ✔ resume of an interrupted start, and status beside its abandoned run (3027.757207ms)
+  ✔ status after an update abandoned mid-installation (4635.708235ms)
+✔ tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike (24472.363828ms)
+✔ a project on a retired format inspects a fresh adoption that removes its product state, and its start links every installed skill (14155.61886ms)
+✔ a change to the retired product state after inspection makes start stale and removes nothing (8272.208207ms)
+✔ a retired active run record blocks the fresh-adoption preview and its start, naming the earlier pinned CLI (6191.621997ms)
+✔ a fresh adoption interrupted while removing retired product state reports its run and completes on retry (9487.211739ms)
+✔ a fresh adoption stopped before removing retired product state blocks check, and its abandonment archives none of the earlier reports (7680.779304ms)
+▶ a committed record that is neither current nor retired beside retired state fails integrity, and nothing is removed
+  ✔ unknown marker (513.282801ms)
+  ✔ missing marker (493.357759ms)
+  ✔ unparseable record (523.24656ms)
+  ✔ null record (519.520627ms)
+✔ a committed record that is neither current nor retired beside retired state fails integrity, and nothing is removed (7123.199708ms)
+✔ a genuinely absent lock still allows fresh adoption over retired state (7320.150146ms)
+✔ malformed locks without retired state still fail ordinary integrity validation without writes (7558.352417ms)
+✔ retired product state changed while its removal is recorded fails the start and is not removed (6101.250685ms)
+✔ an unchanged update reuses the recorded scope, remote setup deferral and assessments, and completes in one run (54249.639189ms)
+✔ changed discovery guidance, rules, draft or a deleted path proposes the recorded scope entry for review (32976.906887ms)
+✔ an update proposes recorded empty evidence for review after adoption creates the files (22345.797668ms)
+✔ an update proposes a recorded candidate the agent added without evidence once it exists, even with an unchanged draft (12602.106222ms)
+✔ assessments are reused only while their rules and scoped files are unchanged, including by the run's fixes (32432.218953ms)
+✔ a declined overwrite's deferral and a fix's overwrite answer are never reused (9966.461347ms)
+✔ an update from the previous release's state and scope evidence reuses every answer they prove (15625.356588ms)
+✔ previous-release state reuses no assessment whose scope answer changed (19974.511838ms)
+✔ a recorded remote setup deferral beside remote setup it never deferred is proposed for review (19988.178055ms)
+✔ adoption installs each declaration's rules with an index of what they cover, and rules prints those covering a path (8416.820798ms)
+✔ a failed check names its declaration's installed rules, in a run and in check (9277.066498ms)
+✔ an update that removes a declaration removes its rules and its index entry (9348.730032ms)
+✔ rules with no path prints only the repository-wide rules, and fails as a path lookup does (5947.552521ms)
+✔ rules with no path reports when no repository-wide rules are installed, and during a run (7225.571467ms)
+✔ rules reads only a complete adoption (272.155169ms)
+✔ source validation accepts rules on file and repository declarations, and rejects them on a skill or when missing (282.702988ms)
+▶ missing npm and unavailable exact runtime packages leave project content untouched
+  ✔ npm (152.098309ms)
+  ✔ package (256.392121ms)
+✔ missing npm and unavailable exact runtime packages leave project content untouched (894.917055ms)
+✔ runtime acquisition reuses a populated external npm cache with the registry unavailable (3662.307401ms)
+✔ runtime cache configuration cannot write inside the adopting project through direct or linked paths (1316.860931ms)
+▶ npm cache child symlinks cannot redirect acquisition content or logs into the project
+  ✔ _logs (764.133688ms)
+  ✔ _cacache (464.825484ms)
+  ✔ _cacache/index-v5/aa (429.245758ms)
+✔ npm cache child symlinks cannot redirect acquisition content or logs into the project (2145.41413ms)
+✔ one confirmed discovery scope starts initial adoption, passes concrete files to fixes, and requires versioned coverage review after fixes and at assessment (13038.50338ms)
+✔ an unfamiliar layout completes a useful migration around exact configuration and retains historical scope in a fresh checkout (16927.194144ms)
+✔ missing, invalid, unresolved, stale and dirty discovery starts preserve the project before mutation (13826.799126ms)
+✔ scope-validity omissions, copied identities and additional file needs block checks without new authority (14184.346133ms)
+✔ a blocked scope review can still be corrected by abandoning the run, discarding its changes, and adopting again with a new confirmed scope (11969.775974ms)
+✔ discovered contextual changes reject a stale assessment and complete with derived changed paths (8994.850007ms)
+▶ agent work may remove a directory only when its confirmed scope covers every file it held
+  ✔ confirmed (9086.146693ms)
+  ✔ outside scope (7431.635976ms)
+✔ agent work may remove a directory only when its confirmed scope covers every file it held (16519.836088ms)
+✔ agent work may remove a directory it emptied in an earlier interval (9381.801582ms)
+▶ unconfirmed migration destinations and exact corruption preserve incomplete work and installed expectations
+  ✔ invented.md (6578.090823ms)
+  ✔ docs/config.json (5913.089249ms)
+✔ unconfirmed migration destinations and exact corruption preserve incomplete work and installed expectations (12491.713697ms)
+▶ discovered fixes and checks enforce confirmed files through the observed-scope contract
+  ✔ fixes (14525.716933ms)
+  ✔ checks (6207.049123ms)
+✔ discovered fixes and checks enforce confirmed files through the observed-scope contract (20733.321863ms)
+✔ discovered scope survives retry with separate earlier agent evidence and renewed post-fix coverage identity (10206.626062ms)
+✔ interrupted pre-install discovery can retry its relative proposal from another working directory (6046.13543ms)
+✔ an inspection made in another clone of the same content, under another umask, confirms a start in this checkout (7436.975809ms)
+✔ explained empty discovery scope retains its operations, and committed evidence binds ignore inputs by role and content and records no absolute path (12755.93807ms)
+✔ an included missing file needs no evidence paths and inspection records its absence (975.163746ms)
+✔ a missing documentation README can cite evidence outside its empty directory and be confirmed (6823.170545ms)
+✔ selected discovery returns a blocked inspection requesting eligible evidence, and prevents start, without changing the project or executing author code (2040.019253ms)
+✔ an unfamiliar layout produces a complete normalized scope report including its missing project README (1899.782911ms)
+✔ a proposal holding only the agent judgment is accepted, and the CLI derives its binding, evidence identities and included paths (4720.065383ms)
+✔ a proposal for a selection without active discovery declarations is rejected (503.456482ms)
+✔ empty scope retains declarations and operations while unresolved scope blocks adoption (2117.277201ms)
+✔ a proposal is rejected for its format, its declarations, its evidence, and unsafe or overlapping ownership (14561.754763ms)
+✔ discovery requests become stale after project, selection, and consulted ignore inputs change (6302.09226ms)
+✔ discovery fails closed on unreadable evidence, unsafe named ancestors, aliases, and observation limits (3275.160999ms)
+✔ detected changes during observation fail instead of issuing a partial discovery request (491.261698ms)
+✔ ignore input paths preserve significant whitespace and an empty override disables the default input (1678.251803ms)
+✔ excluded candidates require safe concrete syntax while allowing explanations for reserved and exact paths (2906.560209ms)
+✔ ignore inputs bind their content by role, not their location, and reports name no checkout path (2063.224688ms)
+✔ source search returns validated public release candidates without selecting or changing a project (306.283571ms)
+✔ search rejects unsupported and invalid candidates explicitly while keeping valid candidates (595.703108ms)
+✔ search reports invalid invocation settings under their skill metadata paths (309.910316ms)
+✔ search finds stable published releases across pages and reports sources without one (427.702809ms)
+✔ search reads the whole release list before selecting its first stable release and keeps an absent name null (404.555384ms)
+✔ search paginates candidates and discloses incomplete GitHub results and the search cap (1426.569388ms)
+✔ discovery outages and malformed responses are explicit and do not prevent known-source inspection (998.854606ms)
+✔ candidate failures remain explicit without falling back from an invalid newer stable release (734.057925ms)
+✔ search works outside a Git project with a cache beneath its current directory (413.958516ms)
+✔ validation never runs scripts, version probes or shell-shaped arguments, and leaves a dirty source unchanged (175.766185ms)
+✔ the packaged Atlas example validates through the same source contract (143.464216ms)
+✔ the independent Wayfinder acceptance source validates through the same source contract (144.989661ms)
+✔ authors receive structured errors for the retired repo-standards/v1 format (137.686006ms)
+✔ authors receive structured errors for unsupported format (130.322408ms)
+✔ authors receive structured errors for invalid CLI range (132.635377ms)
+✔ authors receive structured errors for incompatible CLI (132.391839ms)
+✔ authors receive structured errors for missing metadata (131.503033ms)
+✔ authors receive structured errors for non-string metadata (135.70884ms)
+✔ authors receive diagnostics without crashing for no profiles (138.172423ms)
+✔ authors receive diagnostics without crashing for recursive alias (139.176095ms)
+✔ authors receive diagnostics without crashing for invalid YAML (141.083299ms)
+✔ authors receive diagnostics without crashing for multiple documents (136.810927ms)
+✔ authors receive diagnostics without crashing for unknown YAML tag (139.412841ms)
+✔ the installed CLI exposes version and help and rejects unsupported commands (591.924738ms)
+✔ duplicate YAML identities do not hide independent errors in either declaration (131.326821ms)
+✔ duplicate singleton fields still validate every determinable value (148.29977ms)
+✔ an unknown declaration kind does not hide unrelated unknown fields (138.847946ms)
+✔ unsafe references and conflicting targets are rejected even in an unselected profile (143.050888ms)
+✔ validation collects schema and operation errors across every profile with precise locations (143.119286ms)
+✔ all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (148.478166ms)
+✔ discovery resolves separately from explicit targets across complete profiles (265.601568ms)
+✔ validation rejects both scope modes even when every profile excludes the default (137.894409ms)
+✔ validation rejects neither scope mode even when every profile excludes the default (134.115837ms)
+✔ validation rejects empty explicit scope even when every profile excludes the default (133.476723ms)
+✔ validation rejects missing discovery even when every profile excludes the default (135.410337ms)
+✔ validation rejects unsafe discovery even when every profile excludes the default (135.728346ms)
+✔ validation rejects absolute discovery even when every profile excludes the default (132.524468ms)
+✔ validation rejects directory discovery even when every profile excludes the default (137.779272ms)
+✔ validation rejects non-string discovery even when every profile excludes the default (128.287633ms)
+✔ validation rejects script-shaped discovery even when every profile excludes the default (137.826381ms)
+✔ validation rejects missing contextual guidance even when every profile excludes the default (139.089111ms)
+✔ validation rejects unsafe contextual guidance even when every profile excludes the default (139.906461ms)
+✔ validation rejects unknown protection field even when every profile excludes the default (133.898778ms)
+✔ validation rejects unknown target field even when every profile excludes the default (136.982531ms)
+✔ validation rejects duplicate discovery field even when every profile excludes the default (140.966308ms)
+✔ validation rejects symlinked guidance and its ancestors (267.567894ms)
+✔ validation rejects symlinked discovery and its ancestors (283.79175ms)
+✔ validation collects both references and explicit conflicts in ambiguous discovery declarations (135.054627ms)
+✔ file declarations reject discovery outside the repository form (146.677231ms)
+✔ skill declarations reject discovery outside the repository form (135.156599ms)
+✔ author skill invocation rejects manual only in Claude Code (284.458016ms)
+✔ author skill invocation rejects manual only in Codex (268.862224ms)
+✔ author skill invocation rejects explicitly invocable only in Codex (268.093605ms)
+✔ author skill invocation rejects explicitly invocable only in Claude Code (260.859551ms)
+✔ author skill invocation accepts agreeing, absent and unrelated settings (188.533138ms)
+✔ author skill invocation reports non-boolean frontmatter at its metadata location (138.691943ms)
+✔ author skill invocation reports non-boolean Codex setting at its metadata location (135.819057ms)
+✔ author skill invocation reports duplicated frontmatter setting at its metadata location (149.019677ms)
+✔ author skill invocation reports duplicated Codex setting at its metadata location (141.673852ms)
+✔ author skill invocation reports duplicated invocation policy at its metadata location (140.506672ms)
+✔ author skill invocation reports unparseable frontmatter containing a setting at its metadata location (138.015537ms)
+✔ author skill invocation reports unparseable Codex YAML containing a setting at its metadata location (153.755863ms)
+✔ author skill invocation reports unresolved setting alias at its metadata location (145.730919ms)
+✔ author skill invocation reports non-boolean setting alias at its metadata location (139.169282ms)
+✔ author skill invocation reports a setting hidden by an unterminated scalar at its metadata location (139.186224ms)
+✔ author skill invocation validates excluded defaults and unselected profiles (139.684563ms)
+✔ a fix declares remote setup with a readiness probe declared like a check (279.694669ms)
+✔ an optional adopter action is one nonempty line of plain text, retained with the source metadata (1364.94241ms)
+✔ status counts a removed directory target through its uncommitted file deletions (5852.255495ms)
+✔ status is ready after an update migrates a file out of a removed directory target (7943.76338ms)
+✔ status counts a created directory target through non-ignored untracked files beneath it (5072.654765ms)
+✔ status does not count an empty directory target through an ignored file or a sibling prefix (5465.643289ms)
+✔ status names a missing complete run and an active adoption as not ready to commit (8862.275203ms)
+✔ status reports a complete adoption ready to commit with unstaged or staged changes (4107.10121ms)
+✔ status names a state error after an abandoned update as not ready to commit (6334.72875ms)
+✔ status names adoption paths already committed or reverted even with unrelated changes (4167.133775ms)
+✔ status accounts for untracked paths, deleted paths and staged rename sources (6465.945403ms)
+✔ status accepts an empty change set after a complete unchanged adoption (7778.913037ms)
+warning: templates not found in //share/git-core/templates
+✔ targets cannot cross initialized gitlinks or change .gitmodules (5938.257754ms)
+warning: templates not found in //share/git-core/templates
+warning: templates not found in //share/git-core/templates
+✔ targets cannot cross uninitialized gitlinks or change .gitmodules (5275.626655ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-MxBeaj) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-RVvyCd/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ discovery excludes initialized submodule contents and rejects named gitlink boundaries (4032.87574ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-L1abSY) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-w0jioN/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+✔ nested observation executes no hooks, filters, fsmonitor or submodule acquisition (2988.190938ms)
+warning: templates not found in //share/git-core/templates
+warning: templates not found in //share/git-core/templates
+✔ single missing promisor objects block without executing a transport or acquiring objects (2380.899449ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-u41uzh) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-27ip8l/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested missing promisor objects block without executing a transport or acquiring objects (2829.184088ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-Heu5Iv) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-0DuJfe/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ inspect rejects nested dirt changes during observation without additional mutation (4696.120113ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-mT4xSq) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-mVsxXy/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ start rejects nested dirt changes during observation without additional mutation (3883.506535ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-yMgKyY) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-UkfRsn/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ inspect rejects nested initialization changes during observation without additional mutation (3262.010785ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-yHDzjT) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-wxnWP2/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ start rejects nested initialization changes during observation without additional mutation (3229.151295ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-8CYKsH) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-2jgbRh/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ inspect rejects nested checkout changes during observation without additional mutation (3336.377443ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-FxAqjb) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-Df8Tcx/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ start rejects nested checkout changes during observation without additional mutation (3187.021362ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-8gQh10) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-lVyKJx/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ inspect rejects nested target changes during observation without additional mutation (3123.287784ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-8fO8no) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-lu07Zw/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ start rejects nested target changes during observation without additional mutation (3051.005804ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-xXgp7D) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-imd39j/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ a failed final recursive Git read cannot return an eligible inspection from unchanged snapshots (2431.75179ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-buyct6) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-7yVfec/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+✔ start rejects a new target gitlink after an eligible inspection (1660.628608ms)
+warning: templates not found in //share/git-core/templates
+✔ a clean unrelated submodule commit does not become a confirmation binding (3940.401384ms)
+warning: templates not found in //share/git-core/templates
+✔ update cannot replace or remove a recorded target that has become an uninitialized gitlink (5210.150093ms)
+warning: templates not found in //share/git-core/templates
+warning: templates not found in //share/git-core/templates
+✔ clean initialized submodules permit unrelated adoption and remain unchanged (4176.557326ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule fixture commits start no automatic maintenance (296.928821ms)
+warning: templates not found in //share/git-core/templates
+✔ clean single submodules preserve ignored-file treatment (4077.788126ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule unstaged tracked changes block inspection and start without mutation (1724.400589ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule staged tracked changes block inspection and start without mutation (1821.21311ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule untracked files block inspection and start without mutation (1798.684029ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule checkout mismatch block inspection and start without mutation (1838.985837ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule assume-unchanged files block inspection and start without mutation (1772.442172ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule skip-worktree files block inspection and start without mutation (1784.478026ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule deinitialized submodule block inspection and start without mutation (1667.588025ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule unreadable index block inspection and start without mutation (1773.261747ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule invalid Git metadata block inspection and start without mutation (1675.446555ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule missing HEAD block inspection and start without mutation (1644.077835ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule invalid HEAD block inspection and start without mutation (1599.671111ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule missing worktree block inspection and start without mutation (1555.930885ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule symbolic worktree block inspection and start without mutation (1610.915704ms)
+warning: templates not found in //share/git-core/templates
+✔ single submodule symbolic worktree ancestor block inspection and start without mutation (1624.235558ms)
+warning: templates not found in //share/git-core/templates
+warning: templates not found in //share/git-core/templates
+✔ single submodule symbolic Git metadata block inspection and start without mutation (1596.851087ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-efWDWW) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-0nCDqx/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule fixture commits start no automatic maintenance (425.011968ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-EReiZJ) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-ofXQdZ/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ clean nested submodules preserve ignored-file treatment (4372.849787ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-4EcQo4) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-XL9CbF/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule unstaged tracked changes block inspection and start without mutation (1978.115504ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-hytNYa) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-MFHH9N/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule staged tracked changes block inspection and start without mutation (1973.049947ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-4Us3Bt) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-crKNXV/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule untracked files block inspection and start without mutation (2005.061388ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-LJWP7d) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-3o2Gf3/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule checkout mismatch block inspection and start without mutation (2010.265427ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-FTkQGb) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-INZzOq/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule assume-unchanged files block inspection and start without mutation (1977.830116ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-Pqu3Kw) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-9zH2dZ/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule skip-worktree files block inspection and start without mutation (1974.592103ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-KFP6K4) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-8m1Muh/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule deinitialized submodule block inspection and start without mutation (1852.683993ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-qTPysj) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-kM4ItJ/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule unreadable index block inspection and start without mutation (1997.818087ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-BQaJqr) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-A9WYwe/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule invalid Git metadata block inspection and start without mutation (1854.7301ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-RpHcav) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-lpATHp/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule missing HEAD block inspection and start without mutation (1885.516312ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-HOmeY4) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-rxNVl8/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule invalid HEAD block inspection and start without mutation (1892.066168ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-yNHBYT) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-Ie5nWu/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule missing worktree block inspection and start without mutation (1876.832606ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-KQv7Ds) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-yF6MRM/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule symbolic worktree block inspection and start without mutation (1881.49285ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-nmCWcW) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-pCgukI/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+warning: templates not found in //share/git-core/templates
+✔ nested submodule symbolic worktree ancestor block inspection and start without mutation (1736.339159ms)
+warning: templates not found in //share/git-core/templates
+Submodule 'inner' (/tmp/repo-standards-source-jBcCJT) registered for path 'vendor/protocol/inner'
+Cloning into '/tmp/repo-standards-source-w1bMDf/vendor/protocol/inner'...
+warning: templates not found in //share/git-core/templates
+done.
+✔ nested submodule symbolic Git metadata block inspection and start without mutation (1892.868439ms)
+✔ status --summary renders an active run with its phase, operations and next action (9864.297279ms)
+✔ the adoption record lists a path changed by fixes and agent work once, with both phases, beside the installed paths (12921.839102ms)
+✔ a path the agent returns to its content before the run is not a changed path (9579.403362ms)
+✔ the record of an update that only installs exact content lists every installed path, from durable state alone (6626.075129ms)
+✔ the record of an update lists a removed retired target and a replaced edited target once, as installation (6165.71445ms)
+✔ inspect --summary renders a deterministic update proposal with its class, and lists blockers (9705.31148ms)
+✔ inspect --summary lists removed retired targets, each discarded edit, and each kept target (3742.571495ms)
+✔ inspect --summary gives each skill and link its action, and keeps an edited skill whole with its link (4303.143031ms)
+✔ --summary and --json together are a usage error (484.150626ms)
+✔ test limits simultaneous test files with the configured bound (5447.915238ms)
+✔ validate limits simultaneous test files with the configured bound (22427.661604ms)
+✔ normal commands reject invalid concurrency before any test file starts (8384.437725ms)
+✔ normal commands preserve test failures and forward test-name filtering (4986.651286ms)
+✔ the test launcher forwards SIGINT and leaves no test worker (181.457623ms)
+✔ the test launcher forwards SIGTERM and leaves no test worker (180.930228ms)
+✔ terminal missing-prompt waits stay finite for a stalled command and clean up (427.678123ms)
+✔ terminal missing-prompt waits stay finite for a busy command and clean up (326.881913ms)
+✔ terminal waits report early command exits (24.812985ms)
+✔ no update opens nothing and closes landed rolling items (1226.631837ms)
+✔ a complete update gives one branch and one pull request whose body is the record, and the token reaches the CLI as GH_TOKEN (482.314716ms)
+✔ a lost PR create before creation reports the request and pushed branch without retrying (397.376804ms)
+✔ a lost PR response reuses the matching PR and supersedes the rolling issue (704.438772ms)
+▶ an unresolved PR create retains the original failure and never creates a fallback
+  ✔ lookup-fails (400.809434ms)
+  ✔ wrong-base (393.620775ms)
+  ✔ body-lookup-fails (409.592637ms)
+✔ an unresolved PR create retains the original failure and never creates a fallback (1204.821371ms)
+▶ a PR response body failure is reconciled without another POST
+  ✔ response-body (415.969506ms)
+  ✔ invalid-json (396.686994ms)
+✔ a PR response body failure is reconciled without another POST (813.168424ms)
+✔ an HTTP permission refusal keeps status and safe request context without reconciliation or retry (400.355598ms)
+✔ terminal request annotations redact credentials in paths and escape percent signs (238.791569ms)
+✔ a standards-only update uses the published CLI outside an unbuilt matching package (3489.267204ms)
+✔ a stopped self-update with agent none uses the published CLI and intended checkout (1016.695671ms)
+✔ a stopped self-update with agent give-up uses the published CLI and intended checkout (1491.117902ms)
+✔ a stopped self-update with agent finish uses the published CLI and intended checkout (1990.135227ms)
+✔ a CLI major gives a chore! pull request with Impact and Migration sections (546.750037ms)
+✔ a standards major from 1.0 gives a chore! pull request with Impact and Migration sections (539.081344ms)
+✔ a 0.x standards minor gives a chore! pull request with Impact and Migration sections (552.671217ms)
+✔ rerunning with the same target changes nothing, and a newer release refreshes the same pull request (1014.91255ms)
+✔ a stop without an agent command opens one issue, refreshed on a newer release and closed when the update lands (1063.412348ms)
+✔ an agent command that leaves the update ready to commit gives a pull request, and one that does not gives an issue (712.627145ms)
+✔ a refused push opens the issue naming the reason, and closes the superseded pull request (746.419774ms)
+✔ an unknown pin fails with its reason and opens or changes nothing (228.815868ms)
+✔ an unchanged declaration named constructor without discovery guidance has an exact update (4636.454521ms)
+✔ an update is exact when only exact content or the selection changes, including an unchanged selection (7491.555475ms)
+▶ each change to guidance, rules, discovery guidance or script, operations, retired declarations, or confirmed scope makes the update contextual
+  ✔ guidance text (536.072673ms)
+  ✔ rules (549.666784ms)
+  ✔ discovery guidance (527.841891ms)
+  ✔ discovery script (540.362758ms)
+  ✔ script (525.632276ms)
+  ✔ argument (531.572502ms)
+  ✔ resource (547.848227ms)
+  ✔ retired declaration set (533.054545ms)
+  ✔ confirmed scope (436.298149ms)
+✔ each change to guidance, rules, discovery guidance or script, operations, retired declarations, or confirmed scope makes the update contextual (10960.897186ms)
+✔ a CLI update retires adopt-standards and standards-updates and removes unedited old content with its link (17728.311716ms)
+✔ a CLI update retires adopt-standards and standards-updates and keeps edited old content with its link (7577.830858ms)
+✔ a confirmed standards update advances only the standards pin, replaces whole owned skills, and removes retired and excluded content (5278.633082ms)
+✔ an update whose source adds a skill links it as exact content (5252.471746ms)
+✔ retiring a skill removes its link, and an update leaves the project its own skills (5483.784169ms)
+✔ a skill link changed after confirmation makes start stale (4075.871293ms)
+▶ update inspections match candidate-equal content and list each discarded edit, including a retired target they remove
+  ✔ an ignored retired exact file (3859.637649ms)
+  ✔ an exact file with changed bytes (4983.922021ms)
+  ✔ an exact file with changed executable state (5043.842023ms)
+  ✔ an added skill file (5043.685217ms)
+  ✔ a removed skill file (4992.079005ms)
+  ✔ a changed skill file (4969.843218ms)
+  ✔ an edited system skill (4940.415746ms)
+  ✔ a skill link replaced by a copy (4902.864272ms)
+  ✔ an exact file whose bytes equal the candidate but not the baseline (4979.309799ms)
+  ✔ a skill whose bytes equal the candidate but not the baseline (4924.232405ms)
+✔ update inspections match candidate-equal content and list each discarded edit, including a retired target they remove (48702.166135ms)
+✔ update inspections report each declared target block before baseline-only targets, and kept targets, sorted by path (4140.899832ms)
+▶ an update keeps each edited target that leaves the selection as project content that later runs neither track nor remove
+  ✔ a dropped declaration (6946.155423ms)
+  ✔ a profile exclusion (3411.095153ms)
+  ✔ a profile change (3222.759718ms)
+  ✔ a source change (3326.010364ms)
+✔ an update keeps each edited target that leaves the selection as project content that later runs neither track nor remove (16979.180592ms)
+▶ an edited skill that leaves the selection is judged whole and keeps its link
+  ✔ an edited skill with an ignored file (4995.580014ms)
+  ✔ an unedited skill with an ignored file (3517.67272ms)
+  ✔ an edited skill whose link was removed (4664.183682ms)
+  ✔ an edited skill whose link is untracked (4736.80945ms)
+  ✔ an edited skill whose link was replaced by a copy (4754.84916ms)
+  ✔ an unedited skill whose link was replaced by a copy (4652.077937ms)
+  ✔ an unedited skill whose link was removed (4656.799866ms)
+  ✔ an edited skill whose link points elsewhere (3506.635247ms)
+✔ an edited skill that leaves the selection is judged whole and keeps its link (35548.209544ms)
+✔ an update keeps a retired installed target that lies within contextual scope (5494.027825ms)
+✔ an update leaves a retired installed target inside a still-installed skill to that skill (5027.283665ms)
+✔ an update removes the link path of a kept skill when it contains a newly installed target, and then installs it (5244.127871ms)
+✔ an update removes a retired target beside contextual scope and one that contains a newly installed target (5411.089252ms)
+✔ a candidate CLI updates only the exact runtime pin from retained standards whose range excludes it and restores without the source (8139.375378ms)
+✔ an update failure preserves actual work and the previous last-complete evidence (5931.537798ms)
+✔ an inspection of the unchanged selection starts a run that re-applies it from retained inputs (6912.454977ms)
+✔ a coordinated update changes the CLI and standards pins in one run when the new standards version requires the candidate (7822.282866ms)
+✔ source and profile switches are updates that remove the installed content of retired declarations (9834.983702ms)
+✔ an established selection rejects its moved current tag even without the external observation cache (3725.64296ms)
+✔ whole-skill updates allow resources to change between files and directories (5375.791176ms)
+✔ a CLI pin-change retry completes after process death during runtime staging (14726.337171ms)
+▶ retry preserves runtime integrity failures after the installation is recorded
+  ✔ staged (8724.13961ms)
+  ✔ installed (6152.185622ms)
+✔ retry preserves runtime integrity failures after the installation is recorded (14877.001527ms)
+▶ an update retries interrupted completion while preserving previous last-complete evidence
+  ✔ standards: lock.json (6662.163094ms)
+  ✔ cli: state.json (8485.164735ms)
+✔ an update retries interrupted completion while preserving previous last-complete evidence (15147.935274ms)
+▶ update inspections reject unexpected durable product files before creating a run
+  ✔ standards (8409.954447ms)
+  ✔ cli (5653.732711ms)
+✔ update inspections reject unexpected durable product files before creating a run (14064.290354ms)
+✔ a CLI update of a project that records no attributes file writes and records it (8501.79565ms)
+▶ update inspections reject an unrecorded attributes file and leave it unchanged
+  ✔ standards (4455.753124ms)
+  ✔ cli (5198.47607ms)
+✔ update inspections reject an unrecorded attributes file and leave it unchanged (9654.820971ms)
+▶ updates validate excluded directory roots and reject changed boundaries before creating a run
+  ▶ standards
+    ✔ .repo-standards/local: file (1387.037412ms)
+    ✔ .repo-standards/local: directory-link (1043.847253ms)
+    ✔ .repo-standards/local: dangling-link (1038.696937ms)
+    ✔ .repo-standards/local: fifo (1018.735265ms)
+    ✔ .repo-standards/cache: file (1302.916069ms)
+    ✔ .repo-standards/cache: directory-link (1058.656605ms)
+    ✔ .repo-standards/cache: dangling-link (1045.292557ms)
+    ✔ .repo-standards/cache: fifo (1091.416747ms)
+    ✔ .repo-standards/runtime/node_modules: file (1343.356457ms)
+    ✔ .repo-standards/runtime/node_modules: directory-link (1055.838714ms)
+    ✔ .repo-standards/runtime/node_modules: dangling-link (1093.272054ms)
+    ✔ .repo-standards/runtime/node_modules: fifo (1068.067852ms)
+  ✔ standards (18539.972619ms)
+  ▶ cli
+    ✔ .repo-standards/runtime/node_modules: file (1220.976418ms)
+    ✔ .repo-standards/runtime/node_modules: directory-link (961.435392ms)
+    ✔ .repo-standards/runtime/node_modules: dangling-link (956.935692ms)
+    ✔ .repo-standards/runtime/node_modules: fifo (952.246424ms)
+  ✔ cli (9280.362771ms)
+✔ updates validate excluded directory roots and reject changed boundaries before creating a run (27820.90307ms)
+▶ updates require a reused runtime but allow other absent excluded directories and ignore safe generated descendants
+  ✔ standards (6355.698191ms)
+  ✔ cli (7668.130104ms)
+✔ updates require a reused runtime but allow other absent excluded directories and ignore safe generated descendants (14024.399483ms)
+▶ updates preserve incomplete work when excluded roots become invalid during installation or verification
+  ✔ standards: installation: .repo-standards/local (5588.118418ms)
+  ✔ standards: installation: .repo-standards/cache (5667.159515ms)
+  ✔ standards: installation: .repo-standards/runtime/node_modules (5567.280154ms)
+  ✔ standards: verification: .repo-standards/local (5827.522361ms)
+  ✔ standards: verification: .repo-standards/cache (5945.882153ms)
+  ✔ standards: verification: .repo-standards/runtime/node_modules (5842.998118ms)
+  ✔ cli: installation: .repo-standards/runtime/node_modules (7704.474944ms)
+  ✔ cli: verification: .repo-standards/runtime/node_modules (8337.214985ms)
+✔ updates preserve incomplete work when excluded roots become invalid during installation or verification (50482.287132ms)
+✔ an update identity binds unexpected durable bytes that Git status cannot show (4842.309315ms)
+▶ both update paths run fixes, contextual assessment, and checks with only active declarations
+  ✔ standards (13330.228091ms)
+  ✔ cli (16011.183032ms)
+✔ both update paths run fixes, contextual assessment, and checks with only active declarations (29342.086396ms)
+✔ a whole-skill update resumes a partially written resource without keeping its temporary file (5610.384442ms)
+✔ retry preserves a maintainer deletion of a confirmed installed skill resource (5599.859425ms)
+▶ a whole-skill update interrupted while replacing the skill preserves unexpected directories until reconciled, then completes
+  ✔ removing (5885.910915ms)
+  ✔ installing (5846.105184ms)
+✔ a whole-skill update interrupted while replacing the skill preserves unexpected directories until reconciled, then completes (11733.340155ms)
+▶ retry resumes an interrupted removal of retired targets and an interrupted initial skill or skill link replacement
+  ✔ a retired exact file (5688.11966ms)
+  ✔ a retired skill (5211.780305ms)
+  ✔ a retired skill link (5220.877651ms)
+  ✔ an initial replacement of a differing tracked skill (3311.217664ms)
+  ✔ an initial replacement of a tracked copy at a skill link (3171.64384ms)
+  ✔ a staged skill link replacing a tracked copy (3256.382497ms)
+✔ retry resumes an interrupted removal of retired targets and an interrupted initial skill or skill link replacement (25922.485112ms)
+ℹ tests 1162
+ℹ suites 0
+ℹ pass 1162
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2218562.960919
+$ pnpm ui:check && pnpm check && pnpm test && pnpm build:fixture
+$ node scripts/registry.mjs check
+$ astro check
+08:59:37 [vite] Re-optimizing dependencies because vite config has changed
+08:59:37 [content] Syncing content
+08:59:38 [content] Synced content
+08:59:38 [types] Generated 965ms
+08:59:38 [check] Getting diagnostics for Astro files in /home/agent/workspace/site...
+Result (140 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+$ node --test --test-concurrency=1 test/*.test.ts
+✔ each Pages build consumes its own count output; failed counting skips build, upload and deployment (495.520224ms)
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+{"status":200,"resource":null,"limit":null,"remaining":null,"reset":null}
+✔ only deduplicated current default-branch selections count, with every approved exclusion (7.134196ms)
+✔ zero observed adopters is acquired data; incidental mentions and invalid YAML are not adoption (1.709432ms)
+✔ count JSON rejects another run, another attempt, and malformed counts (0.49868ms)
+✔ GitHub acquisition paginates candidates and reads the explicit current default branch (18.881636ms)
+✔ 429 Retry-After and secondary 403 reset headers get bounded backoff with the same token (1.174273ms)
+✔ persistent limits and server cooldowns beyond the window fail without a fallback (1.285653ms)
+✔ one search serves all sources and repository reads are deduplicated across them (2.098124ms)
+✔ an observed 733-second cooldown is honored and fits the total wait cap (0.420192ms)
+✔ the fifteen-minute wait cap is shared by search and metadata reads (0.548404ms)
+✔ incomplete, truncated, refused or malformed search fails acquisition (0.869098ms)
+✔ a vanished current selection is excluded; other content-read failures stop counting (0.82789ms)
+✔ the fixture build exposes the homepage and catalogue to crawlers (5537.132003ms)
+✔ descriptions preserve visible prose without Markdown or HTML syntax (13.367143ms)
+✔ descriptions skip code, lists and standalone ADR notices (3.930869ms)
+✔ descriptions keep short prose and truncate long prose at a word boundary (1.552166ms)
+✔ documents without prose receive a readable title-based fallback (1.323845ms)
+✔ an ADR relationship sentence does not discard the prose that follows it (0.662158ms)
+✔ descriptions skip tables and remove GFM formatting (1.692429ms)
+✔ descriptions preserve HTML prose without tags or hidden content (6.791641ms)
+✔ quoted prose is suitable but nested list text is not (0.894326ms)
+✔ docs text, links and code meet WCAG 2.2 AA in both themes (2.795479ms)
+✔ the header's plate keeps its white legend legible on Verkehrsblau (0.261062ms)
+✔ the docs stylesheet only sets Starlight's custom properties (0.449156ms)
+✔ every published docs page has one useful, page-specific description (303.296862ms)
+✔ llms.txt identifies Repo Standards and links agents to built Markdown (0.341754ms)
+✔ every HTML page advertises built Markdown and llms.txt (264.629426ms)
+✔ sources.json and stable prompts describe exactly the accepted catalogue (46.483998ms)
+✔ page Markdown keeps readable content without the sign's decorative copies (0.361892ms)
+✔ docs Markdown retains source headings and code with absolute links (323.797469ms)
+✔ agent surfaces use the scoped npm package in every install instruction (14.365184ms)
+✔ every usage document and design decision is served with its source title (192.791454ms)
+✔ docs links reach built pages and fragments or the original files on GitHub (380.757672ms)
+✔ one sitemap lists the homepage, How it works and every source page in each locale, and every docs page (190.094369ms)
+✔ the homepage keeps its fixture HTML with acquired counts and ranking (5.314937ms)
+✔ the homepage exposes real acquired counts in descending order with a lower-bound explanation (3.93155ms)
+✔ ranking and count tabs preserve agent surfaces against a build without them (8004.587715ms)
+✔ every page's header has one Support control, which opens a menu (404.121356ms)
+✔ the docs stay English: no language menu, no language script and no EN badge (195.712869ms)
+✔ every page's footer links both pages (417.162234ms)
+✔ the homepage invites support once, with both links (3.556322ms)
+✔ the agent surfaces leave the support links out (5.726132ms)
+✔ docs retain stock search and pagination and load the shared beacon once (186.092508ms)
+✔ docs headers carry the plain title plate linking home (201.135859ms)
+✔ docs code colours meet WCAG 2.2 AA on the code background in both themes (204.891327ms)
+✔ docs and the homepage declare each font face once, from the same files (10.747617ms)
+✔ theme choices survive navigation between the homepage and docs in both directions (15.923872ms)
+✔ nested documents keep their route, title, sidebar and original-file link resolution (8153.043128ms)
+✔ browser fixture regressions require a browser in CI (0.606533ms)
+▶ successful teardown and isolated cleanup failures
+  ✔ success (588.865773ms)
+  ✔ delayed-exit (857.935947ms)
+  ✔ closed-stderr (854.319792ms)
+  ✔ profile (713.484751ms)
+  ✔ server (517.136064ms)
+  ✔ partial (215.209214ms)
+✔ successful teardown and isolated cleanup failures (3748.23586ms)
+▶ process enforcement shares one budget and leaves unrelated processes alone
+  ✔ never (60633.380604ms)
+  ✔ stubborn (60671.014092ms)
+  ✔ server-leak (60607.998638ms)
+  ✔ blocked (60682.79192ms)
+✔ process enforcement shares one budget and leaves unrelated processes alone (60695.113833ms)
+✔ lists use the locale's conjunction and punctuation (12.58559ms)
+✔ counts preserve ungrouped English output and use other locales' number separators (3.206133ms)
+✔ plural selection reaches CLDR categories including Spanish and Catalan many (0.962233ms)
+✔ dates keep English day-month-year order and use Spanish and Catalan month forms (4.392809ms)
+✔ no rule moves a plate's lit copy apart from the plate (1.774364ms)
+✔ a plate's lit copy takes the plate's fitted name, never its own (0.327928ms)
+✔ a page's locale is its first path segment, and its path the English one (1.047034ms)
+✔ a saved choice opens the same page in that language, from any locale (0.244541ms)
+✔ a saved choice wins over the browser's language (0.127269ms)
+✔ a page already in the saved language stays (0.125857ms)
+✔ a saved value that is not a site locale is ignored (0.152788ms)
+✔ with nothing saved, a browser preferring Catalan or Spanish lands on its version of an English page (0.1327ms)
+✔ with nothing saved, a browser preferring English or only unsupported languages stays (0.121179ms)
+✔ with nothing saved, the browser's language never leads away from /es/ or /ca/ (0.162587ms)
+✔ the docs never redirect (0.136217ms)
+✔ a redirect lands on a page that stays: it can't loop (0.556428ms)
+✔ the head's script replaces the location, keeping the query and fragment (2.670634ms)
+✔ the head's script treats unavailable storage as nothing saved, and falls back to the browser's one language (1.605936ms)
+✔ a choice named in the address wins, is saved, and leaves the address (1.605826ms)
+✔ with storage blocked, choosing English from the menu opens English and stays (1.066851ms)
+✔ a choice falls back to the session's storage when the lasting one fails (1.418343ms)
+✔ a choice the lasting storage can't take wins over the older one it holds (2.421343ms)
+✔ where the lasting storage can remove but not write, its stale choice goes (1.036654ms)
+✔ once the lasting storage keeps a choice, no session choice overrides it (1.513383ms)
+✔ the language menu saves one key, and storage that throws loses only the choice (1.219829ms)
+✔ format() reads the English catalogs (2.057117ms)
+✔ format() selects plural variants on the raw count and shows the formatted number (14.107539ms)
+✔ format() throws for a locale the site does not serve (0.341063ms)
+✔ format() throws for an unknown message ID (0.124765ms)
+✔ format() throws for a missing variable instead of showing a fallback (0.368895ms)
+✔ format() throws for a message that doesn't parse (0.259329ms)
+✔ format() throws for a malformed entry (0.144001ms)
+✔ the pseudo-locale wraps and pads each message and keeps its placeholders (48.141362ms)
+✔ strings() finishes messages for an island (0.746116ms)
+✔ rich() leaves a slot for each element, where the message places it (0.461961ms)
+✔ prose() returns a file's body without its front matter (0.156305ms)
+✔ the client's formatter inserts values as they are, without bidi marks (0.163879ms)
+✔ the formatter selects Spanish and Catalan `many` plurals that English lacks (1.781808ms)
+✔ every site page links its English, Spanish and Catalan versions reciprocally (5273.619053ms)
+✔ every site page declares its language in Open Graph and JSON-LD (8.223118ms)
+✔ the sitemap groups site translations and leaves English docs without alternates (11.419242ms)
+✔ every locale's pages use its own social card and translated alt text (3.743295ms)
+✔ the English agent surfaces mention the site languages without linking localized pages (5.060307ms)
+✔ a page built through the layout is canonical at its own URL (0.195068ms)
+✔ the built site has each page in English, Spanish and Catalan, with its locale, and no pseudo-locale (17.916047ms)
+✔ the homepage is canonical at the site root and loads the beacon once (0.58346ms)
+✔ the sign's heading reads the name and the subtitle apart (0.522716ms)
+✔ the How it works page is canonical at its own URL, with its own title and description (0.341143ms)
+✔ the How it works page tells the story, who does what, what fits better and the limits (0.33962ms)
+✔ each comparison on the How it works page links its tool's documentation (0.189117ms)
+✔ the homepage links to the How it works page in its markup, beside the tab (0.315515ms)
+✔ each accepted source has a page, and a rejected candidate none (0.228391ms)
+✔ sources/lutzseverino/repo-canon/ has its own canonical, title, description and JSON-LD (0.384174ms)
+✔ sources/lutzseverino/repo-standards-example/ has its own canonical, title, description and JSON-LD (0.185429ms)
+✔ each source page puts adoption before its introduction in every built locale (12.507122ms)
+✔ each source page offers the source's own prompt and command (0.497698ms)
+✔ each source page's release links exactly its version, with the comma touching it (1.846139ms)
+✔ each source page names its whole repository, which a phone can break after each slash (0.359598ms)
+✔ Repo Canon's page names what it provides in searchers' words (0.268246ms)
+✔ every homepage row links to its source's page, and every source page is in the sitemap (0.519779ms)
+✔ the homepage unfurls as itself, with the default social image (0.643012ms)
+✔ a page that passes its own social image unfurls with it (0.129124ms)
+✔ pre-paint scripts are self-contained inline IIFEs, including the docs theme (0.614227ms)
+✔ the head applies the stored or system theme as the class and the attribute (3.587451ms)
+✔ the rest script draws the day page at rest (7.49742ms)
+✔ the rest script draws the night page at rest (2.288763ms)
+✔ once the torch has taken over, the fonts change nothing (1.234857ms)
+✔ every site page opens the visitor's language first in its head, and loads the layout's stylesheet first (1.701747ms)
+✔ the built locale entry honours query choices even with unavailable storage (1.836211ms)
+✔ a built page's language script opens the same page in the saved language (2.276651ms)
+✔ every site page's nav has a language menu naming the page's language, which leads to the same page in each (2.380496ms)
+✔ every site page renders the one shared nav, above the page's column, in its order (62.907332ms)
+✔ in Spanish and Catalan the nav's Docs link carries an EN badge, and in English none (1.982106ms)
+✔ Spanish and Catalan pages show none of the English catalogs' or prose's text (7.986312ms)
+✔ each How it works page's links within itself reach one of its headings (0.486427ms)
+✔ each How it works page gives its sections the English IDs, so a link or redirect to a section opens it in every locale (1.104041ms)
+✔ a browser measures the pages in CI (5500.18508ms)
+✔ / fits a phone at 320, 360 and 390 px, light and dark (43915.784289ms)
+✔ /how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (21751.249341ms)
+✔ /sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (25716.683484ms)
+✔ /sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (31544.668748ms)
+✔ /es/ fits a phone at 320, 360 and 390 px, light and dark (43310.209199ms)
+✔ /es/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (21998.898416ms)
+✔ /es/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (25773.312218ms)
+✔ /es/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (31591.372646ms)
+✔ /ca/ fits a phone at 320, 360 and 390 px, light and dark (45244.906982ms)
+✔ /ca/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (21508.359946ms)
+✔ /ca/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (25434.691693ms)
+✔ /ca/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (31246.756197ms)
+✔ /docs/ fits a phone at 320, 360 and 390 px, light and dark (10874.8667ms)
+✔ /docs/reference/author-format/ fits a phone at 320, 360 and 390 px, light and dark (26786.02192ms)
+✔ /en-xa/ fits a phone at 320, 360 and 390 px, light and dark (52215.406503ms)
+✔ /en-xa/how-it-works/ fits a phone at 320, 360 and 390 px, light and dark (23926.115637ms)
+✔ /en-xa/sources/lutzseverino/repo-standards-example/ fits a phone at 320, 360 and 390 px, light and dark (28663.435695ms)
+✔ /en-xa/sources/lutzseverino/repo-canon/ fits a phone at 320, 360 and 390 px, light and dark (33840.405566ms)
+✔ at 1280 px the nav spans the window like the docs' header, its controls in their order (901.017506ms)
+✔ on a phone the nav holds the plate, Support's heart and one menu in one row (2034.022307ms)
+✔ the phone sheet reveals its height and fades the scrim for 200 ms in both directions (light) (813.591033ms)
+✔ the phone sheet reveals its height and fades the scrim for 200 ms in both directions (dark) (800.209886ms)
+✔ the server's closed phone disclosure exposes only its trigger (186.997169ms)
+✔ rapid phone sheet reversals settle into the latest state (979.267074ms)
+✔ rapid phone sheet reversals settle into the latest state with reduced motion (816.644133ms)
+✔ reduced motion opens and closes the phone sheet instantly and preserves nested Escape (2049.241151ms)
+✔ on a phone the menu button opens a panel of links, then one language selector and the theme icon (1973.733276ms)
+✔ the panel's language selector opens the language list, which leads to the same page and section (1184.976759ms)
+✔ language list placement waits for a prolonged entrance animation (1558.458972ms)
+✔ language list placement rejects a persistent overlap after settling (1533.857194ms)
+✔ the panel's theme menu remembers the chosen appearance, and the panel stays open (542.27271ms)
+✔ the open panel dims the page below it, which doesn't scroll until the panel closes (4408.365047ms)
+✔ the panel follows the disclosure navigation keyboard model, and the arrow keys never open the language list (7383.454254ms)
+✔ / keyboard navigation and rings across the phone matrix (61229.741247ms)
+✔ /how-it-works/ keyboard navigation and rings across the phone matrix (62930.249499ms)
+✔ /sources/lutzseverino/repo-standards-example/ keyboard navigation and rings across the phone matrix (63047.500924ms)
+✔ /sources/lutzseverino/repo-canon/ keyboard navigation and rings across the phone matrix (62947.456723ms)
+✔ /es/ keyboard navigation and rings across the phone matrix (61497.518594ms)
+✔ /es/how-it-works/ keyboard navigation and rings across the phone matrix (62713.318869ms)
+✔ /es/sources/lutzseverino/repo-standards-example/ keyboard navigation and rings across the phone matrix (62881.096916ms)
+✔ /es/sources/lutzseverino/repo-canon/ keyboard navigation and rings across the phone matrix (63247.812222ms)
+✔ /ca/ keyboard navigation and rings across the phone matrix (61580.957116ms)
+✔ /ca/how-it-works/ keyboard navigation and rings across the phone matrix (62663.11245ms)
+✖ test/phone-layout.test.ts (1244960.323258ms)
+✖ test/prepaint.test.ts
+✖ test/pseudo-locale.test.ts
+✖ test/pseudo.test.ts
+✖ test/search-report.test.ts
+✖ test/section-ids.test.ts
+✖ test/sign-beam.test.ts
+✖ test/sign-clamps.test.ts
+✖ test/social.test.ts
+✖ test/source-page.test.ts
+✖ test/structured-data.test.ts
+✖ test/stylesheets.test.ts
+✖ test/support.test.ts
+✖ test/theme.test.ts
+✖ test/translations.test.ts
+ℹ tests 196
+ℹ suites 0
+ℹ pass 181
+ℹ fail 0
+ℹ cancelled 15
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1348602.730539
+
+✖ failing tests:
+
+test at test/phone-layout.test.ts:1:1
+✖ test/phone-layout.test.ts (1244960.323258ms)
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/prepaint.test.ts:1:1
+✖ test/prepaint.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/pseudo-locale.test.ts:1:1
+✖ test/pseudo-locale.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/pseudo.test.ts:1:1
+✖ test/pseudo.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/search-report.test.ts:1:1
+✖ test/search-report.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/section-ids.test.ts:1:1
+✖ test/section-ids.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/sign-beam.test.ts:1:1
+✖ test/sign-beam.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/sign-clamps.test.ts:1:1
+✖ test/sign-clamps.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/social.test.ts:1:1
+✖ test/social.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/source-page.test.ts:1:1
+✖ test/source-page.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/structured-data.test.ts:1:1
+✖ test/structured-data.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/stylesheets.test.ts:1:1
+✖ test/stylesheets.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/support.test.ts:1:1
+✖ test/support.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/theme.test.ts:1:1
+✖ test/theme.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/translations.test.ts:1:1
+✖ test/translations.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+[ELIFECYCLE] Command failed.
+[ELIFECYCLE] Test failed. See above for more details.

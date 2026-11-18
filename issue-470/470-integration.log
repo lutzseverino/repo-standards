@@ -1,0 +1,37 @@
+✔ every published docs page has one useful, page-specific description (363.633817ms)
+✔ llms.txt identifies Repo Standards and links agents to built Markdown (0.412728ms)
+✔ every HTML page advertises built Markdown and llms.txt (316.910326ms)
+✔ sources.json and stable prompts describe exactly the accepted catalogue (35.902479ms)
+✔ page Markdown keeps readable content without the sign's decorative copies (0.447052ms)
+✔ docs Markdown retains source headings and code with absolute links (451.969518ms)
+✔ agent surfaces use the scoped npm package in every install instruction (17.071341ms)
+✔ every usage document and design decision is served with its source title (224.136902ms)
+✔ docs links reach built pages and fragments or the original files on GitHub (461.237083ms)
+✔ one sitemap lists the homepage, How it works and every source page in each locale, and every docs page (228.419011ms)
+✔ the homepage keeps its fixture HTML with acquired counts and ranking (6.81348ms)
+✔ the homepage exposes real acquired counts in descending order with a lower-bound explanation (5.49223ms)
+✔ ranking and count tabs preserve agent surfaces against a build without them (10171.685879ms)
+✔ every page's header has one Support control, which opens a menu (473.638604ms)
+✔ the docs stay English: no language menu, no language script and no EN badge (284.338002ms)
+✔ every page's footer links both pages (454.099362ms)
+✔ the homepage invites support once, with both links (4.823871ms)
+✔ the agent surfaces leave the support links out (5.740999ms)
+✔ docs retain stock search and pagination and load the shared beacon once (246.397001ms)
+✔ docs headers carry the plain title plate linking home (238.131284ms)
+✔ docs code colours meet WCAG 2.2 AA on the code background in both themes (260.858575ms)
+✔ docs and the homepage declare each font face once, from the same files (12.090816ms)
+✔ theme choices survive navigation between the homepage and docs in both directions (18.379887ms)
+✔ nested documents keep their route, title, sidebar and original-file link resolution (9508.916492ms)
+✔ a browser observes sign beam writes in CI (1048.596788ms)
+✔ only drawn post values are written before paint and after hydration: light (591.586501ms)
+✔ only drawn post values are written before paint and after hydration: dark (487.453619ms)
+✔ hydrated pointer updates and remeasurement follow light → dark → light → dark (5192.709307ms)
+✔ missed and off-screen recipients do no beam work, recover, and apply reads no layout (704.854888ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47019.688214

@@ -1,0 +1,21 @@
+✖ missed and off-screen recipients do no beam work, recover, and apply reads no layout (4692.29917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21707.519557
+
+✖ failing tests:
+
+test at test/sign-beam.test.ts:261:1
+✖ missed and off-screen recipients do no beam work, recover, and apply reads no layout (4692.29917ms)
+  Error: Error: pre-paint lightRig factory missing
+      at <anonymous>:10:27
+      at <anonymous>:12:9
+      at Tab.evaluate (file:///home/agent/workspace/site/test/browser.ts:347:13)
+      at async TestContext.<anonymous> (file:///home/agent/workspace/site/test/sign-beam.test.ts:267:23)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
