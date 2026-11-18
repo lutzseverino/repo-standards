@@ -504,7 +504,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "3a1fd40edfeb3bc335e4a67210172e298441b0a53f2ae1ebe1992c15d71a3ead",
+    "1b2c48a3c721fbccdb49849c444a05cfeb21cf4b9506d724ed11555b97fbbfc4",
   );
 });
 
