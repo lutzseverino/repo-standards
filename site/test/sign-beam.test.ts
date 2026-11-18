@@ -13,6 +13,9 @@
 // except in CI.
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { build } from "vite";
 import type { Browser, Tab } from "./browser.ts";
 import { BrowserFixture } from "./fixture.ts";
 import { executable, skip, setupSiteBrowser } from "./site-browser.ts";
@@ -29,6 +32,7 @@ declare global {
   }
 }
 
+const site = fileURLToPath(new URL("../", import.meta.url));
 const POST = ["--brx", "--bry", "--gain", "--lx", "--ly"];
 const PLATE = [...POST, "--hrx", "--hry", "--hx", "--hy"].sort();
 const fixture = new BrowserFixture();
@@ -235,22 +239,37 @@ test(
   async () => {
     const tab = await open("dark");
     try {
-      const factory = await tab.evaluate(() => {
+      // Bundle the pre-paint entry's exported factory with its imports, so
+      // the check does not depend on the inline bundle's printed syntax.
+      const bundled = await build({
+        configFile: false,
+        root: site,
+        logLevel: "error",
+        build: {
+          write: false,
+          lib: {
+            entry: path.join(site, "src/components/sign/rig.ts"),
+            name: "beamRigFactory",
+            formats: ["iife"],
+          },
+        },
+      });
+      const bundle = Array.isArray(bundled) ? bundled[0] : bundled;
+      assert.ok("output" in bundle);
+      const chunk = bundle.output[0];
+      assert.ok(chunk?.type === "chunk");
+      const loaded = await tab.send("Runtime.evaluate", {
+        expression: chunk.code,
+      });
+      assert.equal(loaded.exceptionDetails, undefined);
+      await tab.evaluate(() => {
         const assembly = document.querySelector(".sign-assembly")!;
         assembly.replaceWith(assembly.cloneNode(true));
-        const script = [...document.scripts].find((s) =>
-          s.textContent?.includes("const rig = ("),
-        );
-        const match = script?.textContent?.match(
-          /const rig = (\([\s\S]*?\)\(\));/,
-        );
-        if (!match) throw new Error("pre-paint lightRig factory missing");
-        return match[1];
       });
       const result = await tab.send("Runtime.evaluate", {
         returnByValue: true,
         expression: `(() => {
-        const rig = ${factory};
+        const rig = beamRigFactory.lightRig();
         const posts = [...document.querySelectorAll('.sign-tube')];
         const styles = posts.map(p => p.style.cssText);
         const full = rig.start();
