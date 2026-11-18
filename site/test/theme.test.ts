@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import vm from "node:vm";
-import { themeScript, themes } from "../src/lib/theme-core.ts";
+import { bundledScript } from "./prepaint-scripts.ts";
+
+import { themes } from "../src/lib/theme-core.ts";
+
+const themeScript = await bundledScript("theme");
 
 /** A window with a root element, storage holding `stored`, and a system
  * colour scheme. */
@@ -57,7 +61,7 @@ test("choosing dark sets the class and the attribute, and is remembered", () => 
 test("the head's script applies the stored choice, or else the system's", () => {
   const run = (stored: string | null, systemDark: boolean) => {
     const p = page(stored, systemDark);
-    vm.runInNewContext(themeScript(), p.window);
+    vm.runInNewContext(themeScript, p.window);
     return [p.classes.has("dark"), p.root.dataset.theme];
   };
   assert.deepEqual(run("dark", false), [true, "dark"]);
@@ -73,7 +77,7 @@ test("without storage, the head's script follows the system", () => {
       throw new Error("storage is unavailable");
     },
   };
-  vm.runInNewContext(themeScript(), p.window);
+  vm.runInNewContext(themeScript, p.window);
   assert.equal(p.root.dataset.theme, "dark");
 });
 
@@ -90,7 +94,7 @@ for (const dark of [false, true]) {
   for (const stored of [null, "invalid", "system", "light", "dark"]) {
     test(`first paint: stored=${stored}, OS dark=${dark}`, () => {
       const p = page(stored, dark);
-      vm.runInNewContext(themeScript(), p.window);
+      vm.runInNewContext(themeScript, p.window);
       const preference =
         stored === "light" || stored === "dark" ? stored : "system";
       assert.equal(p.root.dataset.themePreference, preference);

@@ -445,6 +445,9 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
   // non-script markup is unchanged after removing those attributes.
   // #469 changes only the inlined rig's beam recipients and property lists.
   // Substituting the base rest script restores the preceding baseline hash.
+  // Since #470 the pre-paint entries are bundled IIFEs instead of function
+  // source copies; the rail curve is shared without loading React into the
+  // rest entry. The theme/rest bytes change, while the markup stays the same.
   const html = read("index.html")
     .replace(/<nav\b[\s\S]*?<\/nav>/, "")
     .replace(/<!-- opens the page in the visitor's[\s\S]*?<\/script>/, "")
@@ -501,7 +504,7 @@ test("the homepage keeps its fixture HTML with acquired counts and ranking", () 
     );
   assert.equal(
     createHash("sha256").update(html).digest("hex"),
-    "3a1fd40edfeb3bc335e4a67210172e298441b0a53f2ae1ebe1992c15d71a3ead",
+    "1b2c48a3c721fbccdb49849c444a05cfeb21cf4b9506d724ed11555b97fbbfc4",
   );
 });
 

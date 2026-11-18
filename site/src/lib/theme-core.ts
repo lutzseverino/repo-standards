@@ -3,14 +3,13 @@
 // colour scheme. It is applied to <html> as shadcn's `.dark` class and as a
 // `data-theme` attribute, the one Starlight reads, so a docs page can share
 // the choice. The page head applies it before anything is drawn
-// (`themeScript`, in layouts/base.astro), and the nav's toggle chooses it
+// (prepaint/theme.ts, in layouts/base.astro), and the nav's toggle chooses it
 // through `useTheme` (theme.ts).
 
 export type Theme = "dark" | "light";
 export type ThemePreference = "system" | Theme;
 
-/** Reads, applies and stores the theme. The head's inline copy is this
- * function's source, so it must reference nothing outside its own body. */
+/** Reads, applies and stores the theme. */
 export function themes() {
   const KEY = "theme";
   const DARK = "(prefers-color-scheme: dark)";
@@ -62,10 +61,3 @@ export function themes() {
   };
   return { DARK, stored, system, apply, current, preference, sync, choose };
 }
-
-/** The inline script that applies the stored or system theme before the
- * first paint. */
-export const themeScript = () => `(() => {
-  const theme = (${themes.toString()})();
-  theme.sync();
-})();`;

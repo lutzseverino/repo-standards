@@ -21,6 +21,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { preview } from "astro";
+import { build } from "vite";
 import { Browser, findBrowser, type Tab } from "./browser.ts";
 import { BrowserFixture } from "./fixture.ts";
 
@@ -188,21 +189,34 @@ test(
   async () => {
     const tab = await open(1440);
     try {
-      // Exercise the same self-contained factory the page runs before paint,
-      // including a fresh cache over the existing DOM at each handover.
-      const factory = await tab.evaluate(() => {
+      // Bundle the same exported factory as the pre-paint entry, including
+      // its imports, without depending on the page bundle's printed syntax.
+      const bundled = await build({
+        configFile: false,
+        root: site,
+        logLevel: "error",
+        build: {
+          write: false,
+          lib: {
+            entry: path.join(site, "src/components/sign/rig.ts"),
+            name: "clampRigFactory",
+            formats: ["iife"],
+          },
+        },
+      });
+      const bundle = Array.isArray(bundled) ? bundled[0] : bundled;
+      assert.ok("output" in bundle);
+      const chunk = bundle.output[0];
+      assert.ok(chunk?.type === "chunk");
+      const loaded = await tab.send("Runtime.evaluate", {
+        expression: chunk.code,
+      });
+      assert.equal(loaded.exceptionDetails, undefined);
+      await tab.evaluate(() => {
         // Keep the real styles and DOM left by hydration, but give only the
         // rigs below ownership of this assembly's subsequent draws.
         const assembly = document.querySelector(".sign-assembly")!;
         assembly.replaceWith(assembly.cloneNode(true));
-        const script = [...document.scripts].find((s) =>
-          s.textContent?.includes("const rig = ("),
-        );
-        const match = script?.textContent?.match(
-          /const rig = (\([\s\S]*?\)\(\));/,
-        );
-        if (!match) throw new Error("pre-paint lightRig factory missing");
-        return match[1];
       });
       for (const [fresh, angles] of [
         [true, [-3, -21]],
@@ -214,7 +228,7 @@ test(
       ] as const) {
         const result = await tab.send("Runtime.evaluate", {
           expression: `(() => {
-          ${fresh ? `globalThis.clampRig = ${factory};` : ""}
+          ${fresh ? "globalThis.clampRig = clampRigFactory.lightRig();" : ""}
           const assembly = document.querySelector('.sign-assembly');
           for (const c of assembly.querySelectorAll('.sign-clamp')) {
             c.dataset.vx0 = ${angles[0]};
