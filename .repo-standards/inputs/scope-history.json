@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v7",
   "evidence": "historical",
-  "inspection": "sha256:86badf6ee598604eac64b4af1fe227ebfa1a2364465fda8e41a0a50fa8356e25",
+  "inspection": "sha256:43fe98085f320c0cea9a98d5be753c7e270490f4a574bc4fdd586ed9368cad44",
   "resolved": {
     "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
@@ -202,6 +202,9 @@
       },
       {
         "id": "factory-sandbox-image-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -458,6 +461,9 @@
       },
       {
         "id": "issue-contract-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -570,6 +576,9 @@
       },
       {
         "id": "pr-metadata-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -852,6 +861,9 @@
       },
       {
         "id": "standards-update-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -1109,6 +1121,9 @@
       },
       {
         "id": "factory-sandbox-image-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -1359,6 +1374,9 @@
       },
       {
         "id": "issue-contract-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -1471,6 +1489,9 @@
       },
       {
         "id": "pr-metadata-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -1748,6 +1769,9 @@
       },
       {
         "id": "standards-update-workflow",
+        "check-locations": [
+          "github"
+        ],
         "checks": [],
         "fixes": [],
         "kind": "file",
@@ -1932,13 +1956,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:c919cc0cc56d0af553be0b0f2d495af3f7e32f9c933d507de8c1296f9dcac495",
+    "identity": "sha256:85e2e998ea2f7c1e7e2feb3250e5a10bfc869d5cc521e21f4f7fd936fd8033cf",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "comments",
-          "coverage": "Intentionally empty content scope: comments governs issue and pull request posting throughout this repository, including tracker work that changes no file.",
+          "coverage": "Intentionally empty per discovery/comments.md: these rules govern posts throughout the repository; CONTRIBUTING.md and adoption PR #535 establish tracker practice.",
           "candidates": [],
           "unresolved": []
         },
@@ -2900,13 +2924,13 @@
         },
         {
           "id": "factory-workflow",
-          "coverage": "Intentionally empty content scope: factory-workflow governs work throughout this factory-profile repository, including tracker-only work. The separate exact declaration owns .scriptorium/config.json; .factory/config.json is the legacy input to migrate under v0.27.0.",
+          "coverage": "Intentionally empty per discovery/factory-workflow.md: these rules govern work; existing .scriptorium/config.json belongs to its separate exact declaration. Existing factory profile is retained.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty content scope: this declaration owns remote configuration fixes and read-only validation of repository-owned policy files. origin names lutzseverino/repo-standards. The owner explicitly authorizes this adoption and ready remote setup with the supplied credential. Repository identity, visibility, permission and runner-variable evidence are recorded in the launch report.",
+          "coverage": "Intentionally empty per current discovery: remote settings are reconciled by authored fixes, repository-owned policy is read-only. Authenticated gh resolves lutzseverino/repo-standards with PUBLIC visibility and selected github checks. Authorized adoption permits documented ready setup; owner-only remote overwrites remain a gate. Preserve required checks, reviewer and policy files; do not read or change retired REPO_CANON_RUNS_ON.",
           "candidates": [],
           "unresolved": []
         },
@@ -4345,7 +4369,7 @@
       {
         "id": "github-repository-configuration",
         "source": "discovery/github-repository-configuration.md",
-        "sha256": "05f27e38f22870239eac4f15f63d9ff758c87ff3c8c5098dc7b8cd66a5685616",
+        "sha256": "c76ba654f007222e7c7e0ad555ed0ce214ed7ff55bd4647e585b541d071b8e59",
         "executable": false
       },
       {
@@ -4392,7 +4416,7 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "0fd76955ad2b752809799eddd274486af13640ff16e062f1448bf5c281c081e5",
+          "sha256": "eacf6fe48d52cb49562e9302e822f13b95694793766d40fb767fca9052e38fe8",
           "executable": false
         },
         ".agents/skills/babysit/body-links.mjs": {
@@ -4402,12 +4426,17 @@
         },
         ".agents/skills/babysit/merge.mjs": {
           "type": "file",
-          "sha256": "2cb20c6582ccff25d7821112aa30781820190ecd5662e4cd9e56e7a4f6fc8492",
+          "sha256": "6bc63ad548d5360554280b1e31c7c1e746a630e7ef68c29831f1b1a0fe6ca540",
+          "executable": false
+        },
+        ".agents/skills/babysit/owner-gates.mjs": {
+          "type": "file",
+          "sha256": "2d0beceaf2c1a39c52f9dc046240483a2383941fac0e14ec528d9e9d52f344e1",
           "executable": false
         },
         ".agents/skills/babysit/platform.mjs": {
           "type": "file",
-          "sha256": "7275843cf10d1ca4b8dd150066141dffbb6cb9f931b8b967fd99cf9c9ee53d1c",
+          "sha256": "dc7f37a59b6ce753871a4423a9e2a9e00d577cc15024f4203c0764f87d97dc34",
           "executable": false
         },
         ".agents/skills/babysit/pull-request-reviewer.mjs": {
@@ -4437,7 +4466,7 @@
         },
         ".agents/skills/babysit/reviewer.mjs": {
           "type": "file",
-          "sha256": "fb4d068de25ec4f473fe9dd6e361c395e500fd824563d30f84497bec2eade3b3",
+          "sha256": "1bb1964291f043d5eea4f54247bfaa12f05201458ef5a1fdac38ded3efde3564",
           "executable": false
         },
         ".agents/skills/babysit/trusted-review-config.mjs": {
@@ -4487,7 +4516,7 @@
         },
         ".agents/skills/codebase-design/SKILL.md": {
           "type": "file",
-          "sha256": "1495f4368b689d14d52282f93eb65dec2760e1aebbb202be739e459b6cc2e9cd",
+          "sha256": "b44990fe0a3e4c2c911908c95602deb85032b24293295092d241688820e71c94",
           "executable": false
         },
         ".agents/skills/codebase-design/agents/openai.yaml": {
@@ -4547,7 +4576,7 @@
         },
         ".agents/skills/factory/SKILL.md": {
           "type": "file",
-          "sha256": "9a0df66e24b4d3ae2da6378c055097d88b4a7cd6f96dc6713e31f42704634c0c",
+          "sha256": "8631c2e2c100b6e2bb842a7c70cc2990b55e7c1982a1e92e4df9c423615ffbb9",
           "executable": false
         },
         ".agents/skills/grill-with-docs/CREDITS.md": {
@@ -4687,12 +4716,12 @@
         },
         ".agents/skills/review/SKILL.md": {
           "type": "file",
-          "sha256": "8760d2756881988980baa39cbc069195bd78689d2d03025879f67c28390f795b",
+          "sha256": "a459001f1f52246dc4233c4220a719a7115468df7cdb9c57d19cc188d8e987be",
           "executable": false
         },
         ".agents/skills/review/round.mjs": {
           "type": "file",
-          "sha256": "878bba6ce24758c5b7769cee395d1c784c290f230847bd158ace54bbfc584a1a",
+          "sha256": "471a5f3a382cdef765454deda61f2b472ace58244678b5e2ff82a9812e0baddc",
           "executable": false
         },
         ".agents/skills/tdd/CREDITS.md": {
@@ -4757,7 +4786,7 @@
         },
         ".agents/skills/triage/CREDITS.md": {
           "type": "file",
-          "sha256": "374203880c94f935c6eea9e50adbf38c6c896c6c1bc5fa823a0599f358108c8e",
+          "sha256": "2a81c614cc02b8e600ffce05364c486caaaab31684c3cb02ae049782d0fa7709",
           "executable": false
         },
         ".agents/skills/triage/OUT-OF-SCOPE.md": {
@@ -4767,7 +4796,7 @@
         },
         ".agents/skills/triage/SKILL.md": {
           "type": "file",
-          "sha256": "1593e9df610265d357bc97f7eb0893e7a272c58fbba8867513e16cbd31a9eb23",
+          "sha256": "8c4e192ee30957283a3b5453c290023c4c0dcc98ef9aee5dcf0a072260431ba2",
           "executable": false
         },
         ".agents/skills/triage/agents/openai.yaml": {
@@ -4777,7 +4806,7 @@
         },
         ".agents/skills/triage/ready.mjs": {
           "type": "file",
-          "sha256": "615ac52ce5c59d1c39a4b323f5f6f97643fe703773250f1a5f0f20075293c8ea",
+          "sha256": "884a09c9dd9381c88e1a53c505171aa0eaa42f87b77e7f5730711616b289cdb9",
           "executable": false
         },
         ".agents/skills/wayfinder/CREDITS.md": {
@@ -4901,7 +4930,7 @@
         },
         ".gitattributes": {
           "type": "file",
-          "sha256": "5fb7690136b4440ddd03e19c2fd7740e1a4a39709ac5eb3283e9f3ae6cb6cffe",
+          "sha256": "fd50ee819fa49c5b0b908a69e7f1661b36314202ac1ea7314fc8842b6baec221",
           "executable": false
         },
         ".github/FUNDING.yml": {
@@ -4946,7 +4975,7 @@
         },
         ".github/scripts/validate-pr-metadata.mjs": {
           "type": "file",
-          "sha256": "386c3a830876da63e16d9e6591d2a0a4c56d57af10f4422c5240c0e3dde71f12",
+          "sha256": "a32f66c1652ca938b67da552e8e424e830be305e66c3b6d154925a597aa94dcc",
           "executable": false
         },
         ".github/scripts/validate.mjs": {
@@ -5016,7 +5045,7 @@
         },
         ".scriptorium/config.json": {
           "type": "file",
-          "sha256": "67071e1314822cdb064c5c02d836d76803caf30e6f7fe38733646567c193b3e3",
+          "sha256": "5229d7eb8c3077471691aae4ed0a1fba8ac6910553d67754cfcfdd2e4c1293c8",
           "executable": false
         },
         "AGENTS.md": {
@@ -5026,7 +5055,7 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "1eb41ff2c50cb6bdbc9561a713ff55e0ef325bb91a639d88c200ecc20b19c930",
+          "sha256": "1827dc79bef54fc21abec1a44adde1946683e1299de82809a20718d9f0641156",
           "executable": false
         },
         "GLOSSARY.md": {
@@ -5041,7 +5070,7 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "a73e60e8f9b4b572a59639261767fe92a841b7d30af764b964135e8e51087292",
+          "sha256": "9123de98d5a49964b43217252ef943bae1de0a68074dedc5e03b9e36b7540f88",
           "executable": false
         },
         "acceptance/README.md": {
@@ -5501,7 +5530,7 @@
         },
         "docs/agents/triage-labels.md": {
           "type": "file",
-          "sha256": "6668843407bb5169d8655ed75f30e1e531d0f895ab19b20bd3dc633f668be3b3",
+          "sha256": "6dcd641788dcf3fba088e082d2ced46fb0731befb071f3c3a572a7e9f8257998",
           "executable": false
         },
         "docs/development/README.md": {
@@ -5739,6 +5768,16 @@
           "sha256": "b90e0cb0860aa2a3836ac114343e537fef034687b954da94aaef9e172e4bb216",
           "executable": false
         },
+        "operations/lib/canonical-labels.mjs": {
+          "type": "file",
+          "sha256": "811395a0625754735c2b2e9533d335f769d7610d24fb9dcf19ff0c95a8facf6a",
+          "executable": false
+        },
+        "operations/lib/factory-labels.mjs": {
+          "type": "file",
+          "sha256": "5205c0558cab9568a910ad34621eae4d80871a4c2cd994134364b88d56924cec",
+          "executable": false
+        },
         "operations/lib/rendered-markdown.mjs": {
           "type": "file",
           "sha256": "b89f24c60f8ad3ad1ed45590629e87661337931e858b84acfac5296a057430c2",
@@ -5771,12 +5810,12 @@
         },
         "scripts/issue-contract-sources.mjs": {
           "type": "file",
-          "sha256": "499e8d36ec621993ecebc5e22fea68c64343213dd646dd9d06e72e7c4c3fea7c",
+          "sha256": "c42a91c91491bb74a6053aa290f73aba67a4768b6048a0d056b1c22c523473fd",
           "executable": false
         },
         "scripts/issue-contract-store.mjs": {
           "type": "file",
-          "sha256": "2e191ad301c454303b215098a226595b7a341b59a8ab7dc6efc385a9add90944",
+          "sha256": "1e15c9b40cfcbfcbd2186e7ec3d080bbf2fa10e576bcd8ee43a01b5adb1fb49e",
           "executable": false
         },
         "scripts/pack-package.ts": {
@@ -7451,7 +7490,7 @@
         },
         "vendor/repo-canon/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "fe13b317f71c647975a1d5dc663a2a78bd26f6ec25ab5be21d56c55d314596c5",
+          "sha256": "8269294034982636fe70ae352e4066074d27f31f2c25f6062a11f449d342fd8a",
           "executable": false
         },
         "vendor/repo-canon/validate.mjs": {
@@ -7528,6 +7567,7 @@
           ".agents/skills/babysit/SKILL.md",
           ".agents/skills/babysit/body-links.mjs",
           ".agents/skills/babysit/merge.mjs",
+          ".agents/skills/babysit/owner-gates.mjs",
           ".agents/skills/babysit/platform.mjs",
           ".agents/skills/babysit/pull-request-reviewer.mjs",
           ".agents/skills/babysit/request.mjs",
@@ -8113,6 +8153,8 @@
           "operations/lib"
         ],
         "operations/lib": [
+          "operations/lib/canonical-labels.mjs",
+          "operations/lib/factory-labels.mjs",
           "operations/lib/rendered-markdown.mjs"
         ],
         "scripts": [
@@ -9705,14 +9747,5 @@
       }
     }
   },
-  "scopeChanges": [
-    {
-      "id": "documentation",
-      "additions": [
-        "docs/adr/0036-keep-one-copy-of-installed-exact-content.md",
-        "docs/development/sign-profiling.md"
-      ],
-      "removals": []
-    }
-  ]
+  "scopeChanges": []
 }
