@@ -8,6 +8,7 @@ import { acquireSource, hash, type SourceObservations } from "./acquisition.js";
 import { derivedAction, inspectedFacts } from "./adopter-action.js";
 import { lockPath } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
+import { probeFailureMessage } from "./probe.js";
 import { formats } from "./formats.js";
 import {
   content,
@@ -241,10 +242,11 @@ export async function inspectForStart(
       "NODE_REQUIRED",
       "Node.js 24 or 26 is required. Select Node.js 24 or 26 with your version manager or install it from https://nodejs.org/en/download, then retry.",
     );
+  const timeout = 10_000;
   const npm = spawnSync("npm", ["--version"], {
     cwd: homedir(),
     encoding: "utf8",
-    timeout: 10_000,
+    timeout,
   });
   if (
     npm.error ||
@@ -253,7 +255,12 @@ export async function inspectForStart(
   )
     throw new ProductError(
       "NPM_REQUIRED",
-      "npm is required. Reinstall the npm bundled with Node.js 24 or 26 from https://nodejs.org/en/download and ensure npm is on PATH.",
+      probeFailureMessage("npm --version", npm, {
+        timeout,
+        missingOutput: "version",
+        advice:
+          "npm is required. Reinstall the npm bundled with Node.js 24 or 26 from https://nodejs.org/en/download and ensure npm is on PATH.",
+      }),
     );
   const location = git(resolve(options.project), [
     "rev-parse",

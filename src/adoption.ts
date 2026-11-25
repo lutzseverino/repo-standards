@@ -15,6 +15,7 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 import { externalPath, hash, type SourceObservations } from "./acquisition.js";
 import { execute, operations, preflight } from "./execution.js";
 import { ProductError } from "./errors.js";
+import { probeFailureMessage } from "./probe.js";
 import { formats } from "./formats.js";
 import {
   inspect,
@@ -268,6 +269,7 @@ function prepareRuntime(directory: string, version: string, project: string) {
   // npm creates its cache even for `config get`. Override it while reading
   // config, then recover the last (highest-precedence) overridden cache value.
   // Never print the configuration listing: only the cache path is needed.
+  const timeout = 10_000;
   const configured = spawnSync(
     "npm",
     [
@@ -282,7 +284,7 @@ function prepareRuntime(directory: string, version: string, project: string) {
       "--logs-max=0",
       "--update-notifier=false",
     ],
-    { cwd: directory, encoding: "utf8", timeout: 10_000 },
+    { cwd: directory, encoding: "utf8", timeout },
   );
   const cacheValue = [
     ...(configured.stdout?.matchAll(
@@ -292,7 +294,12 @@ function prepareRuntime(directory: string, version: string, project: string) {
   if (configured.error || configured.status !== 0 || !cacheValue)
     throw new ProductError(
       "NPM_CACHE",
-      "Cannot determine the configured npm cache. Check npm configuration and retry.",
+      probeFailureMessage("npm config list", configured, {
+        timeout,
+        missingOutput: "cache path",
+        advice:
+          "Cannot determine the configured npm cache. Check npm configuration and retry.",
+      }),
     );
   const cachePath: unknown = JSON.parse(cacheValue);
   if (typeof cachePath !== "string" || !cachePath)
