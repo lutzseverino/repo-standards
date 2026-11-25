@@ -10,12 +10,11 @@
 // `<dir>/layout.json` and a screenshot of each to `<dir>/`, for a pull
 // request's evidence.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { dev, preview } from "astro";
+import { dev } from "astro";
 import { format } from "../src/i18n/format.ts";
 import {
   LOCALES,
@@ -25,9 +24,10 @@ import {
   type Locale,
 } from "../src/i18n/locales.ts";
 import { loadCatalogue } from "../src/lib/load-catalogue.ts";
-import { Browser, findBrowser, type Key, Tab, type View } from "./browser.ts";
+import { type Browser, type Key, Tab, type View } from "./browser.ts";
 import { measureLayout, type Layout } from "./layout-probe.ts";
 import { BrowserFixture } from "./fixture.ts";
+import { executable, skip, setupSiteBrowser } from "./site-browser.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
 const WIDTHS = [320, 360, 390];
@@ -36,10 +36,6 @@ const THEMES = ["light", "dark"] as const;
 // own while a page is measured
 const STORAGE = { "story-seen": "1" };
 
-const executable = findBrowser();
-const skip = executable
-  ? false
-  : "no Chrome, Chromium or Edge found; set SITE_BROWSER to one";
 const reportTo = process.env.SITE_LAYOUT_REPORT;
 
 process.env.SITE_SEARCH_RECORDING = path.join(site, "fixtures/search");
@@ -76,8 +72,6 @@ const pages: Page[] = [
 
 const fixture = new BrowserFixture();
 let browser: Browser | undefined;
-let output = "";
-let production: Awaited<ReturnType<typeof preview>> | undefined;
 let development: Awaited<ReturnType<typeof dev>> | undefined;
 const base = { production: "", development: "" };
 const measurements: Record<string, unknown>[] = [];
@@ -85,31 +79,14 @@ const measurements: Record<string, unknown>[] = [];
 before(() =>
   fixture.setup(async () => {
     if (!executable) return;
-    output = mkdtempSync(path.join(site, "node_modules/.site-phone-"));
-    fixture.ownDirectory(output);
-    fixture.defer("build output removal", () =>
-      rmSync(output, { recursive: true, force: true }),
-    );
-    // in a process of its own: a build leaves production React loaded, which
-    // the development server below cannot render with
-    execFileSync(
-      process.execPath,
-      ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
-      { cwd: site, timeout: 120_000, stdio: "pipe" },
-    );
-    // the preview server sets NODE_ENV for the process, which would make the
-    // development server render as production, without the pseudo-locale
-    const mode = process.env.NODE_ENV;
-    production = await preview({
-      root: site,
-      outDir: output,
-      logLevel: "error",
-      server: { host: "127.0.0.1", port: 0 },
-    });
-    fixture.defer("preview server stop", () => production!.stop());
-    if (mode === undefined) delete process.env.NODE_ENV;
-    else process.env.NODE_ENV = mode;
-    base.production = `http://127.0.0.1:${production.port}`;
+    ({ base: base.production, browser } = await setupSiteBrowser(
+      fixture,
+      executable,
+      {
+        prefix: ".site-phone-",
+        env: { SITE_SEARCH_RECORDING: process.env.SITE_SEARCH_RECORDING },
+      },
+    ));
     // without the toolbar, which development alone draws over the page
     development = await dev({
       root: site,
@@ -119,7 +96,6 @@ before(() =>
     });
     fixture.defer("development server stop", () => development!.stop());
     base.development = `http://127.0.0.1:${development.address.port}`;
-    browser = await Browser.launch(executable, fixture);
     // A throwaway page, so no test's page reloads under it. On a fresh
     // checkout, Astro 7's startup content sync writes `.astro/data-store.json`
     // and then sends a `full-reload` before any page is connected; Vite buffers
