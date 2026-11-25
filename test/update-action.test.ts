@@ -389,9 +389,24 @@ async function fixture(
       agentCommand = "",
       localExecutable = false,
       repository = "alice/project",
+      standalone?: {
+        args?: string[];
+        origin?: string | null;
+        token?: string;
+        projectFlag?: boolean;
+        entry?: string;
+      },
     ) {
       const checkout = join(root, `checkout ${++runs}`);
       git(root, "clone", "--quiet", origin, checkout);
+      if (standalone && standalone.origin !== undefined) {
+        if (standalone.origin === null)
+          git(checkout, "remote", "remove", "origin");
+        else {
+          git(checkout, "remote", "set-url", "origin", standalone.origin);
+          git(checkout, "config", `url.${origin}.insteadOf`, standalone.origin);
+        }
+      }
       const localBin = join(checkout, "node_modules/.bin");
       if (localExecutable) {
         mkdirSync(localBin, { recursive: true });
@@ -408,6 +423,7 @@ async function fixture(
       const env: NodeJS.ProcessEnv = {
         ...process.env,
         PATH: `${localExecutable ? `${localBin}:` : ""}${bin}:${process.env.PATH}`,
+        GITHUB_ACTIONS: "true",
         GITHUB_WORKSPACE: checkout,
         GITHUB_REPOSITORY: repository,
         GITHUB_API_URL: api,
@@ -430,10 +446,25 @@ async function fixture(
       };
       delete env.GH_TOKEN;
       delete env.GITHUB_TOKEN;
-      const child = spawn(process.execPath, [actionMain], {
-        cwd: checkout,
-        env,
-      });
+      if (standalone) {
+        for (const key of Object.keys(env))
+          if (key.startsWith("GITHUB_") || key === "RUNNER_TEMP")
+            delete env[key];
+        env.GITHUB_API_URL = api;
+        env.REPO_STANDARDS_TOKEN = standalone.token ?? token;
+      }
+      const child = spawn(
+        process.execPath,
+        [
+          standalone?.entry ?? actionMain,
+          ...(standalone?.projectFlag ? ["--project", checkout] : []),
+          ...(standalone?.args ?? []),
+        ],
+        {
+          cwd: standalone?.projectFlag ? root : checkout,
+          env,
+        },
+      );
       let output = "";
       child.stdout.on("data", (chunk: Buffer) => (output += chunk.toString()));
       child.stderr.on("data", (chunk: Buffer) => (output += chunk.toString()));
@@ -1111,4 +1142,112 @@ test("an unknown pin fails with its reason and opens or changes nothing", async 
   assert.deepEqual(f.items, []);
   assert.deepEqual(mutations(f), []);
   assert.equal(f.branchHead(), null);
+});
+
+for (const origin of [
+  "https://github.com/alice/project",
+  "https://github.com/alice/project.git",
+  "git@github.com:alice/project",
+  "git@github.com:alice/project.git",
+])
+  test(`outside Actions the update derives the repository from ${origin} and opens the rolling pull request`, async (t) => {
+    const f = await fixture(t);
+    f.scenario({
+      newest: { cli: "9.1.0", standards: "v1.1.0" },
+      headless: "complete",
+    });
+    const result = await f.run("", false, "", {
+      origin,
+      ...(origin === "https://github.com/alice/project"
+        ? {
+            entry: fileURLToPath(
+              new URL("../dist/update/main.js", import.meta.url),
+            ),
+          }
+        : {}),
+    });
+    assert.equal(result.status, 0, result.output);
+    assert.equal(open(f)[0]?.kind, "pull");
+    assert.equal(open(f)[0]?.head, branch);
+    assert.doesNotMatch(result.output, /::(?:add-mask|error)/);
+    assert.doesNotMatch(JSON.stringify(f.items), /test-token/);
+    assert.ok(f.invocations().every((entry) => !entry.actionToken));
+    assert.ok(
+      f
+        .invocations()
+        .filter((entry) => entry.kind === "pinned" || entry.kind === "npx")
+        .every((entry) => entry.ghToken),
+    );
+  });
+
+test("outside Actions explicit repository and project inputs refresh one rolling item, and the agent receives no update token", async (t) => {
+  const f = await fixture(t);
+  const options = {
+    args: ["--repository", "alice/project"],
+    projectFlag: true,
+  };
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "stopped",
+  });
+  let result = await f.run("", false, "", options);
+  assert.equal(result.status, 0, result.output);
+  assert.equal(open(f)[0]?.kind, "issue");
+  const issue = open(f)[0]!;
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.2.0" },
+    headless: "stopped",
+  });
+  result = await f.run("", false, "", options);
+  assert.equal(result.status, 0, result.output);
+  assert.deepEqual(
+    open(f),
+    [issue],
+    "a newer stopped update refreshes the same issue",
+  );
+  assert.match(issue.body, /v1\.2\.0/);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.3.0" },
+    headless: "stopped",
+  });
+  result = await f.run(f.agent("finish"), false, "", options);
+  assert.equal(result.status, 0, result.output);
+  assert.equal(open(f).length, 1);
+  assert.equal(open(f)[0]?.kind, "pull");
+  assert.doesNotMatch(result.output, /::(?:add-mask|error)/);
+  assert.doesNotMatch(JSON.stringify(f.items), /test-token/);
+  const agent = f.invocations().find((entry) => entry.kind === "agent");
+  assert.ok(agent);
+  assert.equal(agent.ghToken, false);
+  assert.equal(agent.actionToken, false);
+});
+
+test("outside Actions empty tokens and origins that cannot identify a GitHub repository fail without workflow commands or forge mutations", async (t) => {
+  const f = await fixture(t);
+  f.scenario({
+    newest: { cli: "9.1.0", standards: "v1.1.0" },
+    headless: "complete",
+  });
+  const empty = await f.run("", false, "", {
+    token: "   ",
+    args: ["--repository", "alice/project"],
+  });
+  assert.equal(empty.status, 1);
+  assert.match(empty.output, /TOKEN_REQUIRED/);
+  assert.doesNotMatch(empty.output, /::(?:add-mask|error)/);
+  for (const origin of [null, "https://example.com/alice/project.git"]) {
+    const result = await f.run("", false, "", { origin });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /REPOSITORY_NOT_DERIVABLE/);
+    assert.match(result.output, /--repository <owner\/name>/);
+    assert.doesNotMatch(result.output, /::(?:add-mask|error)/);
+  }
+  const blank = await f.run("", false, "", { args: ["--repository", ""] });
+  assert.equal(blank.status, 1, blank.output);
+  assert.match(
+    blank.output,
+    /INVALID_REPOSITORY: Set --repository <owner\/name>/,
+  );
+  assert.doesNotMatch(blank.output, /GITHUB_REPOSITORY|::(?:add-mask|error)/);
+  assert.deepEqual(mutations(f), []);
 });

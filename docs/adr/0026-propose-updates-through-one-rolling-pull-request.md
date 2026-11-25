@@ -1,5 +1,8 @@
 # Propose updates through one rolling pull request for adopters who opt in
 
+Amended by [ADR 0037](0037-run-rolling-updates-outside-actions.md) to publish a
+supported off-Actions executable sharing the action's implementation.
+
 Supersedes [ADR 0014](0014-leave-available-updates-to-the-maintainer.md) for
 adopters who opt in. Under ADR 0014 an update ran only when someone asked for
 one. With releases as frequent as they are, adopters fell behind or spent time

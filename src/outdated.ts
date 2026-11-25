@@ -21,8 +21,9 @@ import type { Observation } from "./observation.js";
 import { record } from "./records.js";
 
 // Availability of a published CLI or standards version newer than each pin.
-// The command only reads the selection and writes its own ignored cache; any
-// failure to answer a pin degrades that pin to `unknown` instead of an error.
+// The command reads the selection and optional source metadata, and writes
+// its own ignored cache. Failure to answer a pin degrades that pin to
+// `unknown` instead of an error.
 // The one failure is a running CLI other than the recorded CLI pin.
 const packageName = "@lutzseverino/repo-standards";
 const cachePath = ".repo-standards/cache/outdated.json";
@@ -52,6 +53,7 @@ interface ActionLookup {
 interface Pins {
   cli: { version: string };
   standards: { repository: string; version: string };
+  checks: unknown;
 }
 
 function selectionOf(project: string): { root: string; selection: Pins } {
@@ -105,12 +107,31 @@ function selectionOf(project: string): { root: string; selection: Pins } {
     root,
     selection: {
       cli: { version: cli.version },
+      checks: record(parsed).checks,
       standards: {
         repository: standards.repository,
         version: standards.version,
       },
     },
   };
+}
+
+// The installed source owns this command. It is read afresh, independently of
+// availability lookups, and unreadable metadata never prevents an update notice.
+function installedUpdateCommand(root: string, checks: unknown) {
+  if (checks !== "runner" && checks !== "self-reported") return undefined;
+  try {
+    const metadata = safe(root, ".repo-standards/inputs/metadata.json");
+    if (metadata.type !== "file") return undefined;
+    const value = record(
+      JSON.parse(
+        Buffer.from(metadata.content, metadata.encoding).toString("utf8"),
+      ),
+    )["update-command"];
+    return validAdopterAction(value) ? value : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function githubRepository(repository: string) {
@@ -379,6 +400,7 @@ export async function outdated(project: string, cliVersion: string) {
       ...(actions ? { actions: actions.lookups } : {}),
     });
   }
+  const updateCommand = installedUpdateCommand(root, selection.checks);
   return {
     format: formats.outdated,
     cli: { package: packageName, ...pin(selection.cli.version, cli) },
@@ -386,6 +408,7 @@ export async function outdated(project: string, cliVersion: string) {
       repository: selection.standards.repository,
       ...pin(selection.standards.version, standards),
       ...(actions ? { adopterActions: actions.actions } : {}),
+      ...(updateCommand === undefined ? {} : { updateCommand }),
     },
   };
 }

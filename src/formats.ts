@@ -18,7 +18,7 @@ export const formats = {
   assessment: "repo-standards/assessment/v3",
   operation: "repo-standards/operation/v2",
   result: "repo-standards/result/v2",
-  outdated: "repo-standards/outdated/v2",
+  outdated: "repo-standards/outdated/v3",
   outdatedCache: "repo-standards/outdated-cache/v2",
   check: "repo-standards/check/v3",
   rules: "repo-standards/rules/v1",

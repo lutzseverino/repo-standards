@@ -6,7 +6,8 @@
   "type": "module",
   "bin": {
     "repo-standards": "dist/cli.js",
-    "repo-standards-bootstrap": "bootstrap/repo-standards"
+    "repo-standards-bootstrap": "bootstrap/repo-standards",
+    "repo-standards-update": "dist/update/main.js"
   },
   "files": [
     "dist",
@@ -38,7 +39,7 @@
     }
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.action.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "pnpm --dir site exec astro sync && oxlint",
     "format": "prettier --plugin prettier-plugin-astro --write .",

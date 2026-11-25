@@ -76,6 +76,14 @@ reject the field as an unknown field, raise `requires.repo-standards` to the
 first CLI release that accepts it in the same release. See
 [the author format](../reference/author-format.md#adopter-action).
 
+To give adopters at `runner` or `self-reported` a way to run the rolling update
+without Actions, set the optional root `update-command` to the shell command
+they run from a checkout of their default branch. It is one nonempty line of
+plain text, like `adopter-action`, and the installed release's command appears
+in the update notice. Raise `requires.repo-standards` to the first CLI that
+accepts the field in the same release: older CLIs reject it as `UNKNOWN_FIELD`.
+See [Update command](../reference/author-format.md#update-command).
+
 After validating the committed contents with a compatible installed CLI, publish
 the same commit. The following commands run in your standards repository; replace
 `OWNER/SOURCE` and choose an unused version. They require GitHub CLI access with

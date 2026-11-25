@@ -9,7 +9,8 @@
 [available update](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language)
 exists for each pin of the adopting project's selection: a published CLI or
 standards version newer than the pinned one. It reads
-`.repo-standards/selection.yaml`, looks up the newest stable versions, and
+`.repo-standards/selection.yaml` and, for an off-Actions update command,
+`.repo-standards/inputs/metadata.json`, looks up the newest stable versions, and
 compares each to its pin. It runs no author code, needs no
 clean working tree, and changes nothing in the project except its own ignored
 cache, so it is safe to run at the start of any session. Without `--json` it
@@ -62,6 +63,8 @@ the JSON form does. The report holds:
   wrote, `none` when it sets none, or `unreadable` with the reason code and
   message when its `standards.yaml` could not be read. A line below it says the
   line derived from an update comes from `adopt` and `inspect`.
+- An `Update command:` line with the installed source's command, when the
+  [check location and metadata](#update-command) provide one.
 - An Unknown results table, present only when a pin could not be answered: the
   pin, the reason's code and its message. It covers a missing selection and a
   failed lookup of either pin while the other is still answered.
@@ -78,13 +81,13 @@ prints Markdown unless `--json` is given. Scripts that parse the report add
 `--json`; the flag has always been accepted. The `repository-standards` system
 skill already passes `--json`.
 
-### Migration to `outdated/v2`
+### Migration to `outdated/v3`
 
-The JSON report is now `repo-standards/outdated/v2`, and its `standards` entry
-gains `adopterActions` when the lookup answers (see
-[Adopter actions](#adopter-actions)). Scripts that compare the `format` value
-accept `v2`; every other field is unchanged. An older ignored cache is not
-read, so the first invocation looks up again.
+The JSON report is now `repo-standards/outdated/v3`, adding optional
+`standards.updateCommand` beside the existing `adopterActions`. Scripts that
+check the format accept v3 and its optional string key. The ignored cache
+format remains `outdated-cache/v2`: the command is read from retained metadata
+on each invocation and needs no lookup or cache entry.
 
 ## Pinned CLI
 
@@ -129,6 +132,24 @@ line comes from [`adopt` and `inspect`](inspection.md#markdown-summary). The
 adopter actions are present when the standards pin was answered, an empty list
 when no release is newer, and absent when it is `unknown`.
 
+## Update command
+
+The installed source may declare an optional root
+[`update-command`](author-format.md#update-command). At `runner` and
+`self-reported`, `outdated` reads this command from
+`.repo-standards/inputs/metadata.json` and reports it as optional
+`standards.updateCommand` in JSON and one `Update command:` line in Markdown.
+It is the installed release's command, rather than a newer release's. At
+`github`, including an omitted check location, or when no valid command is
+declared, both outputs omit it.
+
+This read is lenient: missing, unreadable or invalid metadata, or a value that
+is not one nonempty line of plain text, yields no command and never fails
+`outdated`. The command is read afresh even when availability lookups are
+cached. The `repository-standards` skill names it when an update is available;
+without the maintainer's instruction it still only reports the update and
+continues the current work.
+
 ## Lookups
 
 Each invocation looks up the npm registry and GitHub releases in parallel, then
@@ -162,7 +183,7 @@ versions are ignored. Tags published without a GitHub release are not counted.
 
 ## Report
 
-With `--json`, the report has format `repo-standards/outdated/v2` and one entry per pin: `cli`,
+With `--json`, the report has format `repo-standards/outdated/v3` and one entry per pin: `cli`,
 which also names the `package`, and `standards`, which also names the source
 `repository`.
 
@@ -176,6 +197,7 @@ which also names the `package`, and `standards`, which also names the source
 | `cached`              | Whether the answer came from the cache instead of a request.                                                                      |
 | `reason`              | For `unknown` only: a stable `code` and a `message`.                                                                              |
 | `adopterActions`      | Standards pin only, when answered: each newer release's `version`, author-written `action` or `null`, and `reason` if unreadable. |
+| `updateCommand`       | Standards pin only: the installed source's command at `runner` or `self-reported`, when valid metadata declares it.               |
 
 ## Degraded results
 

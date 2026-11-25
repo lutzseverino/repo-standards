@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "action",
+    "outDir": "dist/update",
+    "sourceMap": true
+  },
+  "include": ["action/**/*.ts"]
+}
