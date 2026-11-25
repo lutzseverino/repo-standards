@@ -66,8 +66,10 @@ Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
 The [update action](../usage/guides/automated-updates.md), `action.yml`, runs the
-TypeScript in `action/` with Node.js directly, so it has no build output and
-`pnpm build` does not cover it; `pnpm typecheck` and `pnpm lint` do.
+TypeScript in `action/` with Node.js directly, without a build step. `pnpm build`
+also compiles that source into `dist/update/` for the packaged
+`repo-standards-update` executable, which `test/release.test.ts` runs from the
+packed release.
 `test/update-action.test.ts` runs it against a local fake of GitHub's REST API,
 a bare Git remote, and a fake CLI on `PATH`. Only `action/github.ts` may call
 GitHub.

@@ -54,11 +54,11 @@ Git, bash and network access to npm and GitHub. Scheduling belongs to the caller
     const repository =
       values.repository ??
       (actions ? process.env.GITHUB_REPOSITORY : originRepository(root));
-    if (!repository) throw new UpdateFailure("GITHUB_REPOSITORY is not set.");
-    if (!actions && !/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(repository))
+    if (!actions && !/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(repository ?? ""))
       throw new UpdateFailure(
         "INVALID_REPOSITORY: Set --repository <owner/name>.",
       );
+    if (!repository) throw new UpdateFailure("GITHUB_REPOSITORY is not set.");
     await update({
       root,
       token,

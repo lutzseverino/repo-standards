@@ -1242,5 +1242,12 @@ test("outside Actions empty tokens and origins that cannot identify a GitHub rep
     assert.match(result.output, /--repository <owner\/name>/);
     assert.doesNotMatch(result.output, /::(?:add-mask|error)/);
   }
+  const blank = await f.run("", false, "", { args: ["--repository", ""] });
+  assert.equal(blank.status, 1, blank.output);
+  assert.match(
+    blank.output,
+    /INVALID_REPOSITORY: Set --repository <owner\/name>/,
+  );
+  assert.doesNotMatch(blank.output, /GITHUB_REPOSITORY|::(?:add-mask|error)/);
   assert.deepEqual(mutations(f), []);
 });

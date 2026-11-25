@@ -889,6 +889,15 @@ test("outdated reports the installed source's update command only at off-Actions
       location === "runner" || location === "self-reported",
     );
   }
+  const cache = readFileSync(
+    join(root, ".repo-standards/cache/outdated.json"),
+    "utf8",
+  );
+  assert.equal(
+    (JSON.parse(cache) as { format: unknown }).format,
+    "repo-standards/outdated-cache/v2",
+  );
+  assert.equal(cache.includes(command), false, "the cache never holds it");
   for (const value of [
     undefined,
     "",
