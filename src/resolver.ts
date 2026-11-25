@@ -127,16 +127,15 @@ export function validateSource(
   };
 }
 
-// The optional adopter action: one nonempty line of plain text for an action
-// outside adoption. Older CLIs reject the field, so a source that sets it
-// requires a CLI that accepts it.
-function adopterActionField(root: Value, fields: Fields) {
-  const value = fields.optional(root, "adopter-action");
+// Optional author-written lines: the adopter action and update command. Older
+// CLIs reject these fields, so a source that sets one requires a CLI that accepts it.
+function plainLineField(root: Value, fields: Fields, name: string) {
+  const value = fields.optional(root, name);
   if (!value) return undefined;
   if (validAdopterAction(value.data)) return value.data;
   fields.error(
     "INVALID_TYPE",
-    "Expected adopter-action to be one nonempty line of plain text. A source that sets it must raise requires.repo-standards to the first CLI that accepts the field, because older CLIs reject it as an unknown field.",
+    `Expected ${name} to be one nonempty line of plain text. A source that sets it must raise requires.repo-standards to the first CLI that accepts the field, because older CLIs reject it as an unknown field.`,
     value,
   );
   return undefined;
@@ -185,6 +184,7 @@ function resolveDocument(
     "description",
     "requires",
     "adopter-action",
+    "update-command",
     "defaults",
     "profiles",
   ]);
@@ -206,7 +206,8 @@ function resolveDocument(
       `CLI ${cliVersion} does not satisfy ${range}. Declare an open-ended minimum CLI version, such as ">=${cliVersion}", so later CLI versions can select this standards version.`,
       rangeValue,
     );
-  const adopterAction = adopterActionField(root, fields);
+  const adopterAction = plainLineField(root, fields, "adopter-action");
+  const updateCommand = plainLineField(root, fields, "update-command");
   const defaults = fields.get(root, "defaults");
   fields.map(defaults, ["declarations"]);
   const declarations = new Declarations(fields, paths, validateSkill);
@@ -298,6 +299,9 @@ function resolveDocument(
       ...(adopterAction === undefined
         ? {}
         : { "adopter-action": adopterAction }),
+      ...(updateCommand === undefined
+        ? {}
+        : { "update-command": updateCommand }),
     },
     profiles,
   };

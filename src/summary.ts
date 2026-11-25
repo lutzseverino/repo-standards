@@ -764,6 +764,7 @@ export interface OutdatedReport {
   standards: PinAvailability & {
     repository: string | null;
     adopterActions?: ReleaseAction[];
+    updateCommand?: string;
   };
 }
 
@@ -814,6 +815,8 @@ export function outdatedSummary(report: OutdatedReport) {
       ),
     ),
   ];
+  if (report.standards.updateCommand !== undefined)
+    parts.push(`Update command: ${code(report.standards.updateCommand)}`);
   const actions = report.standards.adopterActions ?? [];
   if (actions.length)
     parts.push(

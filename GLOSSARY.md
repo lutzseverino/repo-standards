@@ -238,8 +238,9 @@ _Avoid_: Lock, requirement
 **Update**:
 A deliberate adoption operation that moves an adopting project from its current
 selection to a requested selection, including unchanged pins, changed pins, or a
-different source or profile. An adopter who installs the update action has
-requested every available update; merging its pull request stays deliberate.
+different source or profile. An adopter who installs the update action's caller workflow has requested
+every available update; invoking its executable requests one run, and merging
+its pull request stays deliberate.
 _Avoid_: Automatic upgrade, re-adoption, one-pin update
 
 **Exact update**:
@@ -269,14 +270,14 @@ _Avoid_: Drift, outdated adoption, stale pin
 **Update notice**:
 A system skill's report of available updates to an agent before other work.
 It states availability; every update stays the maintainer's decision, except
-those the maintainer requested by installing the update action.
+those the maintainer requested through the update action.
 _Avoid_: Update rule, update routing
 
 **Update action**:
-The published GitHub action an adopter opts in to with a caller workflow. Each
-run takes the newest CLI's headless update and keeps one rolling pull request,
-on the rolling branch, or one rolling issue, when the update stops, current.
-It is the only part of the product that commits.
+The rolling update an adopter requests through a GitHub caller workflow or
+the supported off-Actions executable, keeping one pull request or, when it
+stops, one issue current. Both entry points share the only part of the product
+that commits.
 _Avoid_: Update bot, auto-update, Dependabot
 
 **Drift**:

@@ -100,6 +100,26 @@ test("release packaging is repeatable, its artifacts match their recorded hashes
   );
 });
 
+test("the packed update executable runs compiled JavaScript under node_modules", () => {
+  const executable = join(installed, "../../.bin/repo-standards-update");
+  const help = spawnSync(executable, ["--help"], { encoding: "utf8" });
+  assert.equal(help.status, 0, help.stdout + help.stderr);
+  assert.match(help.stdout, /Usage: repo-standards-update/);
+  const env: NodeJS.ProcessEnv = { ...process.env, REPO_STANDARDS_TOKEN: "" };
+  for (const key of Object.keys(env))
+    if (key.startsWith("GITHUB_")) delete env[key];
+  const result = spawnSync(executable, ["--repository", "alice/project"], {
+    env,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr, /TOKEN_REQUIRED/);
+  assert.doesNotMatch(
+    result.stdout + result.stderr,
+    /::(?:add-mask|error)|ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING/,
+  );
+});
+
 test("the package ships each product skill whole, with its invocation settings and no delivery vocabulary", () => {
   assert.deepEqual(readdirSync(join(installed, "skills")).sort(), [
     "adopt-repository-standards",

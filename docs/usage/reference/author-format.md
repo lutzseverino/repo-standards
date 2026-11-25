@@ -48,8 +48,8 @@ project content.
 
 ## Root and profiles
 
-The root requires exactly these fields, and may set one optional field,
-`adopter-action`. Unknown fields at every schema level
+The root requires exactly these fields, and may set optional
+`adopter-action` and `update-command` fields. Unknown fields at every schema level
 are errors, including adoption hooks, environment overrides, shell options,
 custom working directories, and profile inheritance fields.
 
@@ -79,6 +79,24 @@ retains the line with the other source metadata, shows it in the
 Impact and Migration sections, and renders each newer release's line in
 [`outdated`](available-updates.md#adopter-actions). It derives the rest of
 the [adopter action](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language) itself.
+
+### Update command
+
+The optional root field `update-command` is the shell command an adopter of
+this release runs from a checkout of its default branch to run the rolling
+update [outside Actions](../guides/automated-updates.md#outside-github-actions).
+It is one nonempty line of plain text, validated like `adopter-action`: empty
+or blank values, multiple lines, control characters and non-string values
+fail with `INVALID_TYPE`.
+
+This field is additive within `repo-standards/v2`. Older CLIs reject it as
+`UNKNOWN_FIELD`, so a source that sets it raises `requires.repo-standards` to
+the first CLI release that accepts it. The CLI retains it with the installed
+release's metadata. At `runner` and `self-reported` check locations,
+[`outdated`](available-updates.md#update-command) reports that installed
+command; at `github`, including an omitted check location, it reports none.
+The update notice names the command when an update is available and starts
+nothing without the maintainer's instruction.
 
 Each profile requires a nonempty `description` and a `declarations` mapping,
 which may be empty, and may name the hosting [platforms](#platforms) it

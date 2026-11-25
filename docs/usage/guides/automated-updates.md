@@ -2,15 +2,61 @@
 
 The update action keeps an adopting repository current through one rolling
 pull request, or one rolling issue when an update needs answers, much like a
-dependency bot. It is a composite GitHub action published at the root of
-[`lutzseverino/repo-standards`](https://github.com/lutzseverino/repo-standards).
+dependency bot. It runs either as a composite GitHub action published at the root of
+[`lutzseverino/repo-standards`](https://github.com/lutzseverino/repo-standards)
+or as the package's `repo-standards-update` executable outside Actions. Both
+entry points run the same implementation.
 
 Installing a workflow that runs it is opting in: it is the maintainer's standing
 instruction to propose every available update
 ([ADR 0026](https://github.com/lutzseverino/repo-standards/blob/main/docs/adr/0026-propose-updates-through-one-rolling-pull-request.md)).
-Without it, an [available update](../reference/available-updates.md) waits for the
+Invoking the executable is an instruction for one run; scheduling it is the
+adopter's responsibility. Without an instruction, an [available update](../reference/available-updates.md) waits for the
 maintainer to ask for it. The action never merges: the maintainer reviews and
 merges its pull request like any other.
+
+## Outside GitHub Actions
+
+Use a clean, dedicated checkout of the repository's default branch. The
+executable commits on and pushes `repo-standards/update` from that checkout;
+use a separate checkout from ongoing work. It requires Node.js 24 or 26, Git,
+`bash`, and network access to npm and GitHub. Install a released package that
+ships the executable, or run it with npm, substituting its exact version:
+
+```sh
+# Supply REPO_STANDARDS_TOKEN through your environment or secret manager.
+npm exec --yes --package @lutzseverino/repo-standards@<version> -- repo-standards-update \
+  --repository owner/name --project /path/to/dedicated-checkout
+```
+
+| Input                          | Default                    | Meaning                                                            |
+| ------------------------------ | -------------------------- | ------------------------------------------------------------------ |
+| `--repository <owner/name>`    | Checkout's GitHub `origin` | Repository for the rolling pull request or issue.                  |
+| `--project <path>`             | Working directory          | Clean, dedicated default-branch checkout.                          |
+| `REPO_STANDARDS_TOKEN`         | none; required             | Token for the API and HTTPS pushes; never a command-line argument. |
+| `REPO_STANDARDS_AGENT_COMMAND` | none                       | Optional [agent command](#agent-command).                          |
+| `GITHUB_API_URL`               | `https://api.github.com`   | GitHub API endpoint.                                               |
+
+Repository derivation accepts `https://github.com/owner/name` and
+`git@github.com:owner/name`, each with or without `.git`. A missing `origin`
+or any other origin fails with `REPOSITORY_NOT_DERIVABLE`; pass
+`--repository <owner/name>` to recover. An empty token fails with
+`TOKEN_REQUIRED`. Outside Actions, failures go to stderr with a nonzero exit
+status, and no workflow masking or error commands are emitted. `--help`
+prints usage without a token or checkout.
+
+The token needs `contents: write`, `pull-requests: write` and `issues: write`,
+as for the action; changes to workflow files also need the permission to write
+workflows. It authorizes the API and HTTPS pushes. An SSH `origin` pushes with
+the machine's own SSH credentials. The token is never written to the pull
+request, issue or report, is passed to the CLI only as `GH_TOKEN`, and is
+removed from the agent command's environment.
+
+This executable schedules nothing. Serialize runs for a repository in the
+adopter's scheduler, just as the caller workflow uses a concurrency group.
+A source can declare an [`update-command`](../reference/author-format.md#update-command)
+so the update notice names its command at `runner` and `self-reported` check
+locations. The notice starts an update only on the maintainer's instruction.
 
 ## Caller workflow
 

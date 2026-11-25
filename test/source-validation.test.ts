@@ -1555,53 +1555,59 @@ profiles:
     );
 });
 
-test("an optional adopter action is one nonempty line of plain text, retained with the source metadata", (t) => {
-  const validate = (field: string) => {
-    const source = sourceFixture(
-      `${header}${field}defaults:
+for (const fieldName of ["adopter-action", "update-command"] as const)
+  test(`an optional ${fieldName} is one nonempty line of plain text, retained with the source metadata`, (t) => {
+    const validate = (field: string) => {
+      field = field.replaceAll("adopter-action", fieldName);
+      const source = sourceFixture(
+        `${header}${field}defaults:
   declarations: {}
 profiles:
   personal:
     description: Personal
     declarations: {}
 `,
+      );
+      t.after(() => source.close());
+      const result = cli.run(["source", "validate", "--json"], source.root);
+      return { result, report: JSON.parse(result.stdout) as SourceValidation };
+    };
+
+    const valid = validate("adopter-action: Rotate the deploy key first.\n");
+    assert.equal(valid.result.status, 0, valid.result.stdout);
+    assert.equal(
+      valid.report.source![fieldName],
+      "Rotate the deploy key first.",
     );
-    t.after(() => source.close());
-    const result = cli.run(["source", "validate", "--json"], source.root);
-    return { result, report: JSON.parse(result.stdout) as SourceValidation };
-  };
 
-  const valid = validate("adopter-action: Rotate the deploy key first.\n");
-  assert.equal(valid.result.status, 0, valid.result.stdout);
-  assert.equal(
-    valid.report.source!["adopter-action"],
-    "Rotate the deploy key first.",
-  );
+    // A source without the field validates as it did, and carries none.
+    const absent = validate("");
+    assert.equal(absent.result.status, 0, absent.result.stdout);
+    assert.equal(fieldName in absent.report.source!, false);
 
-  // A source without the field validates as it did, and carries none.
-  const absent = validate("");
-  assert.equal(absent.result.status, 0, absent.result.stdout);
-  assert.equal("adopter-action" in absent.report.source!, false);
-
-  for (const field of [
-    'adopter-action: ""\n',
-    'adopter-action: "   "\n',
-    "adopter-action: |\n  First line\n  Second line\n",
-    "adopter-action: |\n  One line\n",
-    'adopter-action: "First\\nSecond"\n',
-    "adopter-action: 7\n",
-    "adopter-action: [Rotate the key]\n",
-    "adopter-action: null\n",
-  ]) {
-    const { result, report } = validate(field);
-    assert.equal(result.status, 1, field);
-    assert.deepEqual(
-      report.errors.map((error) => error.code),
-      ["INVALID_TYPE"],
-      field,
-    );
-    // The diagnostic tells the author what the field needs and its CLI floor.
-    assert.match(report.errors[0]!.message, /one nonempty line of plain text/);
-    assert.match(report.errors[0]!.message, /requires\.repo-standards/);
-  }
-});
+    for (const field of [
+      'adopter-action: ""\n',
+      'adopter-action: "   "\n',
+      "adopter-action: |\n  First line\n  Second line\n",
+      "adopter-action: |\n  One line\n",
+      'adopter-action: "First\\nSecond"\n',
+      'adopter-action: "First\\tSecond"\n',
+      "adopter-action: 7\n",
+      "adopter-action: [Rotate the key]\n",
+      "adopter-action: null\n",
+    ]) {
+      const { result, report } = validate(field);
+      assert.equal(result.status, 1, field);
+      assert.deepEqual(
+        report.errors.map((error) => error.code),
+        ["INVALID_TYPE"],
+        field,
+      );
+      // The diagnostic tells the author what the field needs and its CLI floor.
+      assert.match(
+        report.errors[0]!.message,
+        /one nonempty line of plain text/,
+      );
+      assert.match(report.errors[0]!.message, /requires\.repo-standards/);
+    }
+  });

@@ -99,7 +99,8 @@ alternatives.
 - [Propose updates through one rolling pull request for adopters who opt in](0026-propose-updates-through-one-rolling-pull-request.md):
   a published GitHub action, installed by the adopter's caller workflow, runs
   the newest CLI's headless update and keeps one rolling pull request or issue
-  current; the CLI still never commits.
+  current; the CLI still never commits. Amended by ADR 0037 with a supported
+  off-Actions executable sharing the implementation.
 - [Choose the platform inside each profile](0027-choose-the-platform-inside-each-profile.md):
   a profile declares the hosting platforms it supports and its
   platform-specific declarations, the project selects its platform separately
@@ -137,3 +138,6 @@ alternatives.
   retained inputs record installed exact files' and skills' hashes, fall back
   to the verified source snapshot for an edited target, and keep copies only
   for files that checks, fixes, probes or discovery scripts run or read.
+- [Run rolling updates outside Actions](0037-run-rolling-updates-outside-actions.md):
+  amends ADR 0026 with a supported packaged executable sharing the action's
+  implementation; the source can declare the command the update notice reports.

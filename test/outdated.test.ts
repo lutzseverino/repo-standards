@@ -8,6 +8,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
   mkdtempSync,
+  mkdirSync,
+  readFileSync,
   readdirSync,
   realpathSync,
   rmSync,
@@ -19,7 +21,7 @@ import { join } from "node:path";
 import { after, before, test } from "node:test";
 import type { TestContext } from "node:test";
 import { inc } from "semver";
-import { stringify } from "yaml";
+import { parse, stringify } from "yaml";
 import { installCli, snapshot, sourceFixture } from "./installed-cli.ts";
 import { registryFixture } from "./registry-fixture.ts";
 import { commit, inspectionArgs, remoteFixture } from "./remote-fixture.ts";
@@ -33,6 +35,8 @@ const remote = remoteFixture(
     format: "repo-standards/v2",
     name: "outdated-standards",
     description: "Available update fixture",
+    "update-command":
+      "npx --package @lutzseverino/repo-standards repo-standards-update",
     requires: { "repo-standards": ">=1.0.0" },
     defaults: {
       declarations: {
@@ -237,7 +241,7 @@ test("outdated reports the newest stable CLI and standards versions and the stab
   publishReleases(t, { body: releases });
   const { result, report, requests } = outdated(root, environment());
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(report.format, "repo-standards/outdated/v2");
+  assert.equal(report.format, "repo-standards/outdated/v3");
   assert.deepEqual(
     { ...report.cli, checkedAt: undefined },
     {
@@ -734,7 +738,7 @@ test("outdated --json is unchanged beside the plain report, and usage errors sta
   assert.equal(json.result.status, 0, json.result.stdout + json.result.stderr);
   const report = JSON.parse(json.result.stdout) as OutdatedReport;
   assert.deepEqual(Object.keys(report), ["format", "cli", "standards"]);
-  assert.equal(report.format, "repo-standards/outdated/v2");
+  assert.equal(report.format, "repo-standards/outdated/v3");
   assert.equal(report.standards.reason!.code, "SOURCE_UNAVAILABLE");
   assert.equal("adopterActions" in report.standards, false);
   assert.equal(json.result.stdout, JSON.stringify(report, null, 2) + "\n");
@@ -846,4 +850,75 @@ test("an unreadable release reports its reason without failing the report, and i
     ).length,
     2,
   );
+});
+
+test("outdated reports the installed source's update command only at off-Actions check locations, reading metadata leniently without caching it", (t) => {
+  const root = checkout(t);
+  publishReleases(t, { body: releases });
+  const metadataPath = join(root, ".repo-standards/inputs/metadata.json");
+  const selectionPath = join(root, ".repo-standards/selection.yaml");
+  const selected = parse(readFileSync(selectionPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  const metadata = JSON.parse(readFileSync(metadataPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  const command =
+    "npx --package @lutzseverino/repo-standards repo-standards-update";
+  assert.equal(
+    metadata["update-command"],
+    command,
+    "adoption retains the source field",
+  );
+  for (const location of [undefined, "github", "runner", "self-reported"]) {
+    writeFileSync(selectionPath, stringify({ ...selected, checks: location }));
+    const { result, report } = outdated(root, environment());
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(
+      report.standards.updateCommand,
+      location === "runner" || location === "self-reported"
+        ? command
+        : undefined,
+    );
+    const rendered = plain(root, environment()).result;
+    assert.equal(rendered.status, 0, rendered.stderr);
+    assert.equal(
+      rendered.stdout.includes(command),
+      location === "runner" || location === "self-reported",
+    );
+  }
+  for (const value of [
+    undefined,
+    "",
+    "   ",
+    "two\nlines",
+    "control\tcharacter",
+    7,
+    null,
+  ]) {
+    writeFileSync(metadataPath, JSON.stringify({ "update-command": value }));
+    const { result, report } = outdated(root, environment());
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal("updateCommand" in report.standards, false);
+    assert.doesNotMatch(
+      plain(root, environment()).result.stdout,
+      /Update command:/,
+    );
+  }
+  writeFileSync(metadataPath, "invalid JSON");
+  assert.equal(
+    outdated(root, environment()).report.standards.updateCommand,
+    undefined,
+  );
+  rmSync(metadataPath);
+  assert.equal(
+    outdated(root, environment()).report.standards.updateCommand,
+    undefined,
+  );
+  mkdirSync(metadataPath);
+  const unreadable = outdated(root, environment());
+  assert.equal(unreadable.result.status, 0, unreadable.result.stderr);
+  assert.equal(unreadable.report.standards.updateCommand, undefined);
 });

@@ -88,6 +88,9 @@ For each pin, `cli` and `standards`:
   failed lookup is not an error and never stops the current work.
 - `update: none`: report that the pin is current, or omit it.
 
+When either pin reports an available update and `standards.updateCommand`
+is present, name that command in the report.
+
 ## After reporting
 
 Without the maintainer's instruction, mention the available updates and
