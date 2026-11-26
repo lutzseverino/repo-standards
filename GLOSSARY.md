@@ -164,7 +164,11 @@ _Avoid_: Critical change, risky change
 An agent's evidence-backed identification of the project paths to which
 contextual guidance applies, possibly completed from a discovery script's
 draft, and reviewed before authorizing that scope.
-_Avoid_: Confirmed scope, automatic project classification
+_Avoid_: Automatic project classification
+
+**Confirmed scope**:
+The scope a run authorized from its reviewed scope proposal; it does not change
+within the run.
 
 **Answers file**:
 The questions an adoption asks, each with its context and choices, and the
