@@ -16,7 +16,9 @@ export const skip = executable
   : "no Chrome, Chromium or Edge found; set SITE_BROWSER to one";
 
 /** Build in a child process so production React never enters a caller that
- * also starts a development server. Restore preview's process-wide mode. */
+ * also starts a development server. Restore the `NODE_ENV` that preview sets
+ * for the process, which would make such a server render as production,
+ * without the pseudo-locale. */
 export async function setupSiteBrowser(
   fixture: BrowserFixture,
   executable: string,
