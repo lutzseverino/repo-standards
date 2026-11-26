@@ -12,14 +12,10 @@
 // The browser is the one `browser.ts` finds; without one this file skips,
 // except in CI.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import path from "node:path";
 import { after, before, test } from "node:test";
-import { fileURLToPath } from "node:url";
-import { preview } from "astro";
-import { Browser, findBrowser, type Tab } from "./browser.ts";
+import type { Browser, Tab } from "./browser.ts";
 import { BrowserFixture } from "./fixture.ts";
+import { executable, skip, setupSiteBrowser } from "./site-browser.ts";
 
 type BeamWrite = {
   target: string;
@@ -35,11 +31,6 @@ declare global {
 
 const POST = ["--brx", "--bry", "--gain", "--lx", "--ly"];
 const PLATE = [...POST, "--hrx", "--hry", "--hx", "--hy"].sort();
-const site = fileURLToPath(new URL("../", import.meta.url));
-const executable = findBrowser();
-const skip = executable
-  ? false
-  : "no Chrome, Chromium or Edge found; set SITE_BROWSER to one";
 const fixture = new BrowserFixture();
 let browser: Browser;
 let base = "";
@@ -47,30 +38,10 @@ let base = "";
 before(() =>
   fixture.setup(async () => {
     if (!executable) return;
-    const output = mkdtempSync(path.join(site, "node_modules/.site-beam-"));
-    fixture.ownDirectory(output);
-    fixture.defer("build output removal", () =>
-      rmSync(output, { recursive: true, force: true }),
-    );
-    execFileSync(
-      process.execPath,
-      ["node_modules/astro/bin/astro.mjs", "build", "--outDir", output],
-      {
-        cwd: site,
-        env: { ...process.env, SITE_SEARCH_RECORDING: "fixtures/search" },
-        timeout: 120_000,
-        stdio: "pipe",
-      },
-    );
-    const server = await preview({
-      root: site,
-      outDir: output,
-      logLevel: "error",
-      server: { host: "127.0.0.1", port: 0 },
-    });
-    fixture.defer("preview server stop", () => server.stop());
-    base = `http://127.0.0.1:${server.port}`;
-    browser = await Browser.launch(executable, fixture);
+    ({ base, browser } = await setupSiteBrowser(fixture, executable, {
+      prefix: ".site-beam-",
+      env: { SITE_SEARCH_RECORDING: "fixtures/search" },
+    }));
   }),
 );
 after(() => fixture.close());
