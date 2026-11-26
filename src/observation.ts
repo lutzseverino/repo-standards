@@ -9,6 +9,7 @@ import {
 import { isAbsolute, join } from "node:path";
 import { gitEnvironment, hash } from "./acquisition.js";
 import { ProductError } from "./errors.js";
+import { probeFailureMessage } from "./probe.js";
 import { foldPath } from "./paths.js";
 
 // Read-only observation of the project: files and trees observed without
@@ -409,10 +410,11 @@ export function uncommittedPaths(root: string) {
 // Older Git follows symbolic .gitignore files, whose referent discovery does
 // not bind. Gate commands before they can observe repository state.
 export function requireSupportedGit(command?: "resume") {
+  const timeout = 10_000;
   const result = spawnSync("git", ["--version"], {
     encoding: "utf8",
     env: gitEnvironment(),
-    timeout: 10_000,
+    timeout,
   });
   const version = result.stdout
     ?.trim()
@@ -420,7 +422,12 @@ export function requireSupportedGit(command?: "resume") {
   if (result.error || result.status !== 0 || !version)
     throw new ProductError(
       "GIT_REQUIRED",
-      "Git 2.32 or newer is required. Install Git and ensure it is on PATH.",
+      probeFailureMessage("git --version", result, {
+        timeout,
+        missingOutput: "version",
+        advice:
+          "Git 2.32 or newer is required. Install Git and ensure it is on PATH.",
+      }),
     );
   if (
     Number(version[2]) < 2 ||

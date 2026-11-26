@@ -126,12 +126,15 @@ jobs. A full local run is sensitive to host load:
 fewer than the available parallelism, and most files pack and install the CLI
 and start adoption fixtures, each with its own local registry process and runtime
 install. Fixed wall-clock limits then expire on a shared or saturated host: the
-product's 10-second `npm --version` and `git --version` probes, its 120-second
-runtime install, and the test harness's 60-second wait for terminal output. The
-failures that follow, such as `NPM_REQUIRED`, `GIT_REQUIRED`, `RUNTIME_INSTALL`,
+product's 10-second `npm --version`, `git --version` and `npm config list`
+probes, its 120-second runtime install, and the test harness's 60-second wait
+for terminal output. The failures that follow, such as `RUNTIME_INSTALL`,
 terminal timeouts, or a stale snapshot, come from load alone and say nothing
-about the change. The product's limits stay sized for an adopter's machine; do
-not raise them to suit the test suite.
+about the change. For `NPM_REQUIRED`, `GIT_REQUIRED` and `NPM_CACHE`, the
+message "did not answer within 10 seconds" identifies a probe timeout as this
+load symptom; a missing tool, failing exit or unusable output does not. The
+product's limits stay sized for an adopter's machine; do not raise them to suit
+the test suite.
 
 To limit test-file concurrency through the normal root commands, set
 `REPO_STANDARDS_TEST_CONCURRENCY` to a positive safe integer written in decimal
