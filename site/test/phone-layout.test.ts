@@ -173,6 +173,27 @@ test("a browser measures the pages in CI", () => {
   assert.ok(executable || !process.env.CI, skip || "");
 });
 
+test(
+  "test tabs default to no reduced motion and keep it when the system scheme changes",
+  { skip },
+  async () => {
+    for (const theme of THEMES) {
+      const tab = await browser!.open("about:blank", { width: 320, theme });
+      try {
+        const noReducedMotion = () =>
+          tab.evaluate(
+            () => matchMedia("(prefers-reduced-motion: no-preference)").matches,
+          );
+        assert.equal(await noReducedMotion(), true, `${theme}: new tab`);
+        await systemScheme(tab, theme !== "dark");
+        assert.equal(await noReducedMotion(), true, `${theme}: scheme changed`);
+      } finally {
+        await tab.close();
+      }
+    }
+  },
+);
+
 /** Waits for the page's finite animations, such as a menu fading in, to
  * end, and for two more frames. */
 const still = (tab: Tab) =>
@@ -2143,8 +2164,10 @@ async function themePage(
 
 async function systemScheme(tab: Tab, dark: boolean) {
   await tab.send("Emulation.setEmulatedMedia", {
+    // CDP replaces the feature list, so keep the tab's motion default.
     features: [
       { name: "prefers-color-scheme", value: dark ? "dark" : "light" },
+      { name: "prefers-reduced-motion", value: "no-preference" },
     ],
   });
   await tab.settle();
