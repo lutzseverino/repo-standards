@@ -218,8 +218,8 @@ export class Browser {
   }
 
   /** A new tab showing `url` as a touch-first phone in `view`, with
-   * `storage` in its local storage, once its fonts have loaded and its
-   * islands have hydrated. */
+   * `storage` in its local storage and no reduced-motion preference, once
+   * its fonts have loaded and its islands have hydrated. */
   async open(
     url: string,
     view: View,
@@ -241,7 +241,10 @@ export class Browser {
       maxTouchPoints: 5,
     });
     await tab.send("Emulation.setEmulatedMedia", {
-      features: [{ name: "prefers-color-scheme", value: view.theme }],
+      features: [
+        { name: "prefers-color-scheme", value: view.theme },
+        { name: "prefers-reduced-motion", value: "no-preference" },
+      ],
     });
     // the theme the nav's toggle would have chosen and stored
     const stored = { ...storage, theme: view.theme };
